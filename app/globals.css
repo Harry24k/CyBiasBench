@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: 'Inter', var(--font-geist-sans), system-ui, sans-serif;
+  --font-serif: 'DM Serif Display', serif;
+  --font-mono: 'JetBrains Mono', var(--font-geist-mono), monospace;
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-agent-claude: var(--agent-claude);
+  --color-agent-codex: var(--agent-codex);
+  --color-agent-gemini: var(--agent-gemini);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: #0f0f10;
+  --foreground: #f4f4f5;
+  --card: #161618;
+  --card-foreground: #f4f4f5;
+  --popover: #161618;
+  --popover-foreground: #f4f4f5;
+  --primary: #e4e4e7;
+  --primary-foreground: #0f0f10;
+  --secondary: #1e1e22;
+  --secondary-foreground: #d4d4d8;
+  --muted: #1a1a1e;
+  --muted-foreground: #b4b4bc;
+  --accent: #1e1e22;
+  --accent-foreground: #e4e4e7;
+  --destructive: #ef4444;
+  --border: #23232a;
+  --input: #23232a;
+  --ring: #b4b4bc;
+  --chart-1: #E8956A;
+  --chart-2: #10A37F;
+  --chart-3: #4285F4;
+  --chart-4: #f59e0b;
+  --chart-5: #ec4899;
+  --agent-claude: #E8956A;
+  --agent-codex: #10A37F;
+  --agent-gemini: #4285F4;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .font-mono {
+    font-family: 'JetBrains Mono', var(--font-geist-mono), monospace;
+  }
+  .font-serif {
+    font-family: 'DM Serif Display', serif;
+  }
+}
+
+/* Recharts dark theme overrides */
+.recharts-cartesian-grid line {
+  stroke: #23232a;
+}
+.recharts-text {
+  fill: #b4b4bc;
+}
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: #1a1a1e !important;
+  border-color: #23232a !important;
+  border-radius: 8px !important;
+  color: #e4e4e7 !important;
+}
+.recharts-tooltip-item {
+  color: #e4e4e7 !important;
+}
+.recharts-legend-item-text {
+  color: #d4d4d8 !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f0f10;
+}
+::-webkit-scrollbar-thumb {
+  background: #23232a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a42;
+}
+
+/* Selection color */
+::selection {
+  background: rgba(180, 180, 188, 0.25);
+  color: #e4e4e7;
+}
