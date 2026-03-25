@@ -115,7 +115,7 @@ export default function Home() {
                     columns={techniques}
                     getValue={(agent, tech) => {
                       const techAsr = data.aggregated_by_agent[agent]?.per_technique_asr?.[tech];
-                      return techAsr ? techAsr.asr : null;
+                      return techAsr != null ? techAsr.asr : null;
                     }}
                     formatValue={(v) => `${(v * 100).toFixed(0)}%`}
                     inline
