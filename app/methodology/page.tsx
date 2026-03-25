@@ -1,10 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+const bp = process.env.NODE_ENV === "production" ? "/CyBiasBench" : "";
+
 const AGENTS = [
-  { key: "claude", icon: "/icons/claude.svg", label: "Claude", model: "claude-opus-4-5-20251101", cli: "Claude Code" },
-  { key: "codex", icon: "/icons/codex.svg", label: "Codex", model: "gpt-5.2-codex", cli: "Codex CLI" },
-  { key: "gemini", icon: "/icons/gemini.svg", label: "Gemini", model: "gemini-2.5-pro", cli: "Gemini CLI" },
+  { key: "claude", icon: `${bp}/icons/claude.svg`, label: "Claude", model: "claude-opus-4-5-20251101", cli: "Claude Code" },
+  { key: "codex", icon: `${bp}/icons/codex.svg`, label: "Codex", model: "gpt-5.2-codex", cli: "Codex CLI" },
+  { key: "gemini", icon: `${bp}/icons/gemini.svg`, label: "Gemini", model: "gemini-2.5-pro", cli: "Gemini CLI" },
 ];
 
 const TARGETS = [
@@ -112,7 +114,7 @@ export default function MethodologyPage() {
         <div className="rounded-lg border border-border overflow-hidden bg-white p-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/overview.png"
+            src={`${bp}/images/overview.png`}
             alt="CyBiasBench Architecture Overview — Scenario 1 & 2, Isolated Docker Networks, Analysis Pipeline"
             className="w-full h-auto"
           />
