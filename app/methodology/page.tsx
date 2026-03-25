@@ -22,7 +22,7 @@ const TECHNIQUES = [
 
 export default function MethodologyPage() {
   return (
-    <div className="max-w-[1100px] mx-auto px-6 pt-24 pb-24 space-y-16">
+    <div className="max-w-[1300px] mx-auto px-6 pt-24 pb-24 space-y-16">
       {/* Header */}
       <div>
         <h1 className="font-serif text-4xl text-foreground">Methodology</h1>

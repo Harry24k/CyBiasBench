@@ -214,67 +214,27 @@ function TechniqueBiasTab({ data }: { data: AnalysisResults }) {
         </div>
       </FadeIn>
 
-      {/* Per-Technique ASR Comparison */}
+      {/* Per-Technique ASR Heatmap */}
       {biasAsr && (() => {
-        const sorted = Object.entries(biasAsr.per_technique)
+        const techniques = Object.entries(biasAsr.per_technique)
           .filter(([t]) => !EXCLUDE_TECHS.has(t))
-          .sort(([, a], [, b]) => b.total_attempts - a.total_attempts);
+          .sort(([, a], [, b]) => b.total_attempts - a.total_attempts)
+          .map(([t]) => t);
 
         return (
           <FadeIn>
-            <SectionHeader title="Effectiveness by Technique" desc="Per-agent ASR comparison. Bar shows relative success rate." />
-            <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left px-5 py-4 font-semibold text-foreground w-40">Technique</th>
-                    {agents.map((a) => (
-                      <th key={a} className="text-center px-4 py-4 font-semibold" colSpan={2}>
-                        <div className="flex items-center justify-center gap-2">
-                          <Icon agent={a} sm />
-                          <span className="text-sm">{AGENT_LABELS[a]}</span>
-                        </div>
-                        <span className="text-xs font-normal text-muted-foreground">ASR</span>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {sorted.map(([tech]) => {
-                    const perAgentAsr = agents.map((a) => {
-                      const t = data.aggregated_by_agent[a]?.per_technique_asr?.[tech];
-                      return t ? t.asr : null;
-                    });
-                    return (
-                      <tr key={tech} className="border-t border-border">
-                        <td className="px-5 py-4 font-mono text-base text-foreground">{tech}</td>
-                        {agents.map((a, ai) => {
-                          const asr = perAgentAsr[ai];
-                          return (
-                            <React.Fragment key={a}>
-                              <td className="pl-4 pr-1 py-4">
-                                <div className="w-16 h-2 rounded-full bg-muted/50 overflow-hidden">
-                                  {asr != null && (
-                                    <div className="h-full rounded-full" style={{
-                                      width: `${asr * 100}%`,
-                                      backgroundColor: MODEL_COLORS[a],
-                                      opacity: 0.5,
-                                    }} />
-                                  )}
-                                </div>
-                              </td>
-                              <td className={`pr-4 pl-1 py-4 font-mono text-base text-right ${best(perAgentAsr, ai, true)}`}>
-                                {asr != null ? fmtPct(asr) : "\u2014"}
-                              </td>
-                            </React.Fragment>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <BiasHeatmap
+              title="Per-technique ASR"
+              description="Attack success rate per technique. Compares effectiveness across agents."
+              agents={agents}
+              columns={techniques}
+              getValue={(agent, tech) => {
+                const techAsr = data.aggregated_by_agent[agent]?.per_technique_asr?.[tech];
+                return techAsr ? techAsr.asr : null;
+              }}
+              formatValue={(v) => `${(v * 100).toFixed(0)}%`}
+              inline
+            />
           </FadeIn>
         );
       })()}
@@ -906,7 +866,7 @@ export default function AnalysisPage() {
   return (
     <div className="flex flex-col min-h-0">
       <FadeIn>
-        <div className="pt-24 pb-8 max-w-[1100px] mx-auto px-6">
+        <div className="pt-24 pb-8 max-w-[1300px] mx-auto px-6">
           <h1 className="font-serif text-4xl text-foreground">Detailed Analysis</h1>
           <p className="mt-2 text-base text-muted-foreground">
             In-depth bias metrics and comparisons across {Object.keys(data?.aggregated_by_agent ?? {}).length || 3} agents, 108 experiments.
@@ -915,12 +875,12 @@ export default function AnalysisPage() {
       </FadeIn>
 
       {error && (
-        <div className="max-w-[1100px] mx-auto px-6 mb-4">
+        <div className="max-w-[1300px] mx-auto px-6 mb-4">
           <p className="text-destructive text-base font-mono">{error}</p>
         </div>
       )}
 
-      <div className="max-w-[1100px] mx-auto px-6 w-full pb-24">
+      <div className="max-w-[1300px] mx-auto px-6 w-full pb-24">
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="mb-8">
             <TabsTrigger value="technique">Technique Bias</TabsTrigger>

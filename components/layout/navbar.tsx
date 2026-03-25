@@ -15,7 +15,7 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="max-w-[1100px] mx-auto px-6 h-14 flex items-center justify-between">
+      <div className="max-w-[1300px] mx-auto px-6 h-14 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <span className="font-serif text-lg text-foreground">
             CyBiasBench

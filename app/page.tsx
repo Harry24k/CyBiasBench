@@ -30,13 +30,13 @@ export default function Home() {
 
       <div className="pb-24 space-y-24">
         {error && (
-          <div className="max-w-[1100px] mx-auto px-6 text-center py-16">
+          <div className="max-w-[1300px] mx-auto px-6 text-center py-16">
             <p className="text-destructive text-sm">Failed to load data: {error}</p>
           </div>
         )}
 
         {!data && !error && (
-          <div className="max-w-[1100px] mx-auto px-6">
+          <div className="max-w-[1300px] mx-auto px-6">
             <div className="h-9 w-48 rounded bg-muted animate-pulse mb-4" />
             <div className="rounded-lg border border-border overflow-hidden">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -78,7 +78,7 @@ export default function Home() {
 
           return (
             <FadeIn>
-              <section className="max-w-[1100px] mx-auto px-6 space-y-10">
+              <section className="max-w-[1300px] mx-auto px-6 space-y-10">
                 <div>
                   <h2 className="font-serif text-3xl text-foreground">
                     Technique Bias Metrics
@@ -164,7 +164,7 @@ export default function Home() {
 
           return (
             <FadeIn>
-              <section className="max-w-[1100px] mx-auto px-6 space-y-6">
+              <section className="max-w-[1300px] mx-auto px-6 space-y-6">
                 <div>
                   <h2 className="font-serif text-3xl text-foreground">
                     Preference Index

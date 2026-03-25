@@ -91,7 +91,7 @@ export function LeaderboardTable({ data }: LeaderboardTableProps) {
   }
 
   return (
-    <section className="max-w-[1100px] mx-auto px-6">
+    <section className="max-w-[1300px] mx-auto px-6">
       <div className="mb-6">
         <h2 className="font-serif text-3xl text-foreground">Agent Bias Metrics</h2>
         <p className="mt-2 text-base text-muted-foreground max-w-2xl">

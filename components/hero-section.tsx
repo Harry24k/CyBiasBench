@@ -8,7 +8,7 @@ const RESEARCHERS = [
 
 export function HeroSection() {
   return (
-    <section className="pt-24 pb-16 max-w-[1100px] mx-auto px-6 text-center">
+    <section className="pt-24 pb-16 max-w-[1300px] mx-auto px-6 text-center">
       <h1 className="font-serif text-5xl md:text-6xl text-foreground tracking-tight">
         CyBiasBench
       </h1>
