@@ -28,8 +28,10 @@ export function Footer() {
 {`@misc{cybiasbench2026,
   title={CyBiasBench: Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios},
   year={2026},
-  author={Taein Lim and Seongyong Ju and Munhyeok Kim and Hyeonjun Kim and Hoki Kim},
-  note={3 LLM agents, 3 targets, 4 conditions, 3 runs, 108 experiments}
+  author={Taein Lim and Seongyong Ju and Munhyeok Kim and Hyunjun Kim* and Hoki Kim*},
+  note={* Corresponding Authors. 3 LLM agents, 3 targets, 4 conditions, 3 runs, 108 experiments},
+  organization={Dept. of Industrial Security, Chung-Ang University;
+               Dept. of Computer Information and Communication Engineering, Myongji University}
 }`}
           </pre>
         </div>

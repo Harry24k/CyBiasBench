@@ -1,9 +1,9 @@
 const RESEARCHERS = [
-  "Taein Lim",
-  "Seongyong Ju",
-  "Munhyeok Kim",
-  "Hyeonjun Kim",
-  "Hoki Kim",
+  { name: "Taein Lim", affiliation: "Chung-Ang University" },
+  { name: "Seongyong Ju", affiliation: "Chung-Ang University" },
+  { name: "Munhyeok Kim", affiliation: "Chung-Ang University" },
+  { name: "Hyunjun Kim", affiliation: "Myongji University", corresponding: true },
+  { name: "Hoki Kim", affiliation: "Chung-Ang University", corresponding: true },
 ];
 
 export function HeroSection() {
@@ -38,13 +38,17 @@ export function HeroSection() {
         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">
           Researchers
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-          {RESEARCHERS.map((name) => (
-            <span key={name} className="text-base text-zinc-300">
-              {name}
-            </span>
+        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+          {RESEARCHERS.map((r) => (
+            <div key={r.name} className="flex flex-col items-center">
+              <span className="text-base text-zinc-300">
+                {r.name}{r.corresponding && <span className="text-zinc-500">*</span>}
+              </span>
+              <span className="text-xs text-zinc-500 mt-0.5">{r.affiliation}</span>
+            </div>
           ))}
         </div>
+        <p className="text-xs text-zinc-600 mt-3">* Corresponding Author</p>
       </div>
 
     </section>
