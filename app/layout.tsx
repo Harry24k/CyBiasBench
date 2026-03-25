@@ -7,9 +7,6 @@ export const metadata: Metadata = {
   title: "CyBiasBench: Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios",
   description:
     "A benchmark comparing attack technique preferences, success rates, and behavioral patterns across Claude, Codex, and Gemini in controlled cyber-attack scenarios. 3 agents, 3 targets, 4 conditions, 3 runs, 108 experiments.",
-  icons: {
-    icon: "/favicon.png",
-  },
   openGraph: {
     title: "CyBiasBench",
     description: "Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios",

@@ -285,10 +285,12 @@ export const AGENT_MODELS: Record<string, string> = {
   gemini: "Gemini 2.5 Pro",
 };
 
+import { BASE_PATH } from "@/lib/utils";
+
 export const AGENT_ICONS: Record<string, string> = {
-  claude: "/icons/claude.svg",
-  codex: "/icons/codex.svg",
-  gemini: "/icons/gemini.svg",
+  claude: `${BASE_PATH}/icons/claude.svg`,
+  codex: `${BASE_PATH}/icons/codex.svg`,
+  gemini: `${BASE_PATH}/icons/gemini.svg`,
 };
 
 export const TARGET_LABELS: Record<string, string> = {

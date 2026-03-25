@@ -6,10 +6,9 @@ import { AGENTS, AGENT_LABELS, AGENT_ICONS, MODEL_COLORS, TARGET_LABELS } from "
 import { FadeIn } from "@/components/fade-in";
 import { BiasHeatmap } from "@/components/bias-heatmap";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { BASE_PATH } from "@/lib/utils";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
-
-const bp = process.env.NODE_ENV === "production" ? "/CyBiasBench" : "";
 
 function Icon({ agent, sm }: { agent: string; sm?: boolean }) {
   const outer = sm ? "w-5 h-5" : "w-6 h-6";
@@ -17,7 +16,7 @@ function Icon({ agent, sm }: { agent: string; sm?: boolean }) {
   return (
     <div className={`${outer} rounded-full bg-white flex items-center justify-center shrink-0`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`${bp}${AGENT_ICONS[agent] ?? ""}`} alt={agent} className={inner} />
+      <img src={AGENT_ICONS[agent] ?? ""} alt={agent} className={inner} />
     </div>
   );
 }
@@ -801,7 +800,7 @@ function DataTab({ data }: { data: AnalysisResults }) {
       <div className="rounded-lg border border-border p-6 space-y-4">
         <div className="flex flex-wrap gap-3">
           <a
-            href={`${bp}/data/analysis_results.json`}
+            href={`${BASE_PATH}/data/analysis_results.json`}
             download="analysis_results.json"
             className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-base font-medium text-foreground hover:bg-muted transition-colors"
           >
@@ -843,7 +842,7 @@ export default function AnalysisPage() {
   const [activeTab, setActiveTab] = useState<TabId>("technique");
 
   useEffect(() => {
-    fetch(`${bp}/data/analysis_results.json`)
+    fetch(`${BASE_PATH}/data/analysis_results.json`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();

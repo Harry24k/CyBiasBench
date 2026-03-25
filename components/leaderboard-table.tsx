@@ -136,7 +136,7 @@ export function LeaderboardTable({ data }: LeaderboardTableProps) {
                     <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={`${process.env.NODE_ENV === "production" ? "/CyBiasBench" : ""}${AGENT_ICONS[agent] ?? ""}`}
+                        src={AGENT_ICONS[agent] ?? ""}
                         alt={agent}
                         className="w-4 h-4"
                       />

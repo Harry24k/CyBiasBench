@@ -97,7 +97,7 @@ export function BiasHeatmap({
                   <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`${typeof window !== "undefined" && process.env.NODE_ENV === "production" ? "/CyBiasBench" : ""}${AGENT_ICONS[agent] ?? ""}`}
+                      src={AGENT_ICONS[agent] ?? ""}
                       alt={agent}
                       className="w-3.5 h-3.5"
                     />

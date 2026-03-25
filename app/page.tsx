@@ -6,14 +6,14 @@ import { LeaderboardTable } from "@/components/leaderboard-table";
 import { BiasHeatmap } from "@/components/bias-heatmap";
 import { FadeIn } from "@/components/fade-in";
 import type { AnalysisResults } from "@/lib/types";
+import { BASE_PATH } from "@/lib/utils";
 
 export default function Home() {
   const [data, setData] = useState<AnalysisResults | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const basePath = process.env.NODE_ENV === "production" ? "/CyBiasBench" : "";
-    fetch(`${basePath}/data/analysis_results.json`)
+    fetch(`${BASE_PATH}/data/analysis_results.json`)
       .then((res) => {
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
         return res.json();
