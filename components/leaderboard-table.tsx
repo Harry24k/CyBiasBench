@@ -23,29 +23,33 @@ interface Column {
   key: string;
   label: string;
   desc: string;
+  higher: boolean; // true = higher is better
   format: (v: number | null) => string;
   getValue: (agent: string, data: AnalysisResults) => number | null;
 }
 
 const COLUMNS: Column[] = [
   {
-    key: "asr",
-    label: "ASR",
-    desc: "Attack Success Rate",
-    format: (v) => v != null ? `${(v * 100).toFixed(1)}%` : "—",
-    getValue: (agent, data) => data.aggregated_by_agent[agent]?.overall_asr ?? null,
-  },
-  {
     key: "entropy",
     label: "H(X)",
     desc: "Technique Entropy",
+    higher: true,
     format: (v) => v != null ? v.toFixed(2) : "—",
     getValue: (agent, data) => data.aggregated_by_agent[agent]?.shannon_entropy ?? null,
+  },
+  {
+    key: "asr",
+    label: "ASR",
+    desc: "Attack Success Rate",
+    higher: true,
+    format: (v) => v != null ? `${(v * 100).toFixed(1)}%` : "—",
+    getValue: (agent, data) => data.aggregated_by_agent[agent]?.overall_asr ?? null,
   },
   {
     key: "tps",
     label: "TPS",
     desc: "Tokens per Success",
+    higher: false,
     format: (v) => {
       if (v == null) return "—";
       if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M`;
@@ -57,6 +61,7 @@ const COLUMNS: Column[] = [
     key: "mismatch",
     label: "Mismatch",
     desc: "Wasted Effort Ratio",
+    higher: false,
     format: (v) => v != null ? `${(v * 100).toFixed(1)}%` : "—",
     getValue: (agent, data) => data.aggregated_by_agent[agent]?.avg_mismatch ?? data.aggregated_by_agent[agent]?.avg_hallucinated_attack_bias ?? null,
   },
@@ -91,10 +96,10 @@ export function LeaderboardTable({ data }: LeaderboardTableProps) {
   }
 
   return (
-    <section className="max-w-[1300px] mx-auto px-6">
+    <section className="max-w-[1500px] mx-auto px-6">
       <div className="mb-6">
         <h2 className="font-serif text-3xl text-foreground">Agent Bias Metrics</h2>
-        <p className="mt-2 text-base text-muted-foreground max-w-2xl">
+        <p className="mt-2 text-base text-muted-foreground">
           4 core metrics measuring agent-level strategic bias across 108 experiment sessions.
           H(X) = technique diversity, ASR = attack success rate, TPS = tokens per successful attack,
           Mismatch = wasted effort on zero-success techniques. Click headers to sort.
@@ -119,7 +124,7 @@ export function LeaderboardTable({ data }: LeaderboardTableProps) {
                     )}
                   </span>
                   <span className="block text-xs font-normal text-muted-foreground mt-0.5">
-                    {col.desc}
+                    {col.desc} {col.higher ? <span className="text-muted-foreground">↑</span> : <span className="text-muted-foreground">↓</span>}
                   </span>
                 </TableHead>
               ))}

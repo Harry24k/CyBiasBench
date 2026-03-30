@@ -8,16 +8,16 @@ const RESEARCHERS = [
 
 export function HeroSection() {
   return (
-    <section className="pt-24 pb-16 max-w-[1300px] mx-auto px-6 text-center">
+    <section className="pt-24 pb-16 max-w-[1500px] mx-auto px-6 text-center">
       <h1 className="font-serif text-5xl md:text-6xl text-foreground tracking-tight">
         CyBiasBench
       </h1>
-      <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+      <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
         Benchmarking Bias in LLM Agents
         <br />
         for Cyber-Attack Scenarios
       </p>
-      <p className="mt-6 text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
+      <p className="mt-6 text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
         A systematic evaluation of behavioral biases across LLM agents
         performing cyber-attack tasks against vulnerable applications.
         3 agents &middot; 3 targets &middot; 4 conditions &middot; 108 experiments.

@@ -22,7 +22,7 @@ export function FadeIn({ children, className = "", delay = 0 }: FadeInProps) {
           observer.disconnect();
         }
       },
-      { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.01, rootMargin: "0px 0px 200px 0px" }
     );
     observer.observe(el);
     return () => observer.disconnect();

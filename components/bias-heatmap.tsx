@@ -16,20 +16,21 @@ interface BiasHeatmapProps {
   inline?: boolean;
 }
 
-function getSequentialColor(value: number, min: number, max: number): string {
-  if (max === min) return "bg-zinc-800/30";
-  const ratio = (value - min) / (max - min);
-  if (ratio < 0.2) return "bg-zinc-800/40";
-  if (ratio < 0.4) return "bg-zinc-700/50";
-  if (ratio < 0.6) return "bg-zinc-600/50";
-  if (ratio < 0.8) return "bg-zinc-500/40";
-  return "bg-zinc-400/35";
-}
+function getHeatmapStyle(value: number, min: number, max: number): { bg: string; text: string } {
+  if (max === min) return { bg: "rgba(255, 255, 255, 0.03)", text: "#b4b4bc" };
+  const raw = Math.max(0, Math.min(1, (value - min) / (max - min)));
+  // Power curve: spread out lower values for better gradient visibility
+  const ratio = Math.pow(raw, 0.6);
 
-function getTextColor(value: number, min: number, max: number): string {
-  if (max === min) return "text-muted-foreground";
-  const ratio = (value - min) / (max - min);
-  return ratio > 0.5 ? "text-foreground" : "text-muted-foreground";
+  // Purple → Blue: elegant hue shift within cool spectrum
+  const h = 270 - ratio * 50;   // 270 → 220 (purple → blue)
+  const s = 35 + ratio * 28;    // 35 → 63
+  const l = 10 + ratio * 44;    // 10 → 54
+
+  return {
+    bg: `hsl(${h}, ${s}%, ${l}%)`,
+    text: ratio > 0.3 ? "#f4f4f5" : "#a0a0a8",
+  };
 }
 
 export function BiasHeatmap({
@@ -67,7 +68,7 @@ export function BiasHeatmap({
   }
 
   function getMinMax(col: string): [number, number] {
-    if (normalizePerColumn) return [colMin[col] ?? 0, colMax[col] ?? 1];
+    if (normalizePerColumn) return [0, colMax[col] ?? 1];
     return [globalMin, globalMax];
   }
 
@@ -82,7 +83,7 @@ export function BiasHeatmap({
             {columns.map((col) => (
               <th
                 key={col}
-                className="px-4 py-4 text-center font-semibold text-foreground text-sm"
+                className="px-4 py-4 text-center font-semibold text-foreground text-sm whitespace-nowrap"
               >
                 {getLabel(col)}
               </th>
@@ -102,7 +103,7 @@ export function BiasHeatmap({
                       className="w-3.5 h-3.5"
                     />
                   </div>
-                  <span className="font-medium text-foreground">
+                  <span className="font-medium text-foreground whitespace-nowrap">
                     {AGENT_LABELS[agent] ?? agent}
                   </span>
                 </div>
@@ -117,10 +118,12 @@ export function BiasHeatmap({
                   );
                 }
                 const [mn, mx] = getMinMax(col);
+                const style = getHeatmapStyle(val, mn, mx);
                 return (
                   <td
                     key={col}
-                    className={`px-4 py-4 text-center font-mono text-base tabular-nums ${getSequentialColor(val, mn, mx)} ${getTextColor(val, mn, mx)}`}
+                    className="px-4 py-4 text-center font-mono text-base tabular-nums whitespace-nowrap"
+                    style={{ backgroundColor: style.bg, color: style.text }}
                   >
                     {fmt(val, col)}
                   </td>
@@ -144,7 +147,7 @@ export function BiasHeatmap({
   }
 
   return (
-    <section className="max-w-[1300px] mx-auto px-6 mt-20">
+    <section className="max-w-[1500px] mx-auto px-6 mt-20">
       <div className="mb-6">
         <h2 className="font-serif text-3xl text-foreground">{title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>
