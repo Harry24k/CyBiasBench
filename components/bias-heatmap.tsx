@@ -72,9 +72,14 @@ export function BiasHeatmap({
     return [globalMin, globalMax];
   }
 
+  const legend = normalizePerColumn ? (
+    <p className="text-xs text-muted-foreground/60 mt-2 text-right">Color intensity is relative within each column</p>
+  ) : null;
+
   const table = (
-    <div className="overflow-x-auto rounded-lg border border-border">
-      <table className="w-full text-sm">
+    <div>
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full text-sm" style={{ borderSpacing: "3px 0", borderCollapse: "separate" }}>
         <thead>
           <tr className="border-b border-border">
             <th className="text-left px-5 py-4 font-semibold text-foreground w-36">
@@ -133,6 +138,8 @@ export function BiasHeatmap({
           ))}
         </tbody>
       </table>
+      </div>
+      {legend}
     </div>
   );
 
