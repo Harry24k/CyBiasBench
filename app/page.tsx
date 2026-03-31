@@ -30,6 +30,23 @@ const TECHNIQUES = [
   "idor", "ssrf", "csrf", "file_upload", "info_disclosure",
 ];
 
+// Canonical technique order: Injection → Access → File/Path → Request → Recon
+const TECHNIQUE_ORDER = [
+  "sqli", "xss", "cmdi",
+  "auth_bypass", "idor",
+  "path_traversal", "file_upload",
+  "ssrf", "csrf",
+  "info_disclosure",
+];
+
+function sortByCanonical(techs: string[]): string[] {
+  return [...techs].sort((a, b) => {
+    const ia = TECHNIQUE_ORDER.indexOf(a);
+    const ib = TECHNIQUE_ORDER.indexOf(b);
+    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+  });
+}
+
 const EXCLUDE_TECHS = new Set(["deserialization"]);
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -122,10 +139,9 @@ function SummarySection({ data }: { data: AnalysisResults }) {
       techTotals[tech] = (techTotals[tech] ?? 0) + count;
     }
   }
-  const techniques = Object.entries(techTotals)
-    .filter(([t]) => !EXCLUDE_TECHS.has(t))
-    .sort(([, a], [, b]) => b - a)
-    .map(([t]) => t);
+  const techniques = sortByCanonical(
+    Object.keys(techTotals).filter((t) => !EXCLUDE_TECHS.has(t))
+  );
 
   // Preference Index aggregation
   const agentTechPi: Record<string, Record<string, { sum: number; count: number }>> = {};
@@ -146,11 +162,7 @@ function SummarySection({ data }: { data: AnalysisResults }) {
       if (!EXCLUDE_TECHS.has(tech)) allPiTechs.add(tech);
     }
   }
-  const piTechniques = [...allPiTechs].sort((a, b) => {
-    const maxA = Math.max(...agents.map(ag => { const d = agentTechPi[ag]?.[a]; return d ? d.sum / d.count : 0; }));
-    const maxB = Math.max(...agents.map(ag => { const d = agentTechPi[ag]?.[b]; return d ? d.sum / d.count : 0; }));
-    return maxB - maxA;
-  });
+  const piTechniques = sortByCanonical([...allPiTechs]);
 
   return (
     <div className="space-y-16">
@@ -705,11 +717,7 @@ function AnalysisSection({ data }: { data: AnalysisResults }) {
       if (!EXCLUDE_TECHS.has(t)) allTechs.add(t);
     });
   });
-  const techniques = [...allTechs].sort((a, b) => {
-    const sa = agents.reduce((s, ag) => s + (agg[ag]?.technique_distribution?.[a] ?? 0), 0);
-    const sb = agents.reduce((s, ag) => s + (agg[ag]?.technique_distribution?.[b] ?? 0), 0);
-    return sb - sa;
-  });
+  const techniques = sortByCanonical([...allTechs]);
 
   const biasAsr = data.bias_asr_correlation;
   const metrics = [
@@ -912,10 +920,9 @@ function AnalysisSection({ data }: { data: AnalysisResults }) {
 
       {/* Per-Technique ASR */}
       {biasAsr && (() => {
-        const biasAsrTechs = Object.entries(biasAsr.per_technique)
-          .filter(([t]) => !EXCLUDE_TECHS.has(t))
-          .sort(([, a], [, b]) => b.total_attempts - a.total_attempts)
-          .map(([t]) => t);
+        const biasAsrTechs = sortByCanonical(
+          Object.keys(biasAsr.per_technique).filter((t) => !EXCLUDE_TECHS.has(t))
+        );
 
         return (
           <FadeIn>
@@ -932,6 +939,76 @@ function AnalysisSection({ data }: { data: AnalysisResults }) {
               normalizePerColumn
               inline
             />
+          </FadeIn>
+        );
+      })()}
+
+      {/* Preference Index — Agent Strategy Rankings */}
+      {(() => {
+        const agentTechPi: Record<string, Record<string, { sum: number; count: number }>> = {};
+        for (const exp of data.per_experiment) {
+          if (!exp.preference_index) continue;
+          if (!agentTechPi[exp.agent]) agentTechPi[exp.agent] = {};
+          for (const [tech, pi] of Object.entries(exp.preference_index)) {
+            if (EXCLUDE_TECHS.has(tech)) continue;
+            if (!agentTechPi[exp.agent][tech]) agentTechPi[exp.agent][tech] = { sum: 0, count: 0 };
+            agentTechPi[exp.agent][tech].sum += pi;
+            agentTechPi[exp.agent][tech].count += 1;
+          }
+        }
+
+        // Build ranked list per agent
+        const agentRanked = agents.map((a) => {
+          const techs = Object.entries(agentTechPi[a] ?? {})
+            .map(([tech, d]) => ({ tech, pi: d.sum / d.count }))
+            .sort((x, y) => y.pi - x.pi);
+          return { agent: a, techs };
+        });
+
+        // Compute percentile-based tiers from all PI values
+        const allPi = agentRanked.flatMap((r) => r.techs.map((t) => t.pi)).sort((a, b) => a - b);
+        const p25 = allPi[Math.floor(allPi.length * 0.25)] ?? 0;
+        const p50 = allPi[Math.floor(allPi.length * 0.50)] ?? 0;
+        const p75 = allPi[Math.floor(allPi.length * 0.75)] ?? 0;
+
+        function piTier(pi: number): { label: string; cls: string } {
+          if (pi >= p75) return { label: "Core", cls: "text-orange-400 bg-orange-400/10 border-orange-400/30" };
+          if (pi >= p50) return { label: "Primary", cls: "text-amber-400 bg-amber-400/10 border-amber-400/30" };
+          if (pi >= p25) return { label: "Secondary", cls: "text-blue-400 bg-blue-400/10 border-blue-400/30" };
+          return { label: "Last Resort", cls: "text-zinc-500 bg-zinc-500/10 border-zinc-500/30" };
+        }
+
+        if (agentRanked.every((r) => r.techs.length === 0)) return null;
+
+        return (
+          <FadeIn>
+            <SectionHeader
+              title="Preference Index — Strategy Profile"
+              desc="Each agent's techniques ranked by PI (Sel% / FSO). Classified as Core Strategy (≥0.1), Primary Tactic (0.05–0.099), Secondary (0.01–0.049), Last Resort (<0.01)."
+            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {agentRanked.map(({ agent, techs }) => (
+                <div key={agent} className="rounded-lg border border-border overflow-hidden">
+                  <div className="px-4 py-3 border-b border-border bg-card flex items-center gap-2.5">
+                    <Icon agent={agent} />
+                    <span className="font-medium text-foreground">{AGENT_LABELS[agent]}</span>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {techs.map(({ tech, pi }, i) => {
+                      const tier = piTier(pi);
+                      return (
+                        <div key={tech} className="flex items-center gap-3 px-4 py-2.5">
+                          <span className="text-xs font-mono text-muted-foreground/50 w-4">{i + 1}</span>
+                          <span className="text-sm font-mono text-foreground flex-1">{tech}</span>
+                          <span className={`text-xs font-mono px-1.5 py-0.5 rounded border ${tier.cls}`}>{tier.label}</span>
+                          <span className="text-sm font-mono text-muted-foreground w-14 text-right">{pi.toFixed(3)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </FadeIn>
         );
       })()}
@@ -977,11 +1054,7 @@ function AnalysisSection({ data }: { data: AnalysisResults }) {
             if (c > 0 && !EXCLUDE_TECHS.has(t)) techs.add(t);
           });
         });
-        const sortedTechs = [...techs].sort((a, b) => {
-          const sa = agents.reduce((s, ag) => s + (targetAgg?.[ag]?.technique_distribution?.[a] ?? 0), 0);
-          const sb = agents.reduce((s, ag) => s + (targetAgg?.[ag]?.technique_distribution?.[b] ?? 0), 0);
-          return sb - sa;
-        });
+        const sortedTechs = sortByCanonical([...techs]);
 
         return (
           <FadeIn key={target}>
