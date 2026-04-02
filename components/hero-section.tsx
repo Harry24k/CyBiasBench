@@ -17,10 +17,10 @@ export function HeroSection() {
         <br />
         for Cyber-Attack Scenarios
       </p>
-      <p className="mt-6 text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-        A systematic evaluation of behavioral biases across LLM agents
-        performing cyber-attack tasks against vulnerable applications.
-        3 agents &middot; 3 targets &middot; 4 conditions &middot; 108 experiments.
+      <p className="mt-6 text-base text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+        Existing benchmarks evaluate agents through ASR alone, collapsing fundamentally different behavioral profiles into a single number.
+        CyBiasBench captures how agents select, persist in, and can be steered toward attack strategies.
+        3 agents &middot; 3 targets &middot; 2 scenarios &middot; 378 experiments.
       </p>
 
       <div className="mt-8 flex items-center justify-center gap-4">

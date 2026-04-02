@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 const SECTIONS = [
   { id: "summary", label: "Summary" },
   { id: "methodology", label: "Methodology" },
-  { id: "analysis", label: "Analysis" },
+  { id: "analysis", label: "S1 Analysis" },
+  { id: "scenario2", label: "S2 Analysis" },
 ];
 
 export function Navbar() {

@@ -730,11 +730,87 @@ function AnalysisSection({ data }: { data: AnalysisResults }) {
   return (
     <div className="max-w-[1500px] mx-auto px-6 space-y-16">
       <div>
-        <h1 className="font-serif text-4xl text-foreground">Detailed Analysis</h1>
+        <h1 className="font-serif text-4xl text-foreground">Scenario 1 — Free Choice</h1>
         <p className="mt-2 text-base text-muted-foreground">
-          In-depth bias metrics and comparisons across {agents.length} agents, 108 experiments.
+          Agents operate under 4 prompt conditions without externally prioritized techniques. 36 runs per agent, 108 total sessions.
         </p>
       </div>
+
+      {/* Agent Behavioral Profiles */}
+      <FadeIn>
+        <SectionHeader title="Agent Behavioral Profiles" desc="Each agent exhibits a distinct, persistent attack strategy that survives prompt variation." />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { agent: "claude", profile: "Broad Exploration", desc: "Stable core with wide distribution. Most diverse technique selection across all conditions.", core: "info_disclosure, path_traversal, sqli", topMass: "48\u201357%", entropy: "2.62" },
+            { agent: "codex", profile: "Narrow Concentration", desc: "Heavy reliance on a small set. Highest mismatch\u2014most effort on non-productive techniques.", core: "xss, info_disclosure, auth_bypass", topMass: "65\u201386%", entropy: "1.66" },
+            { agent: "gemini", profile: "XSS-Centered Anchor", desc: "Strong single-technique anchor. xss leads in every condition; secondary ranks shift across prompts.", core: "xss, info_disclosure, ssrf", topMass: "70\u201378%", entropy: "1.13" },
+          ].map((p) => (
+            <div key={p.agent} className="rounded-lg border border-border overflow-hidden">
+              <div className="px-4 py-3 border-b border-border bg-card flex items-center gap-2.5">
+                <Icon agent={p.agent} />
+                <span className="font-medium text-foreground">{AGENT_LABELS[p.agent]}</span>
+                <span className="ml-auto text-xs font-mono text-muted-foreground">H(X) {p.entropy}</span>
+              </div>
+              <div className="px-4 py-4 space-y-3">
+                <div>
+                  <span className="text-sm font-semibold text-foreground">{p.profile}</span>
+                  <p className="text-xs text-muted-foreground mt-1">{p.desc}</p>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Recurrent core</span>
+                    <span className="font-mono text-foreground">{p.core}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Top-3 mass range</span>
+                    <span className="font-mono text-foreground">{p.topMass}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </FadeIn>
+
+      {/* Preference-Efficacy Alignment */}
+      <FadeIn>
+        <SectionHeader title="Preference–Efficacy Alignment" desc="Does selecting a technique more often mean it works better? Spearman rank correlations reveal model-dependent alignment." />
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left px-5 py-4 font-semibold text-foreground">Agent</th>
+                <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">&rho;(Sel, ASR)</th>
+                <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">&rho;(PI, ASR)</th>
+                <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">&rho;(Entropy, ASR)</th>
+                <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">&rho;(Mismatch, ASR)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { agent: "claude", selAsr: "0.274", piAsr: "0.231", entAsr: "-0.008", misAsr: "-0.836***" },
+                { agent: "codex", selAsr: "0.644*", piAsr: "0.730*", entAsr: "0.392*", misAsr: "-0.930***" },
+                { agent: "gemini", selAsr: "0.784**", piAsr: "0.760*", entAsr: "0.096", misAsr: "-0.833***" },
+              ].map((r) => (
+                <tr key={r.agent} className="border-t border-border">
+                  <AgentCell agent={r.agent} />
+                  <td className="text-right px-5 py-4 font-mono text-base">{r.selAsr}</td>
+                  <td className="text-right px-5 py-4 font-mono text-base">{r.piAsr}</td>
+                  <td className="text-right px-5 py-4 font-mono text-base">{r.entAsr}</td>
+                  <td className="text-right px-5 py-4 font-mono text-base text-emerald-400 font-bold">{r.misAsr}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-5 py-4">
+          <p className="text-sm text-foreground">
+            <strong>Key Finding:</strong> Mismatch is the strongest and most consistent predictor of degraded performance across all agents (&rho; &le; -0.83, p &lt; 0.001).
+            An agent does not perform poorly because it has a strong preference &mdash; it performs poorly when that preference is directed at non-productive techniques.
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">*p &lt; 0.05, **p &lt; 0.01, ***p &lt; 0.001</p>
+        </div>
+      </FadeIn>
 
       {/* Metric Overview Cards */}
       <FadeIn>
@@ -1013,29 +1089,182 @@ function AnalysisSection({ data }: { data: AnalysisResults }) {
         );
       })()}
 
-      {/* ASR by Target */}
+    </div>
+  );
+}
+
+// =============================================================================
+// S2 Types & Section
+// =============================================================================
+
+interface S2Data {
+  target_asr: Record<string, Record<string, number | null>>;
+  compliance: Record<string, Record<string, number | null>>;
+  s1_vs_s2: Record<string, Record<string, { s1_asr: number | null; s2_asr: number | null; delta: number | null }>>;
+  agent_summary: Record<string, {
+    s2_attacks: number; s2_successes: number; s2_asr: number | null;
+    s2_tokens: number; s2_cost: number; s2_cost_per_success: number | null;
+    s1_attacks: number; s1_successes: number; s1_asr: number | null;
+    s1_tokens: number; s1_cost: number; s1_cost_per_success: number | null;
+  }>;
+  s1_sel: Record<string, Record<string, number>>;
+  s2_mismatch: Record<string, Record<string, number | null>>;
+  bias_chain: {
+    high: { n: number; avg_comp: number; avg_mis: number };
+    mid: { n: number; avg_comp: number; avg_mis: number };
+    low: { n: number; avg_comp: number; avg_mis: number };
+  };
+  techniques: string[];
+  agents: string[];
+}
+
+function Scenario2Section({ data }: { data: S2Data }) {
+  const agents = AGENTS.filter((a) => data.agents.includes(a));
+  const techniques = TECHNIQUE_ORDER.filter((t) => data.techniques.includes(t));
+
+  return (
+    <div className="max-w-[1500px] mx-auto px-6 space-y-16">
+      <div>
+        <h1 className="font-serif text-4xl text-foreground">Scenario 2 — Bias Injection &amp; Controllability</h1>
+        <p className="mt-2 text-base text-muted-foreground">
+          Can external framing steer agent behavior? Each agent is directed to prioritize a specific technique.
+          10 techniques &times; 3 targets &times; 3 reps &times; 3 agents = 270 experiments.
+        </p>
+      </div>
+
+      {/* Key finding callout */}
+      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-5 py-4">
+        <p className="text-sm text-foreground">
+          <strong>Key Finding:</strong> Steering is behaviorally effective but not performance-improving.
+          Single-technique injection changes behavior heterogeneously without improving mean ASR,
+          suggesting that capability, behavioral profile, and controllability are separate evaluation axes.
+        </p>
+      </div>
+
+      {/* S1 vs S2 Overview */}
       <FadeIn>
-        <SectionHeader title="ASR by Target" desc="Attack success rate per agent per target application." />
+        <SectionHeader title="S1 vs S2 Performance" desc="Free choice (S1) vs directed attack (S2). ASR drops when agents are forced to use techniques they wouldn't naturally choose." />
         <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left px-5 py-4 font-semibold text-foreground">Agent</th>
-                {targets.map((t) => (
-                  <th key={t} className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">{tLabel(t)}</th>
+                <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">S1 ASR <span className="text-muted-foreground text-xs">↑</span></th>
+                <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">S2 ASR <span className="text-muted-foreground text-xs">↑</span></th>
+                <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">Delta</th>
+                <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">S1 $/Success <span className="text-muted-foreground text-xs">↓</span></th>
+                <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">S2 $/Success <span className="text-muted-foreground text-xs">↓</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {agents.map((a) => {
+                const s = data.agent_summary[a];
+                if (!s) return null;
+                const s1Asr = s.s1_asr;
+                const s2Asr = s.s2_asr;
+                const delta = s1Asr != null && s2Asr != null ? s2Asr - s1Asr : null;
+                return (
+                  <tr key={a} className="border-t border-border">
+                    <AgentCell agent={a} />
+                    <td className="text-right px-5 py-4 font-mono text-base">{s1Asr != null ? fmtPct(s1Asr) : "\u2014"}</td>
+                    <td className="text-right px-5 py-4 font-mono text-base">{s2Asr != null ? fmtPct(s2Asr) : "\u2014"}</td>
+                    <td className={`text-right px-5 py-4 font-mono text-base ${delta != null && delta < 0 ? "text-red-400" : "text-emerald-400"}`}>
+                      {delta != null ? `${delta >= 0 ? "+" : ""}${fmtPct(delta)}` : "\u2014"}
+                    </td>
+                    <td className="text-right px-5 py-4 font-mono text-base">{s.s1_cost_per_success != null ? `$${fmt(s.s1_cost_per_success, 2)}` : "\u2014"}</td>
+                    <td className="text-right px-5 py-4 font-mono text-base">{s.s2_cost_per_success != null ? `$${fmt(s.s2_cost_per_success, 2)}` : "\u2014"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </FadeIn>
+
+      {/* Target Tech ASR Heatmap */}
+      <FadeIn>
+        <SectionHeader title="Directed ASR" desc="Success rate when each agent is specifically instructed to perform a given technique." />
+        <BiasHeatmap
+          title="" description=""
+          agents={agents}
+          columns={techniques}
+          getValue={(agent, tech) => data.target_asr[agent]?.[tech] ?? null}
+          formatValue={(v) => `${(v * 100).toFixed(0)}%`}
+          normalizePerColumn
+          inline
+        />
+      </FadeIn>
+
+      {/* Compliance Heatmap */}
+      <FadeIn>
+        <SectionHeader title="Compliance" desc="How often agents actually use the assigned technique. Low compliance = the agent chose to do something else instead." />
+        <BiasHeatmap
+          title="" description=""
+          agents={agents}
+          columns={techniques}
+          getValue={(agent, tech) => data.compliance[agent]?.[tech] ?? null}
+          formatValue={(v) => `${(v * 100).toFixed(0)}%`}
+          normalizePerColumn
+          inline
+        />
+      </FadeIn>
+
+      {/* S1 vs S2 Per-Technique */}
+      <FadeIn>
+        <SectionHeader title="S1 vs S2 Per-Technique ASR" desc="Comparing free-choice ASR (S1) with directed ASR (S2) for each technique." />
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-sm" style={{ borderSpacing: "3px 0", borderCollapse: "separate" }}>
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left px-5 py-4 font-semibold text-foreground">Technique</th>
+                {agents.map((a) => (
+                  <th key={a} colSpan={4} className="text-center px-3 py-4 font-semibold text-foreground">
+                    <div className="flex items-center justify-center gap-2">
+                      <Icon agent={a} sm />
+                      <span>{AGENT_LABELS[a]}</span>
+                    </div>
+                    <div className="flex justify-center gap-4 text-xs font-normal text-muted-foreground mt-1">
+                      <span>S1</span><span>S2</span><span>Delta</span><span>Regime</span>
+                    </div>
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {agents.map((a, ai) => (
-                <tr key={a} className="border-t border-border">
-                  <AgentCell agent={a} />
-                  {targets.map((t) => {
-                    const vals = agents.map((ag) => data.aggregated_by_target[t]?.[ag]?.overall_asr);
+              {techniques.map((t) => (
+                <tr key={t} className="border-t border-border">
+                  <td className="px-5 py-3 font-mono text-sm text-foreground">{t}</td>
+                  {agents.map((a) => {
+                    const d = data.s1_vs_s2[a]?.[t];
+                    const comp = data.compliance[a]?.[t];
+                    // Regime classification based on paper Section 5.2
+                    let regime = "";
+                    let regimeCls = "text-muted-foreground/50";
+                    if (d?.s1_asr != null && d?.s2_asr != null && comp != null) {
+                      const absDelta = Math.abs(d.delta ?? 0);
+                      if (comp > 0.5 && absDelta < 0.05) {
+                        regime = "Preserve";
+                        regimeCls = "text-emerald-400";
+                      } else if (comp > 0.5 && d.s2_asr < 0.01) {
+                        regime = "Ineffective";
+                        regimeCls = "text-amber-400";
+                      } else if ((d.delta ?? 0) < -0.05) {
+                        regime = "Amplify\u2193";
+                        regimeCls = "text-red-400";
+                      } else if ((d.delta ?? 0) > 0.05) {
+                        regime = "Improve";
+                        regimeCls = "text-blue-400";
+                      }
+                    }
                     return (
-                      <td key={t} className={`text-right px-5 py-4 font-mono text-base ${best(vals, ai, true)}`}>
-                        {fmtPct(data.aggregated_by_target[t]?.[a]?.overall_asr)}
-                      </td>
+                      <React.Fragment key={a}>
+                        <td className="text-right px-2 py-3 font-mono text-sm text-muted-foreground">{d?.s1_asr != null ? `${(d.s1_asr * 100).toFixed(0)}%` : "\u2014"}</td>
+                        <td className="text-right px-2 py-3 font-mono text-sm text-foreground">{d?.s2_asr != null ? `${(d.s2_asr * 100).toFixed(0)}%` : "\u2014"}</td>
+                        <td className={`text-right px-2 py-3 font-mono text-sm ${d?.delta != null ? (d.delta < 0 ? "text-red-400" : "text-emerald-400") : "text-muted-foreground"}`}>
+                          {d?.delta != null ? `${d.delta >= 0 ? "+" : ""}${(d.delta * 100).toFixed(0)}%` : "\u2014"}
+                        </td>
+                        <td className={`text-center px-1 py-3 text-[10px] font-mono ${regimeCls}`}>{regime}</td>
+                      </React.Fragment>
                     );
                   })}
                 </tr>
@@ -1045,214 +1274,89 @@ function AnalysisSection({ data }: { data: AnalysisResults }) {
         </div>
       </FadeIn>
 
-      {/* Per-target technique distributions */}
-      {targets.map((target) => {
-        const targetAgg = data.aggregated_by_target[target];
-        const techs = new Set<string>();
-        agents.forEach((a) => {
-          Object.entries(targetAgg?.[a]?.technique_distribution ?? {}).forEach(([t, c]) => {
-            if (c > 0 && !EXCLUDE_TECHS.has(t)) techs.add(t);
-          });
-        });
-        const sortedTechs = sortByCanonical([...techs]);
-
-        return (
-          <FadeIn key={target}>
-            <SectionHeader title={tLabel(target)} desc={`Technique distribution for ${tLabel(target)}`} />
-            <BiasHeatmap
-              title="" description=""
-              agents={[...agents]}
-              columns={sortedTechs}
-              getValue={(agent, tech) => {
-                const dist = targetAgg?.[agent]?.technique_distribution ?? {};
-                const total = Object.values(dist).reduce((s, v) => s + v, 0);
-                if (total === 0) return null;
-                const c = dist[tech] ?? 0;
-                return c > 0 ? c / total : null;
-              }}
-              formatValue={(v) => `${(v * 100).toFixed(1)}%`}
-              normalizePerColumn
-              inline
-            />
-          </FadeIn>
-        );
-      })}
-
-      {/* Guided vs Unguided */}
-      {data.guided_vs_unguided && (
-        <FadeIn>
-          <SectionHeader title="Guided vs Unguided" desc="Comparing agent behavior when technique labels are provided vs withheld." />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <StatCard value={fmtPct(data.guided_vs_unguided.summary.guided_mean_asr)} label="Guided Mean ASR" />
-            <StatCard value={fmtPct(data.guided_vs_unguided.summary.unguided_mean_asr)} label="Unguided Mean ASR" />
-            <StatCard
-              value={`${data.guided_vs_unguided.summary.overall_delta_asr >= 0 ? "+" : ""}${fmtPct(data.guided_vs_unguided.summary.overall_delta_asr)}`}
-              label="Delta ASR"
-              color="auto"
-            />
-          </div>
-
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left px-5 py-4 font-semibold text-foreground">Agent</th>
-                  <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">Guided ASR</th>
-                  <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">Unguided ASR</th>
-                  <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">Delta ASR</th>
-                  <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">Delta H</th>
-                </tr>
-              </thead>
-              <tbody>
-                {agents.filter((a) => data.guided_vs_unguided!.by_agent[a]).map((a) => {
-                  const d = data.guided_vs_unguided!.by_agent[a];
-                  return (
-                    <tr key={a} className="border-t border-border">
-                      <AgentCell agent={a} />
-                      <td className="text-right px-5 py-4 font-mono text-base">{fmtPct(d.guided.asr)}</td>
-                      <td className="text-right px-5 py-4 font-mono text-base">{fmtPct(d.unguided.asr)}</td>
-                      <td className={`text-right px-5 py-4 font-mono text-base ${d.delta_asr < 0 ? "text-red-400" : "text-emerald-400"}`}>
-                        {d.delta_asr >= 0 ? "+" : ""}{fmtPct(d.delta_asr)}
-                      </td>
-                      <td className={`text-right px-5 py-4 font-mono text-base ${d.delta_entropy > 0 ? "text-emerald-400" : "text-red-400"}`}>
-                        {d.delta_entropy >= 0 ? "+" : ""}{fmt(d.delta_entropy, 3)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </FadeIn>
-      )}
-
-      {/* Structured vs Unstructured */}
-      {data.structured_vs_unstructured && (
-        <FadeIn>
-          <SectionHeader title="Structured vs Unstructured" desc="Comparing agent behavior under JSONL output format vs free-form Markdown." />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <StatCard value={fmtPct(data.structured_vs_unstructured.summary.structured_mean_asr)} label="Structured Mean ASR" />
-            <StatCard value={fmtPct(data.structured_vs_unstructured.summary.unstructured_mean_asr)} label="Unstructured Mean ASR" />
-            <StatCard
-              value={`${data.structured_vs_unstructured.summary.overall_delta_asr >= 0 ? "+" : ""}${fmtPct(data.structured_vs_unstructured.summary.overall_delta_asr)}`}
-              label="Delta ASR"
-              color="auto"
-            />
-          </div>
-
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left px-5 py-4 font-semibold text-foreground">Agent</th>
-                  <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">Structured ASR</th>
-                  <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">Unstructured ASR</th>
-                  <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">Delta ASR</th>
-                  <th className="text-right px-5 py-4 font-semibold text-foreground whitespace-nowrap">Delta H</th>
-                </tr>
-              </thead>
-              <tbody>
-                {agents.filter((a) => data.structured_vs_unstructured!.by_agent[a]).map((a) => {
-                  const d = data.structured_vs_unstructured!.by_agent[a];
-                  return (
-                    <tr key={a} className="border-t border-border">
-                      <AgentCell agent={a} />
-                      <td className="text-right px-5 py-4 font-mono text-base">{fmtPct(d.structured.asr)}</td>
-                      <td className="text-right px-5 py-4 font-mono text-base">{fmtPct(d.unstructured.asr)}</td>
-                      <td className={`text-right px-5 py-4 font-mono text-base ${d.delta_asr < 0 ? "text-red-400" : "text-emerald-400"}`}>
-                        {d.delta_asr >= 0 ? "+" : ""}{fmtPct(d.delta_asr)}
-                      </td>
-                      <td className={`text-right px-5 py-4 font-mono text-base ${d.delta_entropy > 0 ? "text-emerald-400" : "text-red-400"}`}>
-                        {d.delta_entropy >= 0 ? "+" : ""}{fmt(d.delta_entropy, 3)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </FadeIn>
-      )}
-
-      {/* Per-Condition Breakdown */}
+      {/* Bias Persistence Chain */}
       <FadeIn>
-        <SectionHeader title="By Condition" desc="Agent Bias Metrics broken down by the 4 prompt conditions." />
-        {["guided_structured", "guided_unstructured", "unguided_structured", "unguided_unstructured"].map((cond) => {
-          const condAgg = data.aggregated_by_condition?.[cond];
-          if (!condAgg) return null;
-          const condLabel = cond.replace("_", " / ").replace(/(^|\s)\w/g, (c) => c.toUpperCase());
-          return (
-            <div key={cond} className="mb-6">
-              <h3 className="text-lg font-semibold text-foreground mb-3">{condLabel}</h3>
-              <div className="overflow-x-auto rounded-lg border border-border">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left px-5 py-3 font-semibold text-foreground">Agent</th>
-                      <th className="text-right px-5 py-3 font-semibold text-foreground">H(X) <span className="text-muted-foreground text-xs">↑</span></th>
-                      <th className="text-right px-5 py-3 font-semibold text-foreground">ASR <span className="text-muted-foreground text-xs">↑</span></th>
-                      <th className="text-right px-5 py-3 font-semibold text-foreground">TPS <span className="text-muted-foreground text-xs">↓</span></th>
-                      <th className="text-right px-5 py-3 font-semibold text-foreground">Mismatch <span className="text-muted-foreground text-xs">↓</span></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      const hVals = agents.map((ag) => condAgg[ag]?.shannon_entropy);
-                      const asrVals = agents.map((ag) => condAgg[ag]?.overall_asr);
-                      const tpsVals = agents.map((ag) => condAgg[ag]?.tokens_per_success);
-                      const misVals = agents.map((ag) => condAgg[ag]?.avg_mismatch ?? condAgg[ag]?.avg_hallucinated_attack_bias);
-                      return agents.map((a, ai) => {
-                        const ca = condAgg[a];
-                        if (!ca) return null;
-                        return (
-                          <tr key={a} className="border-t border-border">
-                            <AgentCell agent={a} />
-                            <td className={`text-right px-5 py-3 font-mono text-base ${best(hVals, ai, true)}`}>{fmt(ca.shannon_entropy, 2)}</td>
-                            <td className={`text-right px-5 py-3 font-mono text-base ${best(asrVals, ai, true)}`}>{fmtPct(ca.overall_asr)}</td>
-                            <td className={`text-right px-5 py-3 font-mono text-base ${best(tpsVals, ai, false)}`}>{fmtTps(ca.tokens_per_success)}</td>
-                            <td className={`text-right px-5 py-3 font-mono text-base ${best(misVals, ai, false)}`}>{fmtPct(ca.avg_mismatch ?? ca.avg_hallucinated_attack_bias)}</td>
-                          </tr>
-                        );
-                      });
-                    })()}
-                  </tbody>
-                </table>
+        <SectionHeader title="Bias Persistence Chain" desc="S1 free-choice preference predicts S2 compliance, which in turn determines wasted effort." />
+
+        {/* Tier Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {[
+            { tier: "High Sel% (>15%)", ...data.bias_chain.high, color: "border-emerald-500/30" },
+            { tier: "Mid Sel% (5–15%)", ...data.bias_chain.mid, color: "border-amber-500/30" },
+            { tier: "Low Sel% (<5%)", ...data.bias_chain.low, color: "border-red-500/30" },
+          ].map((t) => (
+            <div key={t.tier} className={`rounded-xl border-2 ${t.color} bg-card p-4`}>
+              <p className="text-sm font-semibold text-foreground mb-3">{t.tier}</p>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Compliance</span>
+                  <span className="font-mono text-foreground">{(t.avg_comp * 100).toFixed(0)}%</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Mismatch</span>
+                  <span className="font-mono text-foreground">{(t.avg_mis * 100).toFixed(0)}%</span>
+                </div>
+                <p className="text-xs text-muted-foreground">n = {t.n}</p>
               </div>
             </div>
-          );
-        })}
-      </FadeIn>
+          ))}
+        </div>
 
-      {/* Challenge Results */}
-      {agents.some((a) => agg[a]?.total_solved_challenges != null) && (
-        <FadeIn>
-          <SectionHeader title="Challenge Results" desc="Ground-truth verified challenges solved per agent." />
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left px-5 py-4 font-semibold text-foreground">Agent</th>
-                  <th className="text-right px-5 py-4 font-semibold text-foreground">Solved</th>
-                  <th className="text-right px-5 py-4 font-semibold text-foreground">Challenge ASR</th>
-                  <th className="text-right px-5 py-4 font-semibold text-foreground">Tokens/Challenge</th>
-                </tr>
-              </thead>
-              <tbody>
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-5 py-4 mb-8">
+          <p className="text-sm text-foreground">
+            <strong>Chain:</strong> Compliance and Mismatch are near-perfectly correlated (r = &minus;0.98).
+            When agents are forced to use techniques they rarely choose freely (Sel% &lt; 5%),
+            compliance drops to ~33% and ~61% of all attacks become wasted effort.
+          </p>
+        </div>
+
+        {/* Per-agent detail table */}
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-sm" style={{ borderSpacing: "3px 0", borderCollapse: "separate" }}>
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left px-5 py-4 font-semibold text-foreground">Technique</th>
                 {agents.map((a) => (
-                  <tr key={a} className="border-t border-border">
-                    <AgentCell agent={a} />
-                    <td className="text-right px-5 py-4 font-mono text-base">{fmtInt(agg[a]?.total_solved_challenges)}</td>
-                    <td className="text-right px-5 py-4 font-mono text-base">{fmtPct(agg[a]?.avg_challenge_asr)}</td>
-                    <td className="text-right px-5 py-4 font-mono text-base">{fmtTps(agg[a]?.tokens_per_challenge)}</td>
-                  </tr>
+                  <th key={a} colSpan={3} className="text-center px-3 py-4 font-semibold text-foreground">
+                    <div className="flex items-center justify-center gap-2">
+                      <Icon agent={a} sm />
+                      <span>{AGENT_LABELS[a]}</span>
+                    </div>
+                    <div className="flex justify-center gap-3 text-xs font-normal text-muted-foreground mt-1">
+                      <span>S1 Sel%</span><span>S2 Comp</span><span>S2 Mis</span>
+                    </div>
+                  </th>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </FadeIn>
-      )}
+              </tr>
+            </thead>
+            <tbody>
+              {techniques.map((t) => (
+                <tr key={t} className="border-t border-border">
+                  <td className="px-5 py-3 font-mono text-sm text-foreground">{t}</td>
+                  {agents.map((a) => {
+                    const sel = data.s1_sel[a]?.[t] ?? 0;
+                    const comp = data.compliance[a]?.[t];
+                    const mis = data.s2_mismatch[a]?.[t];
+                    return (
+                      <React.Fragment key={a}>
+                        <td className={`text-right px-2 py-3 font-mono text-sm ${sel > 15 ? "text-emerald-400" : sel < 5 ? "text-red-400" : "text-muted-foreground"}`}>
+                          {sel.toFixed(1)}%
+                        </td>
+                        <td className={`text-right px-2 py-3 font-mono text-sm ${comp != null && comp > 0.7 ? "text-emerald-400" : comp != null && comp < 0.3 ? "text-red-400" : "text-muted-foreground"}`}>
+                          {comp != null ? `${(comp * 100).toFixed(0)}%` : "\u2014"}
+                        </td>
+                        <td className={`text-right px-2 py-3 font-mono text-sm ${mis != null && mis > 0.6 ? "text-red-400" : mis != null && mis < 0.3 ? "text-emerald-400" : "text-muted-foreground"}`}>
+                          {mis != null ? `${(mis * 100).toFixed(0)}%` : "\u2014"}
+                        </td>
+                      </React.Fragment>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </FadeIn>
     </div>
   );
 }
@@ -1263,6 +1367,7 @@ function AnalysisSection({ data }: { data: AnalysisResults }) {
 
 export default function Home() {
   const [data, setData] = useState<AnalysisResults | null>(null);
+  const [s2Data, setS2Data] = useState<S2Data | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -1273,6 +1378,14 @@ export default function Home() {
       })
       .then(setData)
       .catch((e) => setError(e.message));
+
+    fetch(`${BASE_PATH}/data/scenario2_results.json`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        return res.json();
+      })
+      .then(setS2Data)
+      .catch(() => {});
   }, []);
 
   return (
@@ -1329,13 +1442,35 @@ export default function Home() {
         <div className="max-w-[1500px] mx-auto px-6 mb-8">
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-border" />
-            <span className="text-xs font-mono text-muted-foreground uppercase tracking-[0.2em]">Analysis</span>
+            <span className="text-xs font-mono text-muted-foreground uppercase tracking-[0.2em]">Scenario 1: Free Choice</span>
             <div className="h-px flex-1 bg-border" />
           </div>
         </div>
         {data ? (
           <FadeIn>
             <AnalysisSection data={data} />
+          </FadeIn>
+        ) : (
+          !error && (
+            <div className="max-w-[1500px] mx-auto px-6">
+              <div className="animate-pulse rounded-md bg-muted h-64" />
+            </div>
+          )
+        )}
+      </section>
+
+      {/* Scenario 2 */}
+      <section id="scenario2" className="pb-12 pt-8">
+        <div className="max-w-[1500px] mx-auto px-6 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs font-mono text-muted-foreground uppercase tracking-[0.2em]">Scenario 2: Directed Attack</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+        </div>
+        {s2Data ? (
+          <FadeIn>
+            <Scenario2Section data={s2Data} />
           </FadeIn>
         ) : (
           !error && (
