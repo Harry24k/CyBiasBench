@@ -41,14 +41,14 @@ export function HeroSection() {
         <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
           {RESEARCHERS.map((r) => (
             <div key={r.name} className="flex flex-col items-center">
-              <span className="text-base text-zinc-300">
-                {r.name}{r.corresponding && <span className="text-zinc-500">*</span>}
+              <span className="text-base text-foreground/80">
+                {r.name}{r.corresponding && <span className="text-muted-foreground">*</span>}
               </span>
-              <span className="text-xs text-zinc-500 mt-0.5">{r.affiliation}</span>
+              <span className="text-xs text-muted-foreground mt-0.5">{r.affiliation}</span>
             </div>
           ))}
         </div>
-        <p className="text-xs text-zinc-600 mt-3">* Corresponding Author</p>
+        <p className="text-xs text-muted-foreground/60 mt-3">* Corresponding Author</p>
       </div>
 
     </section>

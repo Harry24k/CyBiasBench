@@ -20,7 +20,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            try {
+              var t = localStorage.getItem('cybiasbench-theme');
+              document.documentElement.className = t === 'light' ? 'light' : '';
+            } catch(e) {}
+          })();
+        `}} />
+      </head>
       <body className="antialiased min-h-screen bg-background text-foreground flex flex-col">
         <Navbar />
         <main className="flex-1">{children}</main>

@@ -8,7 +8,7 @@ import { FadeIn } from "@/components/fade-in";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { AnalysisResults } from "@/lib/types";
-import { AGENTS, AGENT_LABELS, AGENT_ICONS, MODEL_COLORS, TARGET_LABELS } from "@/lib/types";
+import { AGENTS, AGENT_LABELS, AGENT_ICONS, TARGET_LABELS } from "@/lib/types";
 import { BASE_PATH } from "@/lib/utils";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ function Icon({ agent, sm }: { agent: string; sm?: boolean }) {
   const outer = sm ? "w-5 h-5" : "w-6 h-6";
   const inner = sm ? "w-3 h-3" : "w-3.5 h-3.5";
   return (
-    <div className={`${outer} rounded-full bg-white flex items-center justify-center shrink-0`}>
+    <div className={`${outer} rounded-full agent-icon-circle flex items-center justify-center shrink-0`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={AGENT_ICONS[agent] ?? ""} alt={agent} className={inner} />
     </div>
@@ -307,7 +307,7 @@ function MethodologySection() {
             <CardContent className="space-y-3">
               {METHODOLOGY_AGENTS.map((a) => (
                 <div key={a.key} className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shrink-0">
+                  <div className="w-7 h-7 rounded-full agent-icon-circle flex items-center justify-center shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={a.icon} alt={a.label} className="w-4 h-4" />
                   </div>
@@ -365,7 +365,7 @@ function MethodologySection() {
           </p>
         </div>
 
-        <div className="rounded-lg border border-border overflow-hidden bg-white p-4">
+        <div className="rounded-lg border border-border overflow-hidden bg-card p-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`${BASE_PATH}/images/overview.png`}

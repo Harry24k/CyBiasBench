@@ -3,8 +3,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -71,6 +69,35 @@
   --agent-gemini: #4285F4;
 }
 
+.light {
+  --background: #fafafa;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #27272a;
+  --muted: #e8e8ec;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #a1a1aa;
+  --chart-1: #c97a4f;
+  --chart-2: #0d8a6a;
+  --chart-3: #3572d4;
+  --chart-4: #d97706;
+  --chart-5: #db2777;
+  --agent-claude: #c97a4f;
+  --agent-codex: #0d8a6a;
+  --agent-gemini: #3572d4;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -94,24 +121,24 @@
   }
 }
 
-/* Recharts dark theme overrides */
+/* Recharts theme overrides */
 .recharts-cartesian-grid line {
-  stroke: #23232a;
+  stroke: var(--border);
 }
 .recharts-text {
-  fill: #b4b4bc;
+  fill: var(--muted-foreground);
 }
 .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background-color: #1a1a1e !important;
-  border-color: #23232a !important;
+  background-color: var(--popover) !important;
+  border-color: var(--border) !important;
   border-radius: 8px !important;
-  color: #e4e4e7 !important;
+  color: var(--popover-foreground) !important;
 }
 .recharts-tooltip-item {
-  color: #e4e4e7 !important;
+  color: var(--popover-foreground) !important;
 }
 .recharts-legend-item-text {
-  color: #d4d4d8 !important;
+  color: var(--secondary-foreground) !important;
 }
 
 /* Scrollbar styling */
@@ -120,18 +147,54 @@
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f0f10;
+  background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #23232a;
+  background: var(--border);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3a3a42;
+  background: var(--muted-foreground);
 }
 
 /* Selection color */
 ::selection {
   background: rgba(180, 180, 188, 0.25);
-  color: #e4e4e7;
+  color: var(--foreground);
 }
+.light ::selection {
+  background: rgba(24, 24, 27, 0.15);
+  color: var(--foreground);
+}
+
+/* Light mode specific overrides */
+.agent-icon-circle {
+  background: white;
+}
+.light .agent-icon-circle {
+  background: #e4e4e7;
+}
+.light .text-emerald-400 { color: #059669 !important; }
+.light .text-red-400 { color: #dc2626 !important; }
+.light .text-blue-400 { color: #2563eb !important; }
+.light .text-orange-400 { color: #d97706 !important; }
+.light .text-teal-400 { color: #0d9488 !important; }
+.light .text-violet-400 { color: #7c3aed !important; }
+.light .text-amber-400 { color: #b45309 !important; }
+.light .text-zinc-300 { color: #52525b !important; }
+.light .text-zinc-400 { color: #52525b !important; }
+.light .text-zinc-500 { color: #3f3f46 !important; }
+.light .text-zinc-600 { color: #27272a !important; }
+.light .bg-emerald-500\/5 { background-color: rgba(5,150,105,0.08) !important; }
+.light .bg-emerald-500\/10 { background-color: rgba(5,150,105,0.12) !important; }
+.light .bg-red-500\/10 { background-color: rgba(220,38,38,0.10) !important; }
+.light .bg-blue-500\/10 { background-color: rgba(37,99,235,0.10) !important; }
+.light .bg-blue-400\/10 { background-color: rgba(37,99,235,0.10) !important; }
+.light .bg-orange-500\/10 { background-color: rgba(217,119,6,0.10) !important; }
+.light .bg-orange-400\/10 { background-color: rgba(217,119,6,0.10) !important; }
+.light .bg-teal-500\/10 { background-color: rgba(13,148,136,0.10) !important; }
+.light .bg-violet-500\/10 { background-color: rgba(124,58,237,0.10) !important; }
+.light .border-amber-500\/50 { border-color: rgba(180,83,9,0.5) !important; }
+.light .bg-amber-500\/10 { background-color: rgba(180,83,9,0.10) !important; }
+.light .bg-amber-400\/10 { background-color: rgba(180,83,9,0.10) !important; }
+.light .bg-amber-500\/5 { background-color: rgba(180,83,9,0.06) !important; }

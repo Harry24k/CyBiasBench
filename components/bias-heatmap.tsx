@@ -1,6 +1,7 @@
 "use client";
 
-import { MODEL_COLORS, AGENT_LABELS, AGENT_ICONS } from "@/lib/types";
+import { AGENT_LABELS, AGENT_ICONS } from "@/lib/types";
+import { useTheme, useAgentColors } from "@/lib/use-theme";
 
 interface BiasHeatmapProps {
   title: string;
@@ -16,17 +17,26 @@ interface BiasHeatmapProps {
   inline?: boolean;
 }
 
-function getHeatmapStyle(value: number, min: number, max: number): { bg: string; text: string } {
-  if (max === min) return { bg: "rgba(255, 255, 255, 0.03)", text: "#b4b4bc" };
+function getHeatmapStyle(value: number, min: number, max: number, isLight: boolean): { bg: string; text: string } {
+  if (max === min) return { bg: isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.03)", text: isLight ? "#71717a" : "#b4b4bc" };
   const raw = Math.max(0, Math.min(1, (value - min) / (max - min)));
-  // Power curve: spread out lower values for better gradient visibility
   const ratio = Math.pow(raw, 0.6);
 
-  // Purple → Blue: elegant hue shift within cool spectrum
-  const h = 270 - ratio * 50;   // 270 → 220 (purple → blue)
-  const s = 35 + ratio * 28;    // 35 → 63
-  const l = 10 + ratio * 44;    // 10 → 54
+  if (isLight) {
+    // Light mode: blue family, lightness inverted (high value = dark)
+    const h = 220 - ratio * 10;   // 220→210 (blue, subtle shift)
+    const s = 40 + ratio * 40;    // 40→80
+    const l = 92 - ratio * 50;    // 92→42 (near-white→deep blue)
+    return {
+      bg: `hsl(${h}, ${s}%, ${l}%)`,
+      text: ratio > 0.3 ? "#ffffff" : "#18181b",
+    };
+  }
 
+  // Dark mode: Purple → Blue (low = dark, high = bright)
+  const h = 270 - ratio * 50;
+  const s = 35 + ratio * 28;
+  const l = 10 + ratio * 44;
   return {
     bg: `hsl(${h}, ${s}%, ${l}%)`,
     text: ratio > 0.3 ? "#f4f4f5" : "#a0a0a8",
@@ -47,6 +57,7 @@ export function BiasHeatmap({
 }: BiasHeatmapProps) {
   const fmt = formatValue ?? ((v: number) => `${(v * 100).toFixed(1)}%`);
   const getLabel = (col: string) => columnLabels?.[col] ?? col;
+  const isLight = useTheme();
 
   let globalMin = Infinity, globalMax = -Infinity;
   const colMin: Record<string, number> = {};
@@ -100,7 +111,7 @@ export function BiasHeatmap({
             <tr key={agent} className="border-t border-border">
               <td className="px-5 py-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
+                  <div className="w-6 h-6 rounded-full agent-icon-circle flex items-center justify-center shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={AGENT_ICONS[agent] ?? ""}
@@ -123,7 +134,7 @@ export function BiasHeatmap({
                   );
                 }
                 const [mn, mx] = getMinMax(col);
-                const style = getHeatmapStyle(val, mn, mx);
+                const style = getHeatmapStyle(val, mn, mx, isLight);
                 return (
                   <td
                     key={col}

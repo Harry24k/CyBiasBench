@@ -10,7 +10,8 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { MODEL_COLORS, AGENT_LABELS, AGENTS } from "@/lib/types";
+import { AGENT_LABELS, AGENTS } from "@/lib/types";
+import { useChartColors, useAgentColors } from "@/lib/use-theme";
 
 interface RadarChartProps {
   data: Record<string, string | number>[];
@@ -18,26 +19,29 @@ interface RadarChartProps {
 }
 
 export function RadarChart({ data, height = 350 }: RadarChartProps) {
+  const colors = useChartColors();
+  const agentColors = useAgentColors();
+
   return (
     <ResponsiveContainer width="100%" height={height}>
       <RechartsRadar data={data} cx="50%" cy="50%" outerRadius="75%">
-        <PolarGrid stroke="#23232a" />
+        <PolarGrid stroke={colors.grid} />
         <PolarAngleAxis
           dataKey="metric"
-          tick={{ fontSize: 11, fill: "#b4b4bc" }}
+          tick={{ fontSize: 11, fill: colors.tick }}
         />
         <PolarRadiusAxis
-          tick={{ fontSize: 10, fill: "#b4b4bc" }}
+          tick={{ fontSize: 10, fill: colors.tick }}
           domain={[0, 1]}
           tickCount={5}
         />
         <Tooltip
           contentStyle={{
             borderRadius: 8,
-            border: "1px solid #23232a",
+            border: `1px solid ${colors.tooltipBorder}`,
             fontSize: 12,
-            backgroundColor: "#1a1a1e",
-            color: "#e4e4e7",
+            backgroundColor: colors.tooltipBg,
+            color: colors.tooltipText,
           }}
         />
         {AGENTS.map((agent) => (
@@ -45,8 +49,8 @@ export function RadarChart({ data, height = 350 }: RadarChartProps) {
             key={agent}
             name={AGENT_LABELS[agent]}
             dataKey={agent}
-            stroke={MODEL_COLORS[agent]}
-            fill={MODEL_COLORS[agent]}
+            stroke={agentColors[agent]}
+            fill={agentColors[agent]}
             fillOpacity={0.15}
             strokeWidth={2}
           />

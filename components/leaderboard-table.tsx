@@ -10,7 +10,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  MODEL_COLORS,
   AGENT_LABELS,
   AGENT_MODELS,
   AGENT_ICONS,
@@ -114,7 +113,7 @@ export function LeaderboardTable({ data }: LeaderboardTableProps) {
               {COLUMNS.map((col) => (
                 <TableHead
                   key={col.key}
-                  className="text-right text-foreground font-semibold cursor-pointer select-none hover:text-white transition-colors px-5 py-4"
+                  className="text-right text-foreground font-semibold cursor-pointer select-none hover:text-foreground transition-colors px-5 py-4"
                   onClick={() => handleSort(col.key)}
                 >
                   <span className="inline-flex items-center gap-1">
@@ -134,11 +133,11 @@ export function LeaderboardTable({ data }: LeaderboardTableProps) {
             {sorted.map((agent) => (
               <TableRow
                 key={agent}
-                className="border-border hover:bg-[#1a1a1e] transition-colors"
+                className="border-border hover:bg-muted transition-colors"
               >
                 <TableCell className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 rounded-full agent-icon-circle flex items-center justify-center shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={AGENT_ICONS[agent] ?? ""}
