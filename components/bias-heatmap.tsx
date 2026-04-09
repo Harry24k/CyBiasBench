@@ -80,7 +80,7 @@ export function BiasHeatmap({
 
   function getMinMax(col: string): [number, number] {
     if (normalizePerColumn) return [0, colMax[col] ?? 1];
-    return [globalMin, globalMax];
+    return [0, globalMax];
   }
 
   const legend = normalizePerColumn ? (
@@ -90,7 +90,7 @@ export function BiasHeatmap({
   const table = (
     <div>
       <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full text-sm" style={{ borderSpacing: "3px 0", borderCollapse: "separate" }}>
+        <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
         <thead>
           <tr className="border-b border-border">
             <th className="text-left px-5 py-4 font-semibold text-foreground w-36">

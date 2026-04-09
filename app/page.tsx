@@ -196,7 +196,6 @@ function SummarySection({ data }: { data: AnalysisResults }) {
                 return count > 0 ? count / total : null;
               }}
               formatValue={(v) => `${(v * 100).toFixed(1)}%`}
-              normalizePerColumn
               inline
             />
           </FadeIn>
@@ -212,7 +211,6 @@ function SummarySection({ data }: { data: AnalysisResults }) {
                 return techAsr != null ? techAsr.asr : null;
               }}
               formatValue={(v) => `${(v * 100).toFixed(0)}%`}
-              normalizePerColumn
               inline
             />
           </FadeIn>
@@ -243,7 +241,6 @@ function SummarySection({ data }: { data: AnalysisResults }) {
                   return d ? d.sum / d.count : null;
                 }}
                 formatValue={(v) => v.toFixed(3)}
-                normalizePerColumn
                 inline
               />
             </FadeIn>
@@ -989,7 +986,6 @@ function AnalysisSection({ data }: { data: AnalysisResults }) {
             return count > 0 ? count / total : null;
           }}
           formatValue={(v) => `${(v * 100).toFixed(1)}%`}
-          normalizePerColumn
           inline
         />
       </FadeIn>
@@ -1012,7 +1008,6 @@ function AnalysisSection({ data }: { data: AnalysisResults }) {
                 return techAsr != null ? techAsr.asr : null;
               }}
               formatValue={(v) => `${(v * 100).toFixed(0)}%`}
-              normalizePerColumn
               inline
             />
           </FadeIn>
@@ -1190,7 +1185,6 @@ function Scenario2Section({ data }: { data: S2Data }) {
           columns={techniques}
           getValue={(agent, tech) => data.target_asr[agent]?.[tech] ?? null}
           formatValue={(v) => `${(v * 100).toFixed(0)}%`}
-          normalizePerColumn
           inline
         />
       </FadeIn>
@@ -1204,7 +1198,6 @@ function Scenario2Section({ data }: { data: S2Data }) {
           columns={techniques}
           getValue={(agent, tech) => data.compliance[agent]?.[tech] ?? null}
           formatValue={(v) => `${(v * 100).toFixed(0)}%`}
-          normalizePerColumn
           inline
         />
       </FadeIn>
