@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { REPO } from "@/lib/config";
 
 const SECTIONS = [
-  { id: "summary", label: "Summary" },
+  { id: "overview", label: "Overview" },
   { id: "methodology", label: "Methodology" },
-  { id: "analysis", label: "S1 Analysis" },
-  { id: "scenario2", label: "S2 Analysis" },
+  { id: "findings", label: "Findings" },
 ];
 
 function ThemeToggle() {
@@ -46,7 +46,7 @@ function ThemeToggle() {
 }
 
 export function Navbar() {
-  const [active, setActive] = useState("summary");
+  const [active, setActive] = useState("overview");
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -110,14 +110,23 @@ export function Navbar() {
               {s.label}
             </button>
           ))}
-          <a
-            href="https://github.com/Harry24k/CyBiasBench"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
-          >
-            GitHub
-          </a>
+          {REPO.url ? (
+            <a
+              href={REPO.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
+            >
+              {REPO.label}
+            </a>
+          ) : (
+            <span
+              className="ml-2 px-3 py-1.5 text-sm text-muted-foreground/50 rounded-md cursor-not-allowed"
+              title="Anonymous review build"
+            >
+              {REPO.label}
+            </span>
+          )}
           <ThemeToggle />
         </div>
       </div>

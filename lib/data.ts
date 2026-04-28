@@ -1,14 +1,14 @@
-import type { AnalysisResults } from "./types";
+import type { PaperSummary } from "./types";
 import { BASE_PATH } from "./utils";
 
-let cachedData: AnalysisResults | null = null;
+let cached: PaperSummary | null = null;
 
-export async function loadAnalysisData(): Promise<AnalysisResults> {
-  if (cachedData) return cachedData;
-  const res = await fetch(`${BASE_PATH}/data/analysis_results.json`);
+export async function loadPaperSummary(): Promise<PaperSummary> {
+  if (cached) return cached;
+  const res = await fetch(`${BASE_PATH}/data/paper_summary.json`);
   if (!res.ok) {
-    throw new Error(`Failed to load analysis data: ${res.status} ${res.statusText}`);
+    throw new Error(`Failed to load paper summary: ${res.status} ${res.statusText}`);
   }
-  cachedData = await res.json();
-  return cachedData!;
+  cached = await res.json();
+  return cached!;
 }

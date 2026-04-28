@@ -1,10 +1,4 @@
-const RESEARCHERS = [
-  { name: "Taein Lim", affiliation: "Chung-Ang University" },
-  { name: "Seongyong Ju", affiliation: "Chung-Ang University" },
-  { name: "Munhyeok Kim", affiliation: "Chung-Ang University" },
-  { name: "Hyunjun Kim", affiliation: "Myongji University", corresponding: true },
-  { name: "Hoki Kim", affiliation: "Chung-Ang University", corresponding: true },
-];
+import { RESEARCHERS, IS_ANONYMOUS } from "@/lib/config";
 
 export function HeroSection() {
   return (
@@ -15,40 +9,29 @@ export function HeroSection() {
       <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
         Benchmarking Bias in LLM Agents
         <br />
-        for Cyber-Attack Scenarios
+        for Web Exploitation Scenarios
       </p>
       <p className="mt-6 text-base text-muted-foreground max-w-3xl mx-auto leading-relaxed">
         Existing benchmarks evaluate agents through ASR alone, collapsing fundamentally different behavioral profiles into a single number.
         CyBiasBench captures how agents select, persist in, and can be steered toward attack strategies.
-        3 agents &middot; 3 targets &middot; 2 scenarios &middot; 378 experiments.
+        5 agents &middot; 3 targets &middot; 2 scenarios &middot; 630 sessions.
       </p>
-
-      <div className="mt-8 flex items-center justify-center gap-4">
-        <a
-          href="https://github.com/Harry24k/CyBiasBench"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-base text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
-        >
-          GitHub
-        </a>
-      </div>
 
       <div className="mt-10">
         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">
-          Researchers
+          {IS_ANONYMOUS ? "Authors (anonymized for review)" : "Researchers"}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
           {RESEARCHERS.map((r) => (
             <div key={r.name} className="flex flex-col items-center">
-              <span className="text-base text-foreground/80">
+              <span className="text-base text-foreground/90">
                 {r.name}{r.corresponding && <span className="text-muted-foreground">*</span>}
               </span>
               <span className="text-xs text-muted-foreground mt-0.5">{r.affiliation}</span>
             </div>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground/60 mt-3">* Corresponding Author</p>
+        <p className="text-xs text-muted-foreground/70 mt-3">* Corresponding Author</p>
       </div>
 
     </section>

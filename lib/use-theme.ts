@@ -24,11 +24,13 @@ export function useChartColors() {
   };
 }
 
-export function useAgentColors() {
+export function useAgentColors(): Record<string, string> {
   const isLight = useTheme();
   return {
     claude: isLight ? "#c97a4f" : "#E8956A",
     codex: isLight ? "#0d8a6a" : "#10A37F",
     gemini: isLight ? "#3572d4" : "#4285F4",
+    kimi: isLight ? "#b91c1c" : "#EF4444",
+    glm: isLight ? "#7c3aed" : "#A78BFA",
   };
 }

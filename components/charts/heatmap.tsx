@@ -45,7 +45,7 @@ export function Heatmap({ agents, techniques, values, formatValue }: HeatmapProp
       <table className="w-full text-sm">
         <thead>
           <tr>
-            <th className="text-left p-2 font-semibold text-foreground">Technique</th>
+            <th className="text-left p-2 font-semibold text-foreground">Attack Family</th>
             {agents.map((a) => (
               <th key={a} className="p-2 text-center font-medium" style={{ color: agentColors[a as keyof typeof agentColors] }}>
                 {AGENT_LABELS[a] ?? a}

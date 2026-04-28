@@ -18,28 +18,28 @@ interface BiasHeatmapProps {
 }
 
 function getHeatmapStyle(value: number, min: number, max: number, isLight: boolean): { bg: string; text: string } {
-  if (max === min) return { bg: isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.03)", text: isLight ? "#71717a" : "#b4b4bc" };
+  if (max === min) return { bg: isLight ? "#f4f4f5" : "#1a1a1e", text: isLight ? "#3f3f46" : "#e4e4e7" };
   const raw = Math.max(0, Math.min(1, (value - min) / (max - min)));
-  const ratio = Math.pow(raw, 0.6);
+  const ratio = Math.pow(raw, 0.65);
 
   if (isLight) {
-    // Light mode: blue family, lightness inverted (high value = dark)
-    const h = 220 - ratio * 10;   // 220→210 (blue, subtle shift)
-    const s = 40 + ratio * 40;    // 40→80
-    const l = 92 - ratio * 50;    // 92→42 (near-white→deep blue)
+    // Light mode: near-white → medium indigo, always dark text
+    const h = 228 - ratio * 6;
+    const s = 30 + ratio * 45;
+    const l = 97 - ratio * 42;    // 97 → 55
     return {
       bg: `hsl(${h}, ${s}%, ${l}%)`,
-      text: ratio > 0.3 ? "#ffffff" : "#18181b",
+      text: "#1e293b",
     };
   }
 
-  // Dark mode: Purple → Blue (low = dark, high = bright)
-  const h = 270 - ratio * 50;
-  const s = 35 + ratio * 28;
-  const l = 10 + ratio * 44;
+  // Dark mode: near-black → vivid indigo, always legible text
+  const h = 245 - ratio * 30;     // 245 → 215
+  const s = 45 + ratio * 30;
+  const l = 14 + ratio * 42;      // 14 → 56
   return {
     bg: `hsl(${h}, ${s}%, ${l}%)`,
-    text: ratio > 0.3 ? "#f4f4f5" : "#a0a0a8",
+    text: "#f8fafc",
   };
 }
 
@@ -138,7 +138,7 @@ export function BiasHeatmap({
                 return (
                   <td
                     key={col}
-                    className="px-4 py-4 text-center font-mono text-base tabular-nums whitespace-nowrap"
+                    className="px-4 py-4 text-center font-mono text-base font-semibold tabular-nums whitespace-nowrap"
                     style={{ backgroundColor: style.bg, color: style.text }}
                   >
                     {fmt(val, col)}
