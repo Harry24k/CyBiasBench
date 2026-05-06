@@ -121,8 +121,12 @@ export default function RootLayout({
           (function() {
             try {
               var t = localStorage.getItem('cybiasbench-theme');
-              document.documentElement.className = t === 'light' ? 'light' : '';
-            } catch(e) {}
+              // Light mode is the canonical default; only apply 'dark' when
+              // the user has explicitly opted in via the navbar toggle.
+              document.documentElement.className = t === 'dark' ? '' : 'light';
+            } catch(e) {
+              document.documentElement.className = 'light';
+            }
           })();
         `}} />
         <StructuredData />

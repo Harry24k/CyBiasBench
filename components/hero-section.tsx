@@ -9,12 +9,12 @@ export function HeroSection() {
       <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
         Benchmarking Bias in LLM Agents
         <br />
-        for Web Exploitation Scenarios
+        for Cyber-Attack Scenarios
       </p>
       <p className="mt-6 text-base text-muted-foreground max-w-3xl mx-auto leading-relaxed">
         Existing benchmarks evaluate agents through ASR alone, collapsing fundamentally different behavioral profiles into a single number.
-        CyBiasBench captures how agents select, persist in, and can be steered toward attack strategies.
-        5 agents &middot; 3 targets &middot; 2 scenarios &middot; 630 sessions.
+        CyBiasBench reveals an attack-selection bias that persists across prompt variations, and a bias momentum effect under explicit steering that fails to translate into higher attack performance.
+        5 agents &middot; 3 targets &middot; 4 prompt conditions &middot; 630 sessions.
       </p>
 
       <div className="mt-10">

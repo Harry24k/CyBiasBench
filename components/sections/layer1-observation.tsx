@@ -88,8 +88,8 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
                 <span className="text-xs text-muted-foreground font-normal">↑ breadth</span>
               </div>
               <div className="bg-muted/50 px-5 py-3 font-semibold text-foreground text-right">
-                Top family share{" "}
-                <span className="text-xs text-muted-foreground font-normal">↓ breadth</span>
+                Most Selected Family{" "}
+                <span className="text-xs text-muted-foreground font-normal">Sel<sub>i</sub></span>
               </div>
               <div className="bg-muted/50 px-5 py-3 font-semibold text-foreground text-right">
                 TPS{" "}

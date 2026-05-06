@@ -99,11 +99,11 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="flex flex-wrap justify-center gap-6">
             {agents.map((a) => (
               <div
                 key={a}
-                className="rounded-lg border border-border bg-card p-5"
+                className="w-full md:w-[calc(50%-12px)] xl:w-[calc(33.333%-16px)] rounded-lg border border-border bg-card p-5"
               >
                 <SelVsAsrRadar
                   agent={a}
@@ -134,7 +134,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-wrap justify-center gap-6">
             {agents.map((a) => {
               const pts = scatter.filter((p) => p.agent === a);
               const stats = rhoTable[a];
@@ -142,7 +142,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
               return (
                 <div
                   key={a}
-                  className="rounded-lg border border-border bg-card p-4"
+                  className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] rounded-lg border border-border bg-card p-4"
                 >
                   <EntropyAsrScatter
                     agent={a}

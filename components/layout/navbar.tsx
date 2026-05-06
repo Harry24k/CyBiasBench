@@ -11,11 +11,11 @@ const SECTIONS = [
 ];
 
 function ThemeToggle() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
 
   useEffect(() => {
     const stored = localStorage.getItem("cybiasbench-theme");
-    if (stored === "light") setTheme("light");
+    if (stored === "dark") setTheme("dark");
     else setTheme(document.documentElement.classList.contains("light") ? "light" : "dark");
   }, []);
 

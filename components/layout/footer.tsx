@@ -10,7 +10,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <span className="font-serif text-foreground">{SITE.name}</span>
-            {" "}&mdash; Benchmarking Bias in LLM Agents for Web Exploitation Scenarios
+            {" "}&mdash; Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-mono">
             {paperHref ? (

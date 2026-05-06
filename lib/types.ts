@@ -53,9 +53,14 @@ export interface AgentSignature {
   entropy: number;
   unique_techniques: number;
   top_family: string;
+  /** Selᵢ of the most-selected family (pooled across sessions). */
+  top_sel_pct: number;
+  /** Backwards-compatible alias for top_sel_pct. */
   top_share: number;
+  /** Selection CR1: mean within-session top-family share. */
+  selection_cr1: number;
   session_asr_mean: number;
-  session_asr_ci: [number, number];
+  session_asr_ci?: [number, number];
   n_sessions: number;
 }
 
@@ -87,6 +92,14 @@ export interface JsdSummary {
   axis_means?: { guidance: number; format: number };
   centroid_within_mean: number;
   per_agent?: Record<string, JsdPerAgentEntry>;
+  main_2axis_marginal_mean?: number;
+  between_agent_pattern_mean?: number;
+  target_breakdown?: Array<{
+    target: string;
+    within_prompt: number | null;
+    between_agent: number | null;
+    ratio: number | null;
+  }>;
 }
 
 export interface ScatterPoint {
@@ -112,12 +125,20 @@ export interface KruskalStat { H: number; p: number; eta2: number }
 export interface HeadlineStats {
   kruskal_H: KruskalStat;
   kruskal_unique_count?: KruskalStat;
+  /** Selection Concentration Ratio at 1 (within-session max Selᵢ). */
+  kruskal_selection_cr1?: KruskalStat;
+  /** Backwards-compatible alias for kruskal_selection_cr1. */
   kruskal_top_share?: KruskalStat;
   kruskal_session_asr: KruskalStat;
   asr_transfer: { rho: number; p: number; n: number };
   compliance_sel: { rho: number; p: number; n: number };
   compliance_asri: { rho: number; p: number; n: number };
+  compliance_session_asr?: { rho: number; p: number; n: number };
   all_negative_delta_asr: boolean;
+  rf_accuracy?: number;
+  rf_baseline?: number;
+  prompt_stability_jsd_main?: number;
+  between_agent_jsd_main?: number;
 }
 
 export interface PaperSummary {
@@ -131,11 +152,31 @@ export interface PaperSummary {
   table4_compliance: Record<string, ComplianceRow>;
   fig2_selection_heatmap: Record<string, Record<string, number>>;
   fig2_selection_heatmap_by_condition?: Record<string, Record<string, Record<string, number>>>;
-  fig3_asr_prior: Record<string, number>;
+  fig3_asr_prior?: Record<string, number>;
   fig3_selection_per_agent: Record<string, Record<string, number>>;
   fig3_asri_per_agent: Record<string, Record<string, number>>;
   fig4_entropy_asr_scatter: ScatterPoint[];
   fig5_compliance_predictors: CompliancePredictor[];
   headline_stats: HeadlineStats;
   tps_per_agent?: Record<string, number | null>;
+  tps_full?: Array<{
+    agent: string;
+    obs_tps: number | null;
+    inj_tps: number | null;
+    delta_pct: number | null;
+  }>;
+  decoupling_summary?: Array<{
+    agent: string;
+    top_family: string;
+    top_sel_pct: number | null;
+    top_asr_pct: number | null;
+    tps: number | null;
+  }>;
+  agent_identification_rf?: {
+    metrics: Record<string, { accuracy: number | null; macro_f1: number | null; n: number }>;
+    per_agent: Array<{ agent: string; precision: number | null; recall: number | null; f1: number | null; support: number }>;
+    feature_importance: Array<{ feature?: string; importance: number | null }>;
+    baseline_accuracy: number;
+  };
+  temporal_adaptation?: Array<Record<string, number | string | null>>;
 }

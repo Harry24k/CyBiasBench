@@ -190,7 +190,7 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
               </span>
             </div>
             <h3 className="font-serif text-2xl text-foreground">
-              Allocation, capability, and steerability are distinct axes.
+              Allocation, attack performance, and bias momentum are distinct axes.
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Across five frontier agents, three target environments, and 630
@@ -220,7 +220,7 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
               />
               <Takeaway
                 tag="What that means for evaluation"
-                body="Outcome-only benchmarks compress distinct strategies into one number. Capability, allocation, and steerability must be measured as separable axes."
+                body="Outcome-only benchmarks compress distinct strategies into one number. Allocation, attack performance, and bias momentum must be measured as separable axes."
               />
             </div>
           </div>

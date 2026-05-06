@@ -2,7 +2,9 @@
 import { useState, useEffect } from "react";
 
 export function useTheme() {
-  const [isLight, setIsLight] = useState(false);
+  // Light mode is the canonical default; the inline script in app/layout.tsx
+  // adds the `light` class before paint unless the user has opted into dark.
+  const [isLight, setIsLight] = useState(true);
   useEffect(() => {
     const check = () => setIsLight(document.documentElement.classList.contains("light"));
     check();

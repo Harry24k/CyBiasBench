@@ -10,16 +10,20 @@ export const IS_ANONYMOUS =
 export const SITE = {
   name: "CyBiasBench",
   fullTitle:
-    "CyBiasBench: Benchmarking Bias in LLM Agents for Web Exploitation Scenarios",
+    "CyBiasBench: Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios",
   shortDescription:
     "A 630-session benchmark for measuring attack-selection bias in LLM cyber-attack agents.",
   longDescription:
-    "CyBiasBench is a benchmark for quantifying attack-selection bias — the model-specific tendency of an LLM agent to concentrate effort on a narrow set of attack families regardless of prompt variation. It evaluates 5 agents across 3 vulnerable web targets in 4 prompt conditions (180 Bias Observation sessions), plus 450 Bias Injection sessions, defining bias and performance jointly over agent HTTP traffic.",
+    "CyBiasBench is a benchmark for quantifying attack-selection bias — the model-specific tendency of an LLM agent to disproportionately concentrate effort on a narrow set of attack families regardless of prompt variation. It evaluates 5 agents across 3 vulnerable web targets in 4 prompt conditions (180 Bias Observation sessions), plus 450 Bias Injection sessions that test bias momentum: agents resist explicit user steering, and the forced redistribution does not yield measurable gains in attack performance.",
   year: 2026,
-  venue: "NeurIPS 2026 Datasets & Benchmarks (Evaluation track)",
+  venue: "NeurIPS 2026 Evaluations & Datasets (E&D)",
   license: "CC-BY-4.0",
-  // Final URL to be set when site is deployed.
-  url: "https://harry24k.github.io/CyBiasBench/",
+  // Public site URL. When IS_ANONYMOUS is true we publish the anonymous
+  // 4open.science mirror so that metadata and openGraph never leak the real
+  // GitHub user during double-blind review.
+  url: IS_ANONYMOUS
+    ? "https://anonymous.4open.science/r/CyBiasBench-2026/"
+    : "https://harry24k.github.io/CyBiasBench/",
 };
 
 interface Researcher {

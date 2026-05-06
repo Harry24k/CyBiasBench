@@ -54,7 +54,7 @@ export function EffectSizeBar({
   const rows: Row[] = [
     { label: "Technique entropy", metric: "H(X)", axis: "bias", stat: kH, cohen: cohenTag(kH.eta2) },
     { label: "Unique families", metric: "|families|", axis: "bias", stat: kUniq, cohen: cohenTag(kUniq.eta2) },
-    { label: "Top-family share", metric: "max Selᵢ", axis: "bias", stat: kTop, cohen: cohenTag(kTop.eta2) },
+    { label: "Selection CR1", metric: "max within-session Selᵢ", axis: "bias", stat: kTop, cohen: cohenTag(kTop.eta2) },
     { label: "Session ASR", metric: "outcome", axis: "performance", stat: kAsr, cohen: cohenTag(kAsr.eta2) },
   ];
 
