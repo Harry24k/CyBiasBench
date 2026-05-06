@@ -1,10 +1,13 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { FadeIn } from "@/components/fade-in";
 import { BridgeText } from "@/components/bridge-text";
 import { SelVsAsrRadar } from "@/components/charts/sel-vs-asr-radar";
 import { EntropyAsrScatter } from "@/components/charts/entropy-asr-scatter";
 import { EffectSizeBar } from "@/components/charts/effect-size-bar";
+import { useAgentColors } from "@/lib/use-theme";
+import { AGENT_LABELS } from "@/lib/types";
 import type { PaperSummary } from "@/lib/types";
 
 const FAMILY_LABELS: Record<string, string> = {
@@ -20,6 +23,33 @@ const FAMILY_LABELS: Record<string, string> = {
   info_disclosure: "InfoDisc",
 };
 
+interface DecouplingRow {
+  agent: string;
+  top_family: string;
+  top_sel_pct: number; // 0-100
+  top_asr_pct: number; // 0-100
+  tps: number | null;
+}
+
+function formatTps(tps: number | null): string {
+  if (tps == null) return "—";
+  if (tps >= 1000) return `${(tps / 1000).toFixed(1)}K tok/s`;
+  return `${tps.toFixed(0)} tok/s`;
+}
+
+function decouplingInterpretation(row: DecouplingRow): string {
+  const family = FAMILY_LABELS[row.top_family] ?? row.top_family;
+  const agent = AGENT_LABELS[row.agent] ?? row.agent;
+  const gap = row.top_sel_pct - row.top_asr_pct;
+  if (gap >= 8) {
+    return `${agent} commits ${row.top_sel_pct.toFixed(1)}% of attempts to ${family}, but only ${row.top_asr_pct.toFixed(1)}% of those attempts succeed — a ${gap.toFixed(1)}-point selection–capability gap that cleanly illustrates why allocation is not a proxy for outcome.`;
+  }
+  if (gap <= -8) {
+    return `${agent}'s most-selected family is ${family} at ${row.top_sel_pct.toFixed(1)}% selection, yet ASRᵢ on that same family is ${row.top_asr_pct.toFixed(1)}% — selection actually under-represents capability here.`;
+  }
+  return `${agent} concentrates ${row.top_sel_pct.toFixed(1)}% of attempts on ${family} with a matching ASRᵢ of ${row.top_asr_pct.toFixed(1)}% — a rare case where allocation tracks success.`;
+}
+
 export function Layer2Decoupling({ data }: { data: PaperSummary }) {
   const agents = data.agents;
   const families = data.families;
@@ -27,16 +57,55 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
   const asrPerAgent = data.fig3_asri_per_agent;
   const scatter = data.fig4_entropy_asr_scatter;
   const rhoTable = data.table3_entropy_asr_rho;
+  const tpsPerAgent = data.tps_per_agent ?? {};
   const h = data.headline_stats;
+  const agentColors = useAgentColors();
 
-  let maxSel = 0;
-  let maxAsr = 0;
-  for (const a of agents) {
-    for (const f of families) {
-      maxSel = Math.max(maxSel, selPerAgent[a]?.[f] ?? 0);
-      maxAsr = Math.max(maxAsr, asrPerAgent[a]?.[f] ?? 0);
+  const [view, setView] = useState<"radar" | "table">("radar");
+  const [showRegression, setShowRegression] = useState(false);
+  const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
+
+  const { maxSel, maxAsr } = useMemo(() => {
+    let mSel = 0;
+    let mAsr = 0;
+    for (const a of agents) {
+      for (const f of families) {
+        mSel = Math.max(mSel, selPerAgent[a]?.[f] ?? 0);
+        mAsr = Math.max(mAsr, asrPerAgent[a]?.[f] ?? 0);
+      }
     }
-  }
+    return { maxSel: mSel, maxAsr: mAsr };
+  }, [agents, families, selPerAgent, asrPerAgent]);
+
+  // Per-agent: index of most-selected family (column highlight in table view).
+  const topSelFamily: Record<string, string> = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const a of agents) {
+      let best = families[0];
+      let bestV = -Infinity;
+      for (const f of families) {
+        const v = selPerAgent[a]?.[f] ?? 0;
+        if (v > bestV) { bestV = v; best = f; }
+      }
+      out[a] = best;
+    }
+    return out;
+  }, [agents, families, selPerAgent]);
+
+  const decouplingSummary: DecouplingRow[] = useMemo(() => {
+    const rows: DecouplingRow[] = agents.map((a) => {
+      const top = topSelFamily[a];
+      return {
+        agent: a,
+        top_family: top,
+        top_sel_pct: (selPerAgent[a]?.[top] ?? 0) * 100,
+        top_asr_pct: (asrPerAgent[a]?.[top] ?? 0) * 100,
+        tps: tpsPerAgent[a] ?? null,
+      };
+    });
+    rows.sort((x, y) => y.top_sel_pct - x.top_sel_pct);
+    return rows;
+  }, [agents, topSelFamily, selPerAgent, asrPerAgent, tpsPerAgent]);
 
   return (
     <div className="space-y-14">
@@ -75,7 +144,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                 Selection vs per-family ASR (per agent)
               </h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
-                Each panel contrasts the agent's own allocation profile
+                Each panel contrasts the agent&apos;s own allocation profile
                 (Sel<sub>i</sub>, filled) with its own per-family success rate
                 (ASR<sub>i</sub>, dashed). Each metric is normalized to its
                 global maximum (Sel to {Math.round(maxSel * 100)}%, ASR
@@ -84,54 +153,181 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                 mis-spent on low-success families. Hover for raw values.
               </p>
             </div>
-            <div className="flex items-center gap-5 text-sm text-muted-foreground shrink-0">
-              <span className="flex items-center gap-2">
-                <span className="inline-block w-5 h-0 border-t-2 border-current" />
-                Selection Selᵢ
-              </span>
-              <span className="flex items-center gap-2">
-                <span
-                  className="inline-block w-5 h-0"
-                  style={{ borderTop: "1.5px dashed currentColor" }}
-                />
-                ASRᵢ (same agent)
-              </span>
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-5 text-sm text-muted-foreground">
+                <span className="flex items-center gap-2">
+                  <span className="inline-block w-5 h-0 border-t-2 border-current" />
+                  Selection Selᵢ
+                </span>
+                <span className="flex items-center gap-2">
+                  <span
+                    className="inline-block w-5 h-0"
+                    style={{ borderTop: "1.5px dashed currentColor" }}
+                  />
+                  ASRᵢ (same agent)
+                </span>
+              </div>
+              <div className="inline-flex rounded-md border border-border overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setView("radar")}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                    view === "radar"
+                      ? "bg-foreground text-background"
+                      : "bg-card text-muted-foreground hover:bg-muted"
+                  }`}
+                  aria-pressed={view === "radar"}
+                >
+                  Radar view
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView("table")}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors border-l border-border ${
+                    view === "table"
+                      ? "bg-foreground text-background"
+                      : "bg-card text-muted-foreground hover:bg-muted"
+                  }`}
+                  aria-pressed={view === "table"}
+                >
+                  Table view
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {agents.map((a) => (
-              <div
-                key={a}
-                className="rounded-lg border border-border bg-card p-5"
-              >
-                <SelVsAsrRadar
-                  agent={a}
-                  families={families}
-                  familyLabels={FAMILY_LABELS}
-                  selection={selPerAgent[a] ?? {}}
-                  asrPrior={asrPerAgent[a] ?? {}}
-                  maxSel={maxSel}
-                  maxAsr={maxAsr}
-                  height={360}
-                />
+          {view === "radar" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {agents.map((a) => (
+                <div
+                  key={a}
+                  className="rounded-lg border border-border bg-card p-5"
+                >
+                  <SelVsAsrRadar
+                    agent={a}
+                    families={families}
+                    familyLabels={FAMILY_LABELS}
+                    selection={selPerAgent[a] ?? {}}
+                    asrPrior={asrPerAgent[a] ?? {}}
+                    maxSel={maxSel}
+                    maxAsr={maxAsr}
+                    height={360}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-border bg-card overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left font-medium text-muted-foreground px-3 py-2 sticky left-0 bg-card">
+                      Family
+                    </th>
+                    {agents.map((a) => (
+                      <th
+                        key={a}
+                        className="text-center font-medium px-3 py-2 whitespace-nowrap"
+                        style={{ color: agentColors[a] }}
+                      >
+                        <span className="flex items-center justify-center gap-2">
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: agentColors[a] }}
+                          />
+                          {AGENT_LABELS[a] ?? a}
+                        </span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {families.map((f, idx) => (
+                    <tr
+                      key={f}
+                      className={
+                        idx % 2 === 0
+                          ? "border-b border-border/60"
+                          : "border-b border-border/60 bg-muted/30"
+                      }
+                    >
+                      <td className="px-3 py-2 font-medium text-foreground sticky left-0 bg-inherit">
+                        {FAMILY_LABELS[f] ?? f}
+                      </td>
+                      {agents.map((a) => {
+                        const sel = selPerAgent[a]?.[f] ?? 0;
+                        const asr = asrPerAgent[a]?.[f] ?? 0;
+                        const isTop = topSelFamily[a] === f;
+                        const intensity =
+                          maxSel > 0 ? Math.min(1, sel / maxSel) : 0;
+                        // Tint intensity from agent color, light alpha for readability.
+                        const bg = `${agentColors[a]}${Math.round(
+                          intensity * 60,
+                        )
+                          .toString(16)
+                          .padStart(2, "0")}`;
+                        return (
+                          <td
+                            key={a}
+                            className="px-3 py-2 text-center font-mono tabular-nums whitespace-nowrap"
+                            style={{ backgroundColor: bg }}
+                          >
+                            <span
+                              className={
+                                isTop
+                                  ? "font-bold text-foreground"
+                                  : "text-foreground/85"
+                              }
+                            >
+                              {(sel * 100).toFixed(1)}%
+                            </span>
+                            <span className="text-muted-foreground"> / </span>
+                            <span className="text-foreground/85">
+                              {(asr * 100).toFixed(1)}%
+                            </span>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="px-3 py-2 text-xs text-muted-foreground border-t border-border">
+                Each cell: <span className="font-mono">Selᵢ / ASRᵢ</span>. Cell tint
+                scales with Selᵢ relative to the global Sel maximum
+                ({Math.round(maxSel * 100)}%). Bold marks each agent&apos;s most-selected family.
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </section>
       </FadeIn>
 
       <FadeIn>
         <section className="max-w-[1500px] mx-auto px-6">
-          <div className="mb-4">
-            <h3 className="text-xl font-semibold text-foreground">
-              Entropy vs session ASR
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Per-session scatter (n = 36 per agent). Spearman ρ annotated per panel. Only
-              Codex shows a weakly positive correlation; the rest are not significantly different
-              from zero — breadth does not imply outcome.
-            </p>
+          <div className="mb-4 flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h3 className="text-xl font-semibold text-foreground">
+                Entropy vs session ASR
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
+                Per-session scatter (n = 36 per agent). Spearman ρ annotated per
+                panel. Only Codex shows a weakly positive correlation; the rest are
+                not significantly different from zero — breadth does not imply
+                outcome. Hover a point for session, target, and condition.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowRegression((v) => !v)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md border border-border transition-colors ${
+                showRegression
+                  ? "bg-foreground text-background"
+                  : "bg-card text-muted-foreground hover:bg-muted"
+              }`}
+              aria-pressed={showRegression}
+            >
+              {showRegression ? "Hide regression line" : "Show regression line"}
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -149,8 +345,113 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                     points={pts}
                     rho={stats.rho}
                     pValue={stats.p}
+                    showRegression={showRegression}
                   />
                 </div>
+              );
+            })}
+          </div>
+        </section>
+      </FadeIn>
+
+      <FadeIn>
+        <section className="max-w-[1500px] mx-auto px-6">
+          <div className="mb-4">
+            <h3 className="text-xl font-semibold text-foreground">
+              Cell-level decoupling
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
+              Each card pins down the agent&apos;s most-selected family and the
+              ASRᵢ on that same family. Click a card to expand the
+              interpretation.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {decouplingSummary.map((row) => {
+              const expanded = expandedAgent === row.agent;
+              const color = agentColors[row.agent];
+              const gap = row.top_sel_pct - row.top_asr_pct;
+              return (
+                <button
+                  key={row.agent}
+                  type="button"
+                  onClick={() =>
+                    setExpandedAgent(expanded ? null : row.agent)
+                  }
+                  aria-expanded={expanded}
+                  className="text-left rounded-lg border border-border bg-card p-4 hover:bg-muted/40 transition-colors flex flex-col gap-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: color }}
+                      />
+                      <span className="text-sm font-semibold text-foreground">
+                        {AGENT_LABELS[row.agent] ?? row.agent}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                      {expanded ? "Hide" : "Details"}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Top family
+                  </div>
+                  <div
+                    className="text-base font-semibold leading-tight"
+                    style={{ color }}
+                  >
+                    {FAMILY_LABELS[row.top_family] ?? row.top_family}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs font-mono tabular-nums pt-1 border-t border-border/60">
+                    <div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                        Selᵢ
+                      </div>
+                      <div className="text-foreground">
+                        {row.top_sel_pct.toFixed(1)}%
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                        ASRᵢ
+                      </div>
+                      <div className="text-foreground">
+                        {row.top_asr_pct.toFixed(1)}%
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                        TPS
+                      </div>
+                      <div className="text-foreground">
+                        {formatTps(row.tps)}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className={`text-[11px] font-mono ${
+                      gap >= 8
+                        ? "text-amber-600 dark:text-amber-400"
+                        : gap <= -8
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-muted-foreground"
+                    }`}
+                  >
+                    Gap: {gap >= 0 ? "+" : ""}
+                    {gap.toFixed(1)} pts
+                  </div>
+                  <div
+                    className={`text-xs leading-snug text-muted-foreground transition-all overflow-hidden ${
+                      expanded
+                        ? "max-h-40 opacity-100 mt-1"
+                        : "max-h-0 opacity-0"
+                    }`}
+                  >
+                    {decouplingInterpretation(row)}
+                  </div>
+                </button>
               );
             })}
           </div>
