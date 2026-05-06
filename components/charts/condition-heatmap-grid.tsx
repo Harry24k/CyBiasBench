@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTheme } from "@/lib/use-theme";
 import { AGENT_LABELS } from "@/lib/types";
 
@@ -14,7 +15,6 @@ const COND_LABELS: Record<Cond, { short: string; long: string }> = {
 };
 
 function cellStyleFromRank(rank01: number, isLight: boolean) {
-  // rank01 in [0, 1] — average-rank within panel, 1 = highest cell
   const ratio = Math.max(0, Math.min(1, rank01));
   if (isLight) {
     const h = 228 - ratio * 6;
@@ -28,10 +28,6 @@ function cellStyleFromRank(rank01: number, isLight: boolean) {
   return { bg: `hsl(${h}, ${s}%, ${l}%)`, text: "#f8fafc" };
 }
 
-/**
- * Average-rank normalization within a panel. Matches scipy.stats.rankdata
- * with method="average". Returns rank01 ∈ [0, 1], 1 = largest value.
- */
 function rankWithinPanel(values: number[]): number[] {
   const n = values.length;
   if (n <= 1) return values.map(() => 0.5);
@@ -50,20 +46,28 @@ function rankWithinPanel(values: number[]): number[] {
   return ranks.map((r) => (r - 1) / (n - 1));
 }
 
+interface CellSelection {
+  agent: string;
+  family: string;
+}
+
 export function ConditionHeatmapGrid({
   agents,
   families,
   familyLabels,
   byCondition,
+  pooledByAgent,
 }: {
   agents: string[];
   families: string[];
   familyLabels: Record<string, string>;
   byCondition: Record<string, Record<string, Record<string, number>>>;
+  /** Pooled (across-condition) Sel_i fraction (0..1) per agent×family. */
+  pooledByAgent?: Record<string, Record<string, number>>;
 }) {
   const isLight = useTheme();
+  const [active, setActive] = useState<CellSelection | null>(null);
 
-  // Per-panel rank normalization (matches paper heatmap_sel_from_json.py).
   const rankByPanel: Record<string, number[][]> = {};
   for (const c of COND_ORDER) {
     const block = byCondition[c] ?? {};
@@ -84,12 +88,13 @@ export function ConditionHeatmapGrid({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-6 flex-wrap">
         <p className="text-xs text-muted-foreground max-w-3xl">
-          Selection share Selᵢ split by the four prompt conditions of the 2×2
+          Selection share Sel<sub>i</sub> split by the four prompt conditions of the 2×2
           design (Guidance × Format). Color intensity uses{" "}
           <strong className="text-foreground">average-rank normalization within each panel</strong>
           {" "}(matches paper Fig. heatmap_sel) — strong contrast highlights each
-          panel's hot cells; absolute magnitude is in the printed cell value.
-          Each agent has 9 sessions per condition (3 targets × 3 repetitions).
+          panel&apos;s hot cells; absolute magnitude is in the printed cell value.
+          Hover any cell for the comparison to that agent&apos;s pooled Sel<sub>i</sub>;
+          click to compare all four prompt conditions side-by-side.
         </p>
         <RankLegend isLight={isLight} />
       </div>
@@ -105,9 +110,22 @@ export function ConditionHeatmapGrid({
             data={byCondition[c] ?? {}}
             rankGrid={rankByPanel[c]}
             isLight={isLight}
+            pooledByAgent={pooledByAgent}
+            onSelect={(agent, family) => setActive({ agent, family })}
           />
         ))}
       </div>
+
+      {active && (
+        <CellDialog
+          agent={active.agent}
+          family={active.family}
+          familyLabels={familyLabels}
+          byCondition={byCondition}
+          pooledByAgent={pooledByAgent}
+          onClose={() => setActive(null)}
+        />
+      )}
     </div>
   );
 }
@@ -142,6 +160,8 @@ function CondPanel({
   data,
   rankGrid,
   isLight,
+  pooledByAgent,
+  onSelect,
 }: {
   cond: Cond;
   agents: string[];
@@ -150,6 +170,8 @@ function CondPanel({
   data: Record<string, Record<string, number>>;
   rankGrid: number[][];
   isLight: boolean;
+  pooledByAgent?: Record<string, Record<string, number>>;
+  onSelect: (agent: string, family: string) => void;
 }) {
   const meta = COND_LABELS[cond];
   return (
@@ -189,21 +211,203 @@ function CondPanel({
                   const v = data[a]?.[f] ?? 0;
                   const r = rankGrid[i]?.[j] ?? 0;
                   const s = cellStyleFromRank(r, isLight);
+                  const pooledPct = (pooledByAgent?.[a]?.[f] ?? 0) * 100;
                   return (
-                    <td
+                    <HeatmapCell
                       key={f}
-                      className="px-1 py-1.5 text-center font-mono text-[11px] font-semibold tabular-nums border-t border-border"
-                      style={{ backgroundColor: s.bg, color: s.text }}
-                      title={`${AGENT_LABELS[a] ?? a} · ${familyLabels[f] ?? f}: ${v.toFixed(2)}%`}
-                    >
-                      {v >= 0.05 ? v.toFixed(1) : "-"}
-                    </td>
+                      v={v}
+                      style={s}
+                      agentLabel={AGENT_LABELS[a] ?? a}
+                      familyLabel={familyLabels[f] ?? f}
+                      pooledPct={pooledPct}
+                      condLabel={meta.short}
+                      onClick={() => onSelect(a, f)}
+                    />
                   );
                 })}
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+function HeatmapCell({
+  v,
+  style,
+  agentLabel,
+  familyLabel,
+  pooledPct,
+  condLabel,
+  onClick,
+}: {
+  v: number;
+  style: { bg: string; text: string };
+  agentLabel: string;
+  familyLabel: string;
+  pooledPct: number;
+  condLabel: string;
+  onClick: () => void;
+}) {
+  const [hover, setHover] = useState(false);
+  const delta = v - pooledPct;
+  const sign = delta > 0 ? "+" : "";
+  return (
+    <td
+      className="relative p-0 border-t border-border"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <button
+        type="button"
+        onClick={onClick}
+        className="block w-full px-1 py-1.5 text-center font-mono text-[11px] font-semibold tabular-nums cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        style={{ backgroundColor: style.bg, color: style.text }}
+        aria-label={`${agentLabel} ${familyLabel} ${v.toFixed(2)} percent under ${condLabel}`}
+      >
+        {v >= 0.05 ? v.toFixed(1) : "-"}
+      </button>
+      {hover && (
+        <div
+          className="absolute z-50 left-1/2 -translate-x-1/2 -top-2 -translate-y-full bg-card border border-border rounded-md p-3 shadow-lg text-xs whitespace-nowrap pointer-events-none"
+          role="tooltip"
+        >
+          <div className="font-semibold text-foreground mb-1">
+            {agentLabel} · {familyLabel}
+          </div>
+          <div className="font-mono text-foreground tabular-nums">
+            {condLabel}: <span className="font-semibold">{v.toFixed(2)}%</span>
+          </div>
+          <div className="font-mono text-muted-foreground tabular-nums">
+            Pooled Sel<sub>i</sub>: {pooledPct.toFixed(2)}%
+          </div>
+          <div
+            className="font-mono tabular-nums mt-0.5"
+            style={{
+              color:
+                Math.abs(delta) < 0.5
+                  ? "var(--muted-foreground, #71717a)"
+                  : delta > 0
+                  ? "#16a34a"
+                  : "#dc2626",
+            }}
+          >
+            Δ {sign}
+            {delta.toFixed(2)} pp vs pooled
+          </div>
+          <div className="text-muted-foreground mt-1 text-[10px]">
+            Click to compare all four conditions
+          </div>
+        </div>
+      )}
+    </td>
+  );
+}
+
+function CellDialog({
+  agent,
+  family,
+  familyLabels,
+  byCondition,
+  pooledByAgent,
+  onClose,
+}: {
+  agent: string;
+  family: string;
+  familyLabels: Record<string, string>;
+  byCondition: Record<string, Record<string, Record<string, number>>>;
+  pooledByAgent?: Record<string, Record<string, number>>;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const values = COND_ORDER.map((c) => ({
+    cond: c,
+    label: COND_LABELS[c],
+    value: byCondition[c]?.[agent]?.[family] ?? 0,
+  }));
+  const maxV = Math.max(0.001, ...values.map((v) => v.value));
+  const pooledPct = (pooledByAgent?.[agent]?.[family] ?? 0) * 100;
+  const agentLabel = AGENT_LABELS[agent] ?? agent;
+  const familyLabel = familyLabels[family] ?? family;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="bg-card border border-border rounded-lg p-6 max-w-xl w-full shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${agentLabel} ${familyLabel} four-condition comparison`}
+      >
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <div className="text-xs font-mono uppercase tracking-wider text-indigo-500 mb-1">
+              Condition comparison
+            </div>
+            <h3 className="font-serif text-xl text-foreground">
+              {agentLabel} · {familyLabel}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Sel<sub>i</sub> across the four prompt conditions of the 2×2 design.
+              Pooled Sel<sub>i</sub>:{" "}
+              <span className="font-mono tabular-nums text-foreground">
+                {pooledPct.toFixed(2)}%
+              </span>
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm font-medium px-3 py-1.5 rounded-md border border-border hover:bg-muted transition-colors"
+            aria-label="Close dialog"
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          {values.map((row) => {
+            const pct = (row.value / maxV) * 100;
+            return (
+              <div key={row.cond} className="flex items-center gap-3">
+                <div className="w-10 shrink-0 font-mono text-xs font-bold text-foreground tabular-nums">
+                  {row.label.short}
+                </div>
+                <div className="flex-1">
+                  <div className="text-[10px] text-muted-foreground mb-0.5">
+                    {row.label.long}
+                  </div>
+                  <div className="relative h-3 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full bg-indigo-500"
+                      style={{ width: `${pct}%`, opacity: 0.85 }}
+                    />
+                  </div>
+                </div>
+                <div className="w-16 text-right font-mono text-sm tabular-nums text-foreground">
+                  {row.value.toFixed(2)}%
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-[11px] text-muted-foreground mt-4">
+          Press <span className="font-mono">Esc</span> or click outside to close.
+        </p>
       </div>
     </div>
   );

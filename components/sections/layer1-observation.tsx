@@ -1,11 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import { FadeIn } from "@/components/fade-in";
 import { BridgeText } from "@/components/bridge-text";
 import { ConditionHeatmapGrid } from "@/components/charts/condition-heatmap-grid";
+import { MiniFamilyBars } from "@/components/charts/mini-radar";
 import { AGENT_LABELS } from "@/lib/types";
 import type { PaperSummary } from "@/lib/types";
-import { useAgentColors, useTheme } from "@/lib/use-theme";
+import { useAgentColors, useChartColors, useTheme } from "@/lib/use-theme";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Cell,
+  ResponsiveContainer,
+} from "recharts";
 
 const FAMILY_LABELS: Record<string, string> = {
   sqli: "SQLi",
@@ -21,9 +31,9 @@ const FAMILY_LABELS: Record<string, string> = {
 };
 
 const SUPER_MAP: Record<string, string> = {
-  "0": "\u2070", "1": "\u00B9", "2": "\u00B2", "3": "\u00B3", "4": "\u2074",
-  "5": "\u2075", "6": "\u2076", "7": "\u2077", "8": "\u2078", "9": "\u2079",
-  "-": "\u207B", "+": "\u207A",
+  "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
+  "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
+  "-": "⁻", "+": "⁺",
 };
 function toSuper(s: string): string {
   return s.split("").map((c) => SUPER_MAP[c] ?? c).join("");
@@ -32,7 +42,7 @@ function formatP(p: number): string {
   if (p < 1e-3) {
     const exp = p.toExponential(2);
     const [mantissa, e] = exp.split("e");
-    return `${mantissa}\u00D7\u200910${toSuper(String(parseInt(e, 10)))}`;
+    return `${mantissa}× 10${toSuper(String(parseInt(e, 10)))}`;
   }
   return p.toFixed(3);
 }
@@ -73,7 +83,8 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
             <h3 className="text-xl font-semibold text-foreground">Agent Signatures</h3>
             <p className="text-sm text-muted-foreground mt-1">
               Three bias indicators per agent: attack-family entropy H(X), mean unique families per
-              session, and dominant-family share. Low H(X) and high Top % signal narrow preference.
+              session, and dominant-family share. Hover any row to see that agent&apos;s full
+              Sel<sub>i</sub> distribution across all 10 families.
             </p>
           </div>
 
@@ -113,6 +124,8 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
                     maxH={maxH}
                     maxUniq={maxUniq}
                     maxTps={maxTps}
+                    selByFamily={data.fig3_selection_per_agent[a] ?? {}}
+                    families={families}
                   />
                 );
               })}
@@ -139,6 +152,7 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
               families={families}
               familyLabels={FAMILY_LABELS}
               byCondition={data.fig2_selection_heatmap_by_condition}
+              pooledByAgent={data.fig3_selection_per_agent}
             />
           </section>
         </FadeIn>
@@ -160,6 +174,34 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
         </section>
       </FadeIn>
 
+      {data.agent_identification_rf && (
+        <FadeIn>
+          <section className="max-w-[1500px] mx-auto px-6">
+            <div className="mb-4">
+              <h3 className="text-xl font-semibold text-foreground">
+                Agent Identification by Selection Pattern
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                A random forest classifier trained on the 10-family Sel<sub>i</sub> vectors
+                identifies the underlying agent at{" "}
+                <span className="font-mono tabular-nums text-foreground">
+                  {((data.headline_stats.rf_accuracy ?? data.agent_identification_rf.metrics.leave_one_out?.accuracy ?? 0) * 100).toFixed(0)}%
+                </span>{" "}
+                accuracy versus a{" "}
+                <span className="font-mono tabular-nums text-foreground">
+                  {((data.headline_stats.rf_baseline ?? data.agent_identification_rf.baseline_accuracy ?? 0.2) * 100).toFixed(0)}%
+                </span>{" "}
+                chance baseline — selection profiles are agent-specific fingerprints.
+              </p>
+            </div>
+            <RFIdentificationCard
+              rf={data.agent_identification_rf}
+              accuracy={data.headline_stats.rf_accuracy}
+              baseline={data.headline_stats.rf_baseline}
+            />
+          </section>
+        </FadeIn>
+      )}
 
       <div className="max-w-[1500px] mx-auto px-6">
         <BridgeText>
@@ -182,6 +224,8 @@ function SignatureRow({
   maxH,
   maxUniq,
   maxTps,
+  selByFamily,
+  families,
 }: {
   agent: string;
   color: string;
@@ -193,10 +237,17 @@ function SignatureRow({
   maxH: number;
   maxUniq: number;
   maxTps: number;
+  selByFamily: Record<string, number>;
+  families: string[];
 }) {
+  const [hover, setHover] = useState(false);
   return (
     <>
-      <div className="px-5 py-4 border-t border-border flex items-center gap-2">
+      <div
+        className="relative px-5 py-4 border-t border-border flex items-center gap-2"
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+      >
         <span
           className="w-2.5 h-2.5 rounded-full shrink-0"
           style={{ backgroundColor: color }}
@@ -204,14 +255,45 @@ function SignatureRow({
         <span className="font-medium text-foreground">
           {AGENT_LABELS[agent] ?? agent}
         </span>
+        {hover && (
+          <div
+            className="absolute z-50 left-0 top-full mt-2 bg-card border border-border rounded-md p-3 shadow-lg w-[300px] pointer-events-none"
+            role="tooltip"
+          >
+            <div className="text-xs font-semibold text-foreground mb-2">
+              {AGENT_LABELS[agent] ?? agent} · Sel<sub>i</sub> by family
+            </div>
+            <MiniFamilyBars
+              selByFamily={selByFamily}
+              families={families}
+              familyLabels={FAMILY_LABELS}
+              color={color}
+              height={180}
+              highlightFamily={topFamily}
+            />
+          </div>
+        )}
       </div>
-      <BarCell value={entropy} max={maxH} color={color} format={(v) => v.toFixed(2)} />
-      <BarCell value={unique} max={maxUniq} color={color} format={(v) => v.toFixed(1)} />
+      <BarCell
+        value={entropy}
+        max={maxH}
+        color={color}
+        format={(v) => v.toFixed(2)}
+        onHover={setHover}
+      />
+      <BarCell
+        value={unique}
+        max={maxUniq}
+        color={color}
+        format={(v) => v.toFixed(1)}
+        onHover={setHover}
+      />
       <BarCell
         value={topShare}
         max={100}
         color={color}
         format={(v) => `${v.toFixed(1)}%`}
+        onHover={setHover}
         suffix={
           <span className="ml-2 text-xs text-muted-foreground font-normal">
             {FAMILY_LABELS[topFamily] ?? topFamily}
@@ -226,6 +308,7 @@ function SignatureRow({
           format={(v) =>
             v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v.toFixed(0)
           }
+          onHover={setHover}
           suffix={
             <span className="ml-2 text-xs text-muted-foreground font-normal">
               tok/✓
@@ -233,7 +316,13 @@ function SignatureRow({
           }
         />
       ) : (
-        <div className="px-5 py-4 border-t border-border text-right text-muted-foreground">—</div>
+        <div
+          className="px-5 py-4 border-t border-border text-right text-muted-foreground"
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+        >
+          —
+        </div>
       )}
     </>
   );
@@ -245,16 +334,22 @@ function BarCell({
   color,
   format,
   suffix,
+  onHover,
 }: {
   value: number;
   max: number;
   color: string;
   format: (v: number) => string;
   suffix?: React.ReactNode;
+  onHover?: (v: boolean) => void;
 }) {
   const pct = max > 0 ? (value / max) * 100 : 0;
   return (
-    <div className="px-5 py-4 border-t border-border">
+    <div
+      className="px-5 py-4 border-t border-border"
+      onMouseEnter={onHover ? () => onHover(true) : undefined}
+      onMouseLeave={onHover ? () => onHover(false) : undefined}
+    >
       <div className="flex items-center justify-end gap-3">
         <div className="relative h-2 w-full max-w-[180px] rounded-full bg-muted overflow-hidden">
           <div
@@ -278,14 +373,24 @@ function JSDComparison({
     between_agent_median: number;
     between_agent_mean: number;
     centroid_within_mean: number;
+    target_breakdown?: Array<{
+      target: string;
+      within_prompt: number | null;
+      between_agent: number | null;
+      ratio: number | null;
+    }>;
   };
 }) {
   const isLight = useTheme();
+  const [showBreakdown, setShowBreakdown] = useState(false);
   const withinMean = jsd.centroid_within_mean;
   const ratio = jsd.between_agent_mean / withinMean;
   const maxVal = Math.max(withinMean, jsd.between_agent_mean);
   const withinColor = isLight ? "#64748b" : "#94a3b8";
   const betweenColor = isLight ? "#4f46e5" : "#6366f1";
+
+  const breakdown = jsd.target_breakdown ?? [];
+  const hasBreakdown = breakdown.length > 0;
 
   return (
     <div className="rounded-lg border border-border bg-card p-6">
@@ -367,6 +472,250 @@ function JSDComparison({
           <span className="text-xs text-muted-foreground font-mono tabular-nums">
             median {jsd.between_agent_median.toFixed(3)}
           </span>
+        </div>
+      </div>
+
+      {hasBreakdown && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <button
+            type="button"
+            onClick={() => setShowBreakdown((v) => !v)}
+            className="text-sm font-medium px-3 py-1.5 rounded-md border border-border hover:bg-muted transition-colors"
+            aria-expanded={showBreakdown}
+          >
+            {showBreakdown ? "Hide" : "Show"} per-target breakdown
+          </button>
+
+          {showBreakdown && (
+            <TargetBreakdown
+              rows={breakdown}
+              withinColor={withinColor}
+              betweenColor={betweenColor}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TargetBreakdown({
+  rows,
+  withinColor,
+  betweenColor,
+}: {
+  rows: Array<{
+    target: string;
+    within_prompt: number | null;
+    between_agent: number | null;
+    ratio: number | null;
+  }>;
+  withinColor: string;
+  betweenColor: string;
+}) {
+  const targetLabels: Record<string, string> = {
+    "juice-shop": "Juice Shop",
+    mlflow: "MLflow",
+    "vuln-shop": "Vuln Shop",
+  };
+  const maxV = Math.max(
+    0.001,
+    ...rows.flatMap((r) => [r.within_prompt ?? 0, r.between_agent ?? 0]),
+  );
+
+  return (
+    <div className="mt-4 space-y-4">
+      <p className="text-xs text-muted-foreground">
+        JSD decomposed per target. Within-prompt = same prompt across agents;
+        between-agent = same agent across prompts. Ratio &gt; 1 means
+        between-agent separation dominates.
+      </p>
+      <div className="space-y-3">
+        {rows.map((r) => {
+          const wp = r.within_prompt ?? 0;
+          const ba = r.between_agent ?? 0;
+          const wpPct = (wp / maxV) * 100;
+          const baPct = (ba / maxV) * 100;
+          return (
+            <div
+              key={r.target}
+              className="grid grid-cols-[120px_1fr_72px] gap-3 items-center text-xs"
+            >
+              <div className="font-medium text-foreground">
+                {targetLabels[r.target] ?? r.target}
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: withinColor }}
+                  />
+                  <div className="relative h-2 flex-1 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full"
+                      style={{
+                        width: `${wpPct}%`,
+                        backgroundColor: withinColor,
+                      }}
+                    />
+                  </div>
+                  <span className="font-mono tabular-nums w-14 text-right text-foreground">
+                    {wp.toFixed(3)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: betweenColor }}
+                  />
+                  <div className="relative h-2 flex-1 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full"
+                      style={{
+                        width: `${baPct}%`,
+                        backgroundColor: betweenColor,
+                      }}
+                    />
+                  </div>
+                  <span className="font-mono tabular-nums w-14 text-right text-foreground">
+                    {ba.toFixed(3)}
+                  </span>
+                </div>
+              </div>
+              <div className="text-right">
+                <span
+                  className="inline-block font-mono tabular-nums text-sm font-semibold px-2 py-0.5 rounded-md"
+                  style={{
+                    color:
+                      (r.ratio ?? 0) >= 1
+                        ? "#16a34a"
+                        : "var(--muted-foreground, #71717a)",
+                    backgroundColor: "var(--muted, #f1f5f9)",
+                  }}
+                >
+                  {r.ratio != null ? `${r.ratio.toFixed(2)}×` : "—"}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: withinColor }}
+          />
+          within-prompt
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: betweenColor }}
+          />
+          between-agent
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function RFIdentificationCard({
+  rf,
+  accuracy,
+  baseline,
+}: {
+  rf: NonNullable<PaperSummary["agent_identification_rf"]>;
+  accuracy?: number;
+  baseline?: number;
+}) {
+  const chart = useChartColors();
+  const agentColors = useAgentColors();
+  const acc =
+    accuracy ?? rf.metrics.leave_one_out?.accuracy ?? 0;
+  const base = baseline ?? rf.baseline_accuracy ?? 0.2;
+  const f1Data = rf.per_agent.map((p) => ({
+    agent: AGENT_LABELS[p.agent] ?? p.agent,
+    agentKey: p.agent,
+    f1: (p.f1 ?? 0) * 100,
+  }));
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-6">
+      <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 items-start">
+        {/* Headline accuracy */}
+        <div className="space-y-3">
+          <div className="text-xs font-mono uppercase tracking-wider text-indigo-500">
+            Leave-one-session-out
+          </div>
+          <div className="flex items-baseline gap-3">
+            <span className="text-5xl font-mono font-bold text-foreground tabular-nums">
+              {(acc * 100).toFixed(0)}%
+            </span>
+            <span className="text-xs text-muted-foreground">accuracy</span>
+          </div>
+          <div className="relative h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-indigo-500"
+              style={{ width: `${acc * 100}%`, opacity: 0.85 }}
+            />
+            <div
+              className="absolute inset-y-0 w-px bg-foreground/60"
+              style={{ left: `${base * 100}%` }}
+              aria-label="chance baseline"
+            />
+          </div>
+          <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground tabular-nums">
+            <span>0%</span>
+            <span>baseline {(base * 100).toFixed(0)}%</span>
+            <span>100%</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {rf.metrics.leave_one_out?.n
+              ? `n = ${rf.metrics.leave_one_out.n} sessions, `
+              : ""}
+            macro-F1 ={" "}
+            <span className="font-mono tabular-nums">
+              {(rf.metrics.leave_one_out?.macro_f1 ?? 0).toFixed(3)}
+            </span>
+            .
+          </p>
+        </div>
+
+        {/* Per-agent F1 */}
+        <div>
+          <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
+            Per-agent F1
+          </div>
+          <div style={{ width: "100%", height: 200 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={f1Data}
+                margin={{ top: 8, right: 16, bottom: 8, left: 0 }}
+              >
+                <XAxis
+                  dataKey="agent"
+                  tick={{ fontSize: 11, fill: chart.tick }}
+                  stroke={chart.grid}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: chart.tick }}
+                  domain={[0, 100]}
+                  tickFormatter={(v) => `${v}%`}
+                  stroke={chart.grid}
+                />
+                <Bar dataKey="f1" radius={[4, 4, 0, 0]}>
+                  {f1Data.map((d) => (
+                    <Cell
+                      key={d.agentKey}
+                      fill={agentColors[d.agentKey] ?? "#888"}
+                      fillOpacity={0.85}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>
