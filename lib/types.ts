@@ -138,4 +138,47 @@ export interface PaperSummary {
   fig5_compliance_predictors: CompliancePredictor[];
   headline_stats: HeadlineStats;
   tps_per_agent?: Record<string, number | null>;
+  agent_identification_rf?: AgentIdentificationRf;
+  temporal_adaptation?: TemporalAdaptationRow[];
+}
+
+export interface RfFoldMetrics {
+  accuracy: number;
+  macro_f1: number;
+  n: number;
+}
+
+export interface RfPerAgent {
+  agent: string;
+  precision: number;
+  recall: number;
+  f1: number;
+  support: number;
+}
+
+export interface RfFeatureImportance {
+  feature?: string | null;
+  importance: number | null;
+}
+
+export interface AgentIdentificationRf {
+  metrics: {
+    leave_one_out: RfFoldMetrics;
+    stratified_5fold?: RfFoldMetrics;
+  };
+  per_agent: RfPerAgent[];
+  feature_importance?: RfFeatureImportance[];
+  baseline_accuracy: number;
+}
+
+export interface TemporalAdaptationRow {
+  agent: string;
+  switch_after_failure: number;
+  switch_after_success: number;
+  failure_success_switch_ratio: number;
+  retry_same_endpoint: number;
+  same_family_new_endpoint: number;
+  switch_family_same_endpoint: number;
+  switch_family_new_endpoint: number;
+  repeated_failure_share: number;
 }
