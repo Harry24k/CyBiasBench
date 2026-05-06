@@ -172,11 +172,47 @@ export interface PaperSummary {
     top_asr_pct: number | null;
     tps: number | null;
   }>;
-  agent_identification_rf?: {
-    metrics: Record<string, { accuracy: number | null; macro_f1: number | null; n: number }>;
-    per_agent: Array<{ agent: string; precision: number | null; recall: number | null; f1: number | null; support: number }>;
-    feature_importance: Array<{ feature?: string; importance: number | null }>;
-    baseline_accuracy: number;
+  agent_identification_rf?: AgentIdentificationRf;
+  temporal_adaptation?: TemporalAdaptationRow[];
+}
+
+export interface RfFoldMetrics {
+  accuracy: number;
+  macro_f1: number;
+  n: number;
+}
+
+export interface RfPerAgent {
+  agent: string;
+  precision: number;
+  recall: number;
+  f1: number;
+  support: number;
+}
+
+export interface RfFeatureImportance {
+  feature?: string | null;
+  importance: number | null;
+}
+
+export interface AgentIdentificationRf {
+  metrics: {
+    leave_one_out: RfFoldMetrics;
+    stratified_5fold?: RfFoldMetrics;
   };
-  temporal_adaptation?: Array<Record<string, number | string | null>>;
+  per_agent: RfPerAgent[];
+  feature_importance?: RfFeatureImportance[];
+  baseline_accuracy: number;
+}
+
+export interface TemporalAdaptationRow {
+  agent: string;
+  switch_after_failure: number;
+  switch_after_success: number;
+  failure_success_switch_ratio: number;
+  retry_same_endpoint: number;
+  same_family_new_endpoint: number;
+  switch_family_same_endpoint: number;
+  switch_family_new_endpoint: number;
+  repeated_failure_share: number;
 }
