@@ -6,6 +6,8 @@ import { BridgeText } from "@/components/bridge-text";
 import { SelVsAsrRadar } from "@/components/charts/sel-vs-asr-radar";
 import { EntropyAsrScatter } from "@/components/charts/entropy-asr-scatter";
 import { EffectSizeBar } from "@/components/charts/effect-size-bar";
+import AsrPerFamilyHeatmap from "@/components/charts/asr-per-family-heatmap";
+import TemporalAdaptationBar from "@/components/charts/temporal-adaptation-bar";
 import { useAgentColors } from "@/lib/use-theme";
 import { AGENT_LABELS } from "@/lib/types";
 import type { PaperSummary } from "@/lib/types";
@@ -457,6 +459,20 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
           </div>
         </section>
       </FadeIn>
+
+      <FadeIn>
+        <section className="max-w-[1500px] mx-auto px-6">
+          <AsrPerFamilyHeatmap data={data} />
+        </section>
+      </FadeIn>
+
+      {data.temporal_adaptation && data.temporal_adaptation.length > 0 && (
+        <FadeIn>
+          <section className="max-w-[1500px] mx-auto px-6">
+            <TemporalAdaptationBar data={data.temporal_adaptation} />
+          </section>
+        </FadeIn>
+      )}
 
       <div className="max-w-[1500px] mx-auto px-6">
         <BridgeText>
