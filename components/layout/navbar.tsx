@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { REPO } from "@/lib/config";
 
@@ -8,6 +8,13 @@ const SECTIONS = [
   { id: "overview", label: "Overview" },
   { id: "methodology", label: "Methodology" },
   { id: "findings", label: "Findings" },
+];
+
+const FINDINGS_SUBSECTIONS = [
+  { id: "findings-layer1", label: "Layer 1 — Observation" },
+  { id: "findings-layer2", label: "Layer 2 — Decoupling" },
+  { id: "findings-layer3", label: "Layer 3 — Injection" },
+  { id: "findings-synthesis", label: "Synthesis" },
 ];
 
 function ThemeToggle() {
@@ -42,6 +49,75 @@ function ThemeToggle() {
         </svg>
       )}
     </button>
+  );
+}
+
+function FindingsButton({
+  active,
+  onClickMain,
+  onClickSub,
+}: {
+  active: boolean;
+  onClickMain: () => void;
+  onClickSub: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => setOpen(false), 120);
+  };
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => {
+        cancelClose();
+        setOpen(true);
+      }}
+      onMouseLeave={scheduleClose}
+    >
+      <button
+        onClick={onClickMain}
+        className={cn(
+          "px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer",
+          active
+            ? "text-foreground bg-muted"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+        )}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        Findings
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full mt-1 w-56 rounded-md border border-border bg-card/95 backdrop-blur shadow-md py-1 z-50"
+        >
+          {FINDINGS_SUBSECTIONS.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => {
+                setOpen(false);
+                onClickSub(s.id);
+              }}
+              className="w-full text-left px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+              role="menuitem"
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -96,32 +172,41 @@ export function Navbar() {
         </button>
 
         <div className="flex items-center gap-1">
-          {SECTIONS.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => scrollTo(s.id)}
-              className={cn(
-                "px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer",
-                active === s.id
-                  ? "text-foreground bg-muted"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-            >
-              {s.label}
-            </button>
-          ))}
+          {SECTIONS.map((s) =>
+            s.id === "findings" ? (
+              <FindingsButton
+                key={s.id}
+                active={active === s.id}
+                onClickMain={() => scrollTo(s.id)}
+                onClickSub={(id) => scrollTo(id)}
+              />
+            ) : (
+              <button
+                key={s.id}
+                onClick={() => scrollTo(s.id)}
+                className={cn(
+                  "hidden md:inline-flex px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer",
+                  active === s.id
+                    ? "text-foreground bg-muted"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
+              >
+                {s.label}
+              </button>
+            )
+          )}
           {REPO.url ? (
             <a
               href={REPO.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
+              className="hidden md:inline-flex ml-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
             >
               {REPO.label}
             </a>
           ) : (
             <span
-              className="ml-2 px-3 py-1.5 text-sm text-muted-foreground/50 rounded-md cursor-not-allowed"
+              className="hidden md:inline-flex ml-2 px-3 py-1.5 text-sm text-muted-foreground/50 rounded-md cursor-not-allowed"
               title="Anonymous review build"
             >
               {REPO.label}
