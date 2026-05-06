@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { StickyToc } from "@/components/layout/sticky-toc";
 import { SITE, RESEARCHERS, REPO, IS_ANONYMOUS } from "@/lib/config";
 import { BASE_PATH } from "@/lib/utils";
 
@@ -135,6 +136,7 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
+        <StickyToc />
       </body>
     </html>
   );
