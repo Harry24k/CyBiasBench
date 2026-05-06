@@ -9,9 +9,11 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Line,
+  ComposedChart,
 } from "recharts";
 import { useChartColors, useTheme, useAgentColors } from "@/lib/use-theme";
-import { AGENT_LABELS } from "@/lib/types";
+import { AGENT_LABELS, TARGET_LABELS } from "@/lib/types";
 import type { ScatterPoint } from "@/lib/types";
 
 interface Props {
@@ -20,12 +22,13 @@ interface Props {
   rho: number;
   pValue: number;
   height?: number;
+  showRegression?: boolean;
 }
 
 const SUPER_MAP: Record<string, string> = {
-  "0": "\u2070", "1": "\u00B9", "2": "\u00B2", "3": "\u00B3", "4": "\u2074",
-  "5": "\u2075", "6": "\u2076", "7": "\u2077", "8": "\u2078", "9": "\u2079",
-  "-": "\u207B", "+": "\u207A",
+  "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
+  "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
+  "-": "⁻", "+": "⁺",
 };
 function toSuper(s: string): string {
   return s.split("").map((c) => SUPER_MAP[c] ?? c).join("");
@@ -34,10 +37,40 @@ function formatP(p: number): string {
   if (p < 1e-3) {
     const exp = p.toExponential(2);
     const [m, e] = exp.split("e");
-    return `${m}\u00D7\u200910${toSuper(String(parseInt(e, 10)))}`;
+    return `${m}× 10${toSuper(String(parseInt(e, 10)))}`;
   }
   return p.toFixed(3);
 }
+
+// Ordinary least-squares linear fit: y = m*x + b, returning endpoints over given x-domain.
+function linearFit(
+  pts: { x: number; y: number }[],
+  xMin: number,
+  xMax: number,
+): { x: number; y: number }[] | null {
+  if (pts.length < 2) return null;
+  let sx = 0, sy = 0, sxx = 0, sxy = 0;
+  for (const { x, y } of pts) {
+    sx += x; sy += y; sxx += x * x; sxy += x * y;
+  }
+  const n = pts.length;
+  const denom = n * sxx - sx * sx;
+  if (Math.abs(denom) < 1e-12) return null;
+  const m = (n * sxy - sx * sy) / denom;
+  const b = (sy - m * sx) / n;
+  const clamp = (v: number) => Math.max(0, Math.min(1, v));
+  return [
+    { x: xMin, y: clamp(m * xMin + b) },
+    { x: xMax, y: clamp(m * xMax + b) },
+  ];
+}
+
+const CONDITION_LABELS: Record<string, string> = {
+  UU: "Unguided · Unstructured",
+  US: "Unguided · Structured",
+  GU: "Guided · Unstructured",
+  GS: "Guided · Structured",
+};
 
 export function EntropyAsrScatter({
   agent,
@@ -45,6 +78,7 @@ export function EntropyAsrScatter({
   rho,
   pValue,
   height = 240,
+  showRegression = false,
 }: Props) {
   const colors = useChartColors();
   const isLight = useTheme();
@@ -52,6 +86,98 @@ export function EntropyAsrScatter({
   const color = agentColors[agent] ?? "#888";
   const label = AGENT_LABELS[agent] ?? agent;
   const sig = pValue < 0.05;
+
+  const xMin = 0;
+  const xMax = 3.4;
+
+  // Fit using observed x range so the line spans actual data, not full axis.
+  const xs = points.map((p) => p.entropy);
+  const dataMinX = xs.length ? Math.min(...xs) : xMin;
+  const dataMaxX = xs.length ? Math.max(...xs) : xMax;
+  const fit =
+    showRegression
+      ? linearFit(
+          points.map((p) => ({ x: p.entropy, y: p.session_asr })),
+          dataMinX,
+          dataMaxX,
+        )
+      : null;
+
+  // Combine scatter points and (optional) line endpoints into a single dataset
+  // for a ComposedChart so XAxis is shared.
+  const lineData = fit
+    ? fit.map((pt) => ({ entropy: pt.x, fit_y: pt.y }))
+    : [];
+
+  interface TooltipPayloadItem {
+    payload?: ScatterPoint & { fit_y?: number };
+    name?: string | number;
+    dataKey?: string | number;
+  }
+
+  const ScatterTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: TooltipPayloadItem[];
+  }) => {
+    if (!active || !payload || payload.length === 0) return null;
+    // Prefer scatter payload (with session_id) over fit line payload.
+    const item =
+      payload.find((p) => p.payload && (p.payload as ScatterPoint).session_id) ??
+      payload[0];
+    const d = item?.payload as ScatterPoint | undefined;
+    if (!d || !d.session_id) {
+      // Fit line hover
+      const fy = (item?.payload as { fit_y?: number; entropy?: number })?.fit_y;
+      const ex = (item?.payload as { entropy?: number })?.entropy;
+      if (typeof fy !== "number") return null;
+      return (
+        <div
+          className="rounded-md text-xs leading-tight"
+          style={{
+            backgroundColor: colors.tooltipBg,
+            color: colors.tooltipText,
+            border: `1px solid ${colors.tooltipBorder}`,
+            padding: "6px 8px",
+          }}
+        >
+          <div className="font-mono tabular-nums">
+            Fit: H={(ex ?? 0).toFixed(2)} → ASR={((fy ?? 0) * 100).toFixed(1)}%
+          </div>
+        </div>
+      );
+    }
+    const cond = d.condition ? CONDITION_LABELS[d.condition] ?? d.condition : null;
+    const victim = d.victim ? TARGET_LABELS[d.victim] ?? d.victim : null;
+    return (
+      <div
+        className="rounded-md text-xs leading-tight"
+        style={{
+          backgroundColor: colors.tooltipBg,
+          color: colors.tooltipText,
+          border: `1px solid ${colors.tooltipBorder}`,
+          padding: "8px 10px",
+          minWidth: 180,
+        }}
+      >
+        <div className="font-semibold mb-1.5 truncate" style={{ color }}>
+          {d.session_id}
+        </div>
+        <div className="font-mono tabular-nums space-y-0.5">
+          <div>H(X) = {d.entropy.toFixed(3)}</div>
+          <div>ASR = {(d.session_asr * 100).toFixed(1)}%</div>
+        </div>
+        {(cond || victim) && (
+          <div className="mt-1.5 text-[11px] text-muted-foreground space-y-0.5">
+            {victim && <div>Target: {victim}</div>}
+            {cond && <div>Condition: {cond}</div>}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -74,13 +200,13 @@ export function EntropyAsrScatter({
         </span>
       </div>
       <ResponsiveContainer width="100%" height={height}>
-        <ScatterChart margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
+        <ComposedChart margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
           <XAxis
             type="number"
             dataKey="entropy"
             name="H(X)"
-            domain={[0, 3.4]}
+            domain={[xMin, xMax]}
             tick={{ fontSize: 12, fill: colors.tick }}
             label={{
               value: "Session entropy H(X)",
@@ -88,6 +214,7 @@ export function EntropyAsrScatter({
               offset: -8,
               style: { fontSize: 12, fill: colors.tick },
             }}
+            allowDuplicatedCategory={false}
           />
           <YAxis
             type="number"
@@ -106,20 +233,27 @@ export function EntropyAsrScatter({
           <ZAxis range={[35, 35]} />
           <Tooltip
             cursor={{ strokeDasharray: "3 3", stroke: colors.grid }}
-            formatter={(v, name) => {
-              const n = typeof v === "number" ? v : Number(v);
-              return name === "ASR" ? `${(n * 100).toFixed(1)}%` : n.toFixed(2);
-            }}
-            contentStyle={{
-              borderRadius: 8,
-              border: `1px solid ${colors.tooltipBorder}`,
-              fontSize: 12,
-              backgroundColor: colors.tooltipBg,
-              color: colors.tooltipText,
-            }}
+            content={<ScatterTooltip />}
           />
-          <Scatter data={points} fill={color} fillOpacity={isLight ? 0.75 : 0.55} />
-        </ScatterChart>
+          <Scatter
+            data={points}
+            fill={color}
+            fillOpacity={isLight ? 0.75 : 0.55}
+          />
+          {fit && (
+            <Line
+              data={lineData}
+              dataKey="fit_y"
+              type="linear"
+              stroke={color}
+              strokeWidth={1.75}
+              strokeDasharray="6 4"
+              dot={false}
+              isAnimationActive={false}
+              legendType="none"
+            />
+          )}
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );

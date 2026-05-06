@@ -23,6 +23,37 @@ interface Props {
   height?: number;
 }
 
+interface RadarDatum {
+  metric: string;
+  selNorm: number;
+  asrNorm: number;
+  selRaw: number;
+  asrRaw: number;
+}
+
+function classifyCell(selRaw: number, asrRaw: number): {
+  label: string;
+  tone: string;
+} {
+  // High selection, low ASR -> mis-spent effort
+  if (selRaw >= 0.15 && asrRaw < 0.25) {
+    return { label: "focus, low payoff", tone: "text-amber-600 dark:text-amber-400" };
+  }
+  // Low selection, high ASR -> capability ignored
+  if (selRaw < 0.08 && asrRaw >= 0.4) {
+    return { label: "underused capability", tone: "text-emerald-600 dark:text-emerald-400" };
+  }
+  // Low selection AND low ASR -> blind spot
+  if (selRaw < 0.05 && asrRaw < 0.15) {
+    return { label: "blind spot", tone: "text-rose-600 dark:text-rose-400" };
+  }
+  // High selection AND high ASR -> aligned focus
+  if (selRaw >= 0.15 && asrRaw >= 0.4) {
+    return { label: "aligned focus", tone: "text-sky-600 dark:text-sky-400" };
+  }
+  return { label: "moderate", tone: "text-muted-foreground" };
+}
+
 export function SelVsAsrRadar({
   agent,
   families,
@@ -40,7 +71,7 @@ export function SelVsAsrRadar({
   const label = AGENT_LABELS[agent] ?? agent;
   const priorColor = isLight ? "#52525b" : "#a1a1aa";
 
-  const data = families.map((f) => {
+  const data: RadarDatum[] = families.map((f) => {
     const s = selection[f] ?? 0;
     const a = asrPrior[f] ?? 0;
     return {
@@ -58,6 +89,50 @@ export function SelVsAsrRadar({
   const topAsr = families
     .map((f) => ({ f, v: asrPrior[f] ?? 0 }))
     .sort((x, y) => y.v - x.v)[0];
+
+  // Custom tooltip: combines both rings into one block by family axis.
+  interface TooltipPayloadItem {
+    payload?: RadarDatum;
+  }
+  const RadarTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: TooltipPayloadItem[];
+  }) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const d = payload[0]?.payload;
+    if (!d) return null;
+    const cls = classifyCell(d.selRaw, d.asrRaw);
+    return (
+      <div
+        className="rounded-md text-xs leading-tight"
+        style={{
+          backgroundColor: colors.tooltipBg,
+          color: colors.tooltipText,
+          border: `1px solid ${colors.tooltipBorder}`,
+          padding: "8px 10px",
+          minWidth: 150,
+        }}
+      >
+        <div className="font-semibold mb-1.5" style={{ color }}>
+          {d.metric}
+        </div>
+        <div className="font-mono tabular-nums space-y-0.5">
+          <div>
+            Sel<sub>i</sub>{" "}
+            <span style={{ color }}>{(d.selRaw * 100).toFixed(1)}%</span>
+          </div>
+          <div>
+            ASR<sub>i</sub>{" "}
+            <span>{(d.asrRaw * 100).toFixed(1)}%</span>
+          </div>
+        </div>
+        <div className={`mt-1.5 text-[11px] ${cls.tone}`}>{cls.label}</div>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -94,22 +169,7 @@ export function SelVsAsrRadar({
             domain={[0, 1]}
             tickCount={4}
           />
-          <Tooltip
-            formatter={(v, name, props) => {
-              const p = props?.payload as { selRaw?: number; asrRaw?: number } | undefined;
-              if (name === "selNorm") {
-                return [`${((p?.selRaw ?? 0) * 100).toFixed(1)}%`, "Sel"];
-              }
-              return [`${((p?.asrRaw ?? 0) * 100).toFixed(1)}%`, "ASR"];
-            }}
-            contentStyle={{
-              borderRadius: 8,
-              border: `1px solid ${colors.tooltipBorder}`,
-              fontSize: 12,
-              backgroundColor: colors.tooltipBg,
-              color: colors.tooltipText,
-            }}
-          />
+          <Tooltip content={<RadarTooltip />} />
           <Radar
             name="asrNorm"
             dataKey="asrNorm"
