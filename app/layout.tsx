@@ -10,11 +10,15 @@ const VENUE_VISIBLE_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 import { BASE_PATH } from "@/lib/utils";
 
 const SITE_URL = SITE.url.replace(/\/$/, "");
-// OG host is the actual deployment that serves the image. Anonymous submissions
-// share the Vercel URL; the auto-generated cy-bias-bench.vercel.app subdomain
-// carries no identifying info, so it is safe as a hard default.
+// OG host = the deployment that actually serves the image. Each build
+// publishes its OWN og.png so social previews never cross-fetch and a stale
+// image on one host can't poison the other. NEXT_PUBLIC_OG_HOST overrides
+// the default for ad-hoc preview deploys.
 const OG_HOST = (
-  process.env.NEXT_PUBLIC_OG_HOST ?? "https://cy-bias-bench.vercel.app"
+  process.env.NEXT_PUBLIC_OG_HOST ??
+  (process.env.NEXT_PUBLIC_DEPLOY_TARGET === "github"
+    ? "https://harry24k.github.io/CyBiasBench"
+    : "https://cy-bias-bench.vercel.app")
 ).replace(/\/$/, "");
 const OG_IMAGE = `${OG_HOST}/og.png`;
 
