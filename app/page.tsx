@@ -912,18 +912,19 @@ function MethodologySection() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`${BASE_PATH}/images/overview.png?v=3`} alt="CyBiasBench Architecture Overview" className="w-full h-auto max-w-[1100px]" />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-nowrap gap-1.5 sm:gap-2 sm:flex-wrap">
           {[
-            { id: "infra-stage-1", label: "Stage 1 · Provision" },
-            { id: "infra-stage-2", label: "Stage 2 · Run" },
-            { id: "infra-stage-3", label: "Stage 3 · Analyze" },
+            { id: "infra-stage-1", short: "1 · Provision", full: "Stage 1 · Provision" },
+            { id: "infra-stage-2", short: "2 · Run", full: "Stage 2 · Run" },
+            { id: "infra-stage-3", short: "3 · Analyze", full: "Stage 3 · Analyze" },
           ].map((s) => (
             <a
               key={s.id}
               href={`#${s.id}`}
-              className="px-3 py-1 rounded-full border border-border text-xs font-mono text-muted-foreground hover:text-foreground hover:bg-muted transition-colors whitespace-nowrap"
+              className="px-2 sm:px-3 py-1 rounded-full border border-border text-[10px] sm:text-xs font-mono text-muted-foreground hover:text-foreground hover:bg-muted transition-colors whitespace-nowrap"
             >
-              {s.label}
+              <span className="sm:hidden">{s.short}</span>
+              <span className="hidden sm:inline">{s.full}</span>
             </a>
           ))}
         </div>

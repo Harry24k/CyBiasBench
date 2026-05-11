@@ -149,7 +149,7 @@ export function LeaderboardTable({ data }: Props) {
         <div className="flex items-center gap-2">
           <label
             htmlFor="leaderboard-sort"
-            className="text-xs font-mono uppercase tracking-wider text-muted-foreground"
+            className="text-xs font-mono uppercase tracking-wider text-muted-foreground shrink-0"
           >
             Sort
           </label>
@@ -161,7 +161,7 @@ export function LeaderboardTable({ data }: Props) {
               setSortKey(k);
               setSortDir(d);
             }}
-            className="text-sm bg-card border border-border rounded-md px-2 py-1.5 text-foreground"
+            className="flex-1 min-w-0 max-w-full text-sm bg-card border border-border rounded-md px-2 py-1.5 text-foreground truncate"
           >
             {COLUMNS.map((c) => (
               <Fragment key={c.key}>

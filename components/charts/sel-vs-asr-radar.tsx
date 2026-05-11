@@ -174,7 +174,8 @@ export function SelVsAsrRadar({
             name="asrNorm"
             dataKey="asrNorm"
             stroke={priorColor}
-            fill="transparent"
+            fill={priorColor}
+            fillOpacity={0.12}
             strokeWidth={1.5}
             strokeDasharray="4 3"
             strokeOpacity={0.85}
