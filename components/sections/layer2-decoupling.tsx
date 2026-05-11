@@ -8,8 +8,8 @@ import { EntropyAsrScatter } from "@/components/charts/entropy-asr-scatter";
 import { EffectSizeBar } from "@/components/charts/effect-size-bar";
 import AsrPerFamilyHeatmap from "@/components/charts/asr-per-family-heatmap";
 import TemporalAdaptationBar from "@/components/charts/temporal-adaptation-bar";
-import { useAgentColors } from "@/lib/use-theme";
-import { AGENT_LABELS } from "@/lib/types";
+import { useAgentColors, useIsMobile } from "@/lib/use-theme";
+import { AGENT_LABELS, FAMILY_FULLNAME } from "@/lib/types";
 import type { PaperSummary } from "@/lib/types";
 
 const FAMILY_LABELS: Record<string, string> = {
@@ -62,6 +62,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
   const tpsPerAgent = data.tps_per_agent ?? {};
   const h = data.headline_stats;
   const agentColors = useAgentColors();
+  const isMobile = useIsMobile();
 
   const [view, setView] = useState<"radar" | "table">("radar");
   const [showRegression, setShowRegression] = useState(false);
@@ -110,24 +111,20 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
   }, [agents, topSelFamily, selPerAgent, asrPerAgent, tpsPerAgent]);
 
   return (
-    <div className="space-y-14">
-      <header className="max-w-[1500px] mx-auto px-6">
-        <div className="flex items-baseline gap-4">
-          <span className="text-xs font-mono text-emerald-500 tracking-widest uppercase">
-            Layer 2
-          </span>
-          <h2 className="font-serif text-3xl text-foreground">Selection ≠ Performance</h2>
-        </div>
+    <div id="findings-layer2" className="space-y-14 scroll-mt-24">
+      <header className="max-w-[1500px] mx-auto px-4 sm:px-6">
+        <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Selection ≠ Performance</h2>
         <p className="mt-3 text-base text-muted-foreground max-w-3xl">
-          Allocation profiles do not mirror per-family success. Families with the highest selection
-          shares are often not the highest-ASR families, and session-level entropy is uncorrelated
-          with session ASR for 4 of 5 agents.
+          Allocation profiles do not mirror per-family success. Most-selected families are
+          frequently not the highest-ASR<sub>i</sub> families, and session-level entropy is
+          uncorrelated with session ASR for 4 of 5 agents. Across-agent effect sizes confirm
+          structural attack-selection metrics separate agents far more strongly than session ASR.
         </p>
       </header>
 
       {h.kruskal_unique_count && h.kruskal_top_share && (
         <FadeIn>
-          <section className="max-w-[1500px] mx-auto px-6">
+          <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
             <EffectSizeBar
               kH={h.kruskal_H}
               kUniq={h.kruskal_unique_count}
@@ -139,7 +136,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
       )}
 
       <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-6">
+        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
           <div className="mb-5 flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h3 className="text-xl font-semibold text-foreground">
@@ -155,8 +152,8 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                 mis-spent on low-success families. Hover for raw values.
               </p>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="flex items-center gap-5 text-sm text-muted-foreground">
+            <div className="flex items-center gap-x-3 gap-y-2 flex-wrap w-full sm:w-auto">
+              <div className="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs sm:text-sm text-muted-foreground">
                 <span className="flex items-center gap-2">
                   <span className="inline-block w-5 h-0 border-t-2 border-current" />
                   Selection Selᵢ
@@ -166,10 +163,10 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                     className="inline-block w-5 h-0"
                     style={{ borderTop: "1.5px dashed currentColor" }}
                   />
-                  ASRᵢ (same agent)
+                  ASRᵢ
                 </span>
               </div>
-              <div className="inline-flex rounded-md border border-border overflow-hidden">
+              <div className="inline-flex rounded-md border border-border overflow-hidden ml-auto sm:ml-0">
                 <button
                   type="button"
                   onClick={() => setView("radar")}
@@ -180,7 +177,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                   }`}
                   aria-pressed={view === "radar"}
                 >
-                  Radar view
+                  Radar
                 </button>
                 <button
                   type="button"
@@ -192,7 +189,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                   }`}
                   aria-pressed={view === "table"}
                 >
-                  Table view
+                  Table
                 </button>
               </div>
             </div>
@@ -203,7 +200,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
               {agents.map((a) => (
                 <div
                   key={a}
-                  className="w-full md:w-[calc(50%-12px)] xl:w-[calc(33.333%-16px)] rounded-lg border border-border bg-card p-5"
+                  className="w-full md:w-[calc(50%-12px)] xl:w-[calc(33.333%-16px)] rounded-lg border border-border bg-card p-3 sm:p-5"
                 >
                   <SelVsAsrRadar
                     agent={a}
@@ -213,7 +210,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                     asrPrior={asrPerAgent[a] ?? {}}
                     maxSel={maxSel}
                     maxAsr={maxAsr}
-                    height={360}
+                    height={isMobile ? 280 : 360}
                   />
                 </div>
               ))}
@@ -223,7 +220,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left font-medium text-muted-foreground px-3 py-2 sticky left-0 bg-card">
+                    <th className="text-left font-medium text-muted-foreground px-3 py-2 sticky left-0 bg-card z-10 border-r border-border/60 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]">
                       Family
                     </th>
                     {agents.map((a) => (
@@ -244,7 +241,9 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {families.map((f, idx) => (
+                  {families.map((f, idx) => {
+                    const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted";
+                    return (
                     <tr
                       key={f}
                       className={
@@ -253,8 +252,15 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                           : "border-b border-border/60 bg-muted/30"
                       }
                     >
-                      <td className="px-3 py-2 font-medium text-foreground sticky left-0 bg-inherit">
-                        {FAMILY_LABELS[f] ?? f}
+                      <td
+                        className={`px-3 py-2 font-medium text-foreground sticky left-0 z-10 border-r border-border/60 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)] ${rowBg}`}
+                      >
+                        <abbr
+                          title={FAMILY_FULLNAME[f] ?? f}
+                          className="no-underline decoration-dotted decoration-muted-foreground/40 underline underline-offset-2 cursor-help"
+                        >
+                          {FAMILY_LABELS[f] ?? f}
+                        </abbr>
                       </td>
                       {agents.map((a) => {
                         const sel = selPerAgent[a]?.[f] ?? 0;
@@ -291,7 +297,8 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                         );
                       })}
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
               <div className="px-3 py-2 text-xs text-muted-foreground border-t border-border">
@@ -305,7 +312,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
       </FadeIn>
 
       <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-6">
+        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
           <div className="mb-4 flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h3 className="text-xl font-semibold text-foreground">
@@ -357,7 +364,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
       </FadeIn>
 
       <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-6">
+        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
           <div className="mb-4">
             <h3 className="text-xl font-semibold text-foreground">
               Cell-level decoupling
@@ -368,7 +375,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
               interpretation.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
             {decouplingSummary.map((row) => {
               const expanded = expandedAgent === row.agent;
               const color = agentColors[row.agent];
@@ -381,7 +388,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                     setExpandedAgent(expanded ? null : row.agent)
                   }
                   aria-expanded={expanded}
-                  className="text-left rounded-lg border border-border bg-card p-4 hover:bg-muted/40 transition-colors flex flex-col gap-3"
+                  className="text-left rounded-lg border border-border bg-card p-4 hover:bg-muted/40 transition-colors flex flex-col gap-3 w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)] xl:w-[calc(20%-0.8rem)]"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -404,7 +411,13 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                     className="text-base font-semibold leading-tight"
                     style={{ color }}
                   >
-                    {FAMILY_LABELS[row.top_family] ?? row.top_family}
+                    <abbr
+                      title={FAMILY_FULLNAME[row.top_family] ?? row.top_family}
+                      className="no-underline decoration-dotted underline underline-offset-2 cursor-help"
+                      style={{ textDecorationColor: `${color}66` }}
+                    >
+                      {FAMILY_LABELS[row.top_family] ?? row.top_family}
+                    </abbr>
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-xs font-mono tabular-nums pt-1 border-t border-border/60">
                     <div>
@@ -461,20 +474,20 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
       </FadeIn>
 
       <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-6">
+        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
           <AsrPerFamilyHeatmap data={data} />
         </section>
       </FadeIn>
 
       {data.temporal_adaptation && data.temporal_adaptation.length > 0 && (
         <FadeIn>
-          <section className="max-w-[1500px] mx-auto px-6">
+          <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
             <TemporalAdaptationBar data={data.temporal_adaptation} />
           </section>
         </FadeIn>
       )}
 
-      <div className="max-w-[1500px] mx-auto px-6">
+      <div className="max-w-[1500px] mx-auto px-4 sm:px-6">
         <BridgeText>
           Selection and performance are decoupled. A natural intervention is to force the attack
           family — does this close the gap?

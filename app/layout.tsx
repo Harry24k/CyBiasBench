@@ -2,12 +2,17 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import { StickyToc } from "@/components/layout/sticky-toc";
-import { SITE, RESEARCHERS, REPO, IS_ANONYMOUS } from "@/lib/config";
+import { SITE, RESEARCHERS, REPO, IS_ANONYMOUS, VENUE_VISIBLE } from "@/lib/config";
 import { BASE_PATH } from "@/lib/utils";
 
 const SITE_URL = SITE.url.replace(/\/$/, "");
-const OG_IMAGE = `${SITE_URL}${BASE_PATH}/images/overview.png`;
+// OG host is the actual deployment that serves the image. Anonymous submissions
+// share the Vercel URL; the auto-generated cy-bias-bench.vercel.app subdomain
+// carries no identifying info, so it is safe as a hard default.
+const OG_HOST = (
+  process.env.NEXT_PUBLIC_OG_HOST ?? "https://cy-bias-bench.vercel.app"
+).replace(/\/$/, "");
+const OG_IMAGE = `${OG_HOST}/og.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -19,8 +24,7 @@ export const metadata: Metadata = {
     "attack-selection bias",
     "web exploitation",
     "agent evaluation",
-    "NeurIPS 2026",
-    "datasets and benchmarks",
+    ...(VENUE_VISIBLE ? ["NeurIPS 2026", "datasets and benchmarks"] : []),
   ],
   authors: IS_ANONYMOUS
     ? [{ name: "Anonymous Authors" }]
@@ -31,7 +35,7 @@ export const metadata: Metadata = {
     description: SITE.shortDescription,
     url: `${SITE_URL}${BASE_PATH}`,
     siteName: SITE.name,
-    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: "CyBiasBench overview" }],
+    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: "CyBiasBench: 630-session benchmark for attack-selection bias in LLM cyber-attack agents" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -136,7 +140,6 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
-        <StickyToc />
       </body>
     </html>
   );

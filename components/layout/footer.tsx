@@ -1,4 +1,4 @@
-import { SITE, REPO, PAPER, IS_ANONYMOUS } from "@/lib/config";
+import { SITE, REPO, PAPER, IS_ANONYMOUS, VENUE_VISIBLE } from "@/lib/config";
 import { BASE_PATH } from "@/lib/utils";
 
 export function Footer() {
@@ -6,7 +6,7 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border mt-24">
-      <div className="max-w-[1500px] mx-auto px-6 py-10 space-y-4 text-sm text-muted-foreground">
+      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 py-10 space-y-4 text-sm text-muted-foreground">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <span className="font-serif text-foreground">{SITE.name}</span>
@@ -41,12 +41,18 @@ export function Footer() {
             <span>{SITE.year}</span>
           </div>
         </div>
-        <p className="text-[11px] text-muted-foreground/70">
-          {IS_ANONYMOUS
-            ? "Anonymous review build — author and repository identifiers are masked. Submitted to "
-            : "Submitted to "}
-          {SITE.venue}.
-        </p>
+        {VENUE_VISIBLE ? (
+          <p className="text-[11px] text-muted-foreground/70">
+            {IS_ANONYMOUS
+              ? "Anonymous review build — author and repository identifiers are masked. Submitted to "
+              : "Submitted to "}
+            {SITE.venue}.
+          </p>
+        ) : (
+          <p className="text-[11px] text-muted-foreground/70">
+            Research preview · maintained by the authors.
+          </p>
+        )}
       </div>
     </footer>
   );

@@ -57,7 +57,8 @@ export function MiniFamilyBars({
             dataKey="family"
             type="category"
             tick={{ fontSize: 10, fill: chart.tick }}
-            width={70}
+            width={80}
+            interval={0}
             stroke={chart.grid}
           />
           <Bar dataKey="value" radius={[0, 2, 2, 0]}>

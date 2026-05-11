@@ -33,3 +33,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# paper raw HTTP traces (~800MB) — regenerate from runs, not in git
+paper/data/s1_attack_data.csv
+paper/data/s2_attack_data.csv
+
+# paper repro outputs
+paper/repro/figures/*.png
+__pycache__/
+*.pyc

@@ -93,13 +93,13 @@ export function BiasHeatmap({
         <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
         <thead>
           <tr className="border-b border-border">
-            <th className="text-left px-5 py-4 font-semibold text-foreground w-36">
+            <th className="text-left px-3 sm:px-5 py-3 sm:py-4 font-semibold text-foreground w-24 sm:w-36">
               Agent
             </th>
             {columns.map((col) => (
               <th
                 key={col}
-                className="px-4 py-4 text-center font-semibold text-foreground text-sm whitespace-nowrap"
+                className="px-3 sm:px-4 py-3 sm:py-4 text-center font-semibold text-foreground text-xs sm:text-sm whitespace-nowrap"
               >
                 {getLabel(col)}
               </th>
@@ -109,8 +109,8 @@ export function BiasHeatmap({
         <tbody>
           {agents.map((agent) => (
             <tr key={agent} className="border-t border-border">
-              <td className="px-5 py-4">
-                <div className="flex items-center gap-2.5">
+              <td className="px-3 sm:px-5 py-3 sm:py-4">
+                <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-6 h-6 rounded-full agent-icon-circle flex items-center justify-center shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -138,7 +138,7 @@ export function BiasHeatmap({
                 return (
                   <td
                     key={col}
-                    className="px-4 py-4 text-center font-mono text-base font-semibold tabular-nums whitespace-nowrap"
+                    className="px-3 sm:px-4 py-3 sm:py-4 text-center font-mono text-sm sm:text-base font-semibold tabular-nums whitespace-nowrap"
                     style={{ backgroundColor: style.bg, color: style.text }}
                   >
                     {fmt(val, col)}
@@ -165,9 +165,9 @@ export function BiasHeatmap({
   }
 
   return (
-    <section className="max-w-[1500px] mx-auto px-6 mt-20">
+    <section className="max-w-[1500px] mx-auto px-4 sm:px-6 mt-20">
       <div className="mb-6">
-        <h2 className="font-serif text-3xl text-foreground">{title}</h2>
+        <h2 className="font-serif text-2xl sm:text-3xl text-foreground">{title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
       {table}

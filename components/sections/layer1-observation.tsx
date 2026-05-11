@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { FadeIn } from "@/components/fade-in";
 import { BridgeText } from "@/components/bridge-text";
 import { ConditionHeatmapGrid } from "@/components/charts/condition-heatmap-grid";
 import { MiniFamilyBars } from "@/components/charts/mini-radar";
-import { AGENT_LABELS } from "@/lib/types";
+import { PortalTooltip } from "@/components/charts/portal-tooltip";
+import { AGENT_LABELS, FAMILY_FULLNAME } from "@/lib/types";
 import type { PaperSummary } from "@/lib/types";
 import { useAgentColors, useChartColors, useTheme } from "@/lib/use-theme";
 import {
@@ -55,56 +57,58 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
   const kw = data.headline_stats.kruskal_H;
   const agentColors = useAgentColors();
 
-  const tpsMap = (data.tps_per_agent ?? {}) as Record<string, number | null>;
   const maxH = Math.max(...agents.map((a) => sig[a]?.entropy ?? 0));
   const maxUniq = Math.max(...agents.map((a) => sig[a]?.unique_techniques ?? 0));
-  const maxTps = Math.max(...agents.map((a) => tpsMap[a] ?? 0));
+  const maxCr1 = Math.max(...agents.map((a) => sig[a]?.selection_cr1 ?? 0));
+  const maxAsr = Math.max(...agents.map((a) => (sig[a]?.session_asr_mean ?? 0)));
 
   return (
-    <div className="space-y-14">
-      <header className="max-w-[1500px] mx-auto px-6">
-        <div className="flex items-baseline gap-4">
-          <span className="text-xs font-mono text-indigo-500 tracking-widest uppercase">
-            Layer 1
-          </span>
-          <h2 className="font-serif text-3xl text-foreground">Bias Observation</h2>
-        </div>
+    <div id="findings-layer1" className="space-y-14 scroll-mt-24">
+      <header className="max-w-[1500px] mx-auto px-4 sm:px-6">
+        <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Bias Observation</h2>
         <p className="mt-3 text-base text-muted-foreground max-w-3xl">
-          Under free choice, each agent exposes a distinctive allocation profile over the 10 attack
-          families. Kruskal–Wallis across H(X) rejects a shared distribution
-          (H = {kw.H.toFixed(2)}, p = {formatP(kw.p)}, η² = {kw.eta2.toFixed(3)}), and
-          prompt variation contributes less than between-agent variation (see JSD).
+          Under free choice, each agent exposes a distinctive allocation profile over the 10
+          attack families. Kruskal–Wallis on H(X) rejects a shared distribution
+          (H = {kw.H.toFixed(2)}, p = {formatP(kw.p)}, η² = {kw.eta2.toFixed(3)}), and prompt
+          variation contributes less than between-agent variation
+          (Prompt-stability JSD 0.038 vs between-agent 0.054).
         </p>
       </header>
 
       <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-6">
+        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
           <div className="mb-4">
             <h3 className="text-xl font-semibold text-foreground">Agent Signatures</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Three bias indicators per agent: attack-family entropy H(X), mean unique families per
-              session, and dominant-family share. Hover any row to see that agent&apos;s full
-              Sel<sub>i</sub> distribution across all 10 families.
+              Three bias indicators per agent: entropy H(X), mean unique families per session,
+              and the most-selected family&apos;s share (Sel<sub>i</sub>). Hover any desktop
+              row to see the full Sel<sub>i</sub> distribution across all 10 attack families.
             </p>
           </div>
 
           <div className="rounded-lg border border-border overflow-hidden">
-            <div className="grid grid-cols-[170px_1fr_1fr_1fr_1fr] text-sm">
-              <div className="bg-muted/50 px-5 py-3 font-semibold text-foreground">Agent</div>
-              <div className="bg-muted/50 px-5 py-3 font-semibold text-foreground text-right">
-                H(X) <span className="text-xs text-muted-foreground font-normal">↑ breadth</span>
+            {/* Desktop: dense per-agent grid */}
+            <div className="hidden md:grid grid-cols-[150px_1.5fr_0.9fr_0.9fr_0.9fr_0.9fr] text-sm">
+              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground">Agent</div>
+              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground">
+                Most Selected Family{" "}
+                <span className="text-xs text-muted-foreground font-normal">(Sel<sub>i</sub>)</span>
               </div>
-              <div className="bg-muted/50 px-5 py-3 font-semibold text-foreground text-right">
-                Unique / session{" "}
+              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
+                H(X){" "}
                 <span className="text-xs text-muted-foreground font-normal">↑ breadth</span>
               </div>
-              <div className="bg-muted/50 px-5 py-3 font-semibold text-foreground text-right">
-                Most Selected Family{" "}
-                <span className="text-xs text-muted-foreground font-normal">Sel<sub>i</sub></span>
+              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
+                Unique / sess{" "}
+                <span className="text-xs text-muted-foreground font-normal">↑ breadth</span>
               </div>
-              <div className="bg-muted/50 px-5 py-3 font-semibold text-foreground text-right">
-                TPS{" "}
-                <span className="text-xs text-muted-foreground font-normal">↓ efficient</span>
+              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
+                Sel CR1{" "}
+                <span className="text-xs text-muted-foreground font-normal">↑ concentrated</span>
+              </div>
+              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
+                Session ASR{" "}
+                <span className="text-xs text-muted-foreground font-normal">↑ better</span>
               </div>
 
               {agents.map((a) => {
@@ -120,10 +124,40 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
                     unique={s.unique_techniques}
                     topShare={s.top_share}
                     topFamily={s.top_family}
-                    tps={tpsMap[a] ?? null}
+                    cr1={s.selection_cr1 ?? 0}
+                    sessionAsr={s.session_asr_mean ?? 0}
                     maxH={maxH}
                     maxUniq={maxUniq}
-                    maxTps={maxTps}
+                    maxCr1={maxCr1}
+                    maxAsr={maxAsr}
+                    selByFamily={data.fig3_selection_per_agent[a] ?? {}}
+                    families={families}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Mobile: stacked cards (same metrics as desktop), inline Sel_i bars */}
+            <div className="md:hidden divide-y divide-border">
+              {agents.map((a) => {
+                const s = sig[a];
+                if (!s) return null;
+                const color = agentColors[a] ?? "#888";
+                return (
+                  <MobileSignatureCard
+                    key={a}
+                    agent={a}
+                    color={color}
+                    entropy={s.entropy}
+                    unique={s.unique_techniques}
+                    topShare={s.top_share}
+                    topFamily={s.top_family}
+                    cr1={s.selection_cr1 ?? 0}
+                    sessionAsr={s.session_asr_mean ?? 0}
+                    maxH={maxH}
+                    maxUniq={maxUniq}
+                    maxCr1={maxCr1}
+                    maxAsr={maxAsr}
                     selByFamily={data.fig3_selection_per_agent[a] ?? {}}
                     families={families}
                   />
@@ -131,12 +165,18 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
               })}
             </div>
           </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            36 free-choice sessions per agent. Sel<sub>i</sub> in parentheses is the
+            most-selected family&apos;s share;{" "}
+            <span className="font-mono">Sel CR1</span> is the within-session concentration
+            averaged across sessions.
+          </p>
         </section>
       </FadeIn>
 
       {data.fig2_selection_heatmap_by_condition && (
         <FadeIn>
-          <section className="max-w-[1500px] mx-auto px-6">
+          <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
             <div className="mb-4">
               <h3 className="text-xl font-semibold text-foreground">
                 Selection across the four prompt conditions
@@ -159,7 +199,7 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
       )}
 
       <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-6">
+        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
           <div className="mb-4">
             <h3 className="text-xl font-semibold text-foreground">
               Prompt Robustness (JSD)
@@ -176,7 +216,7 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
 
       {data.agent_identification_rf && (
         <FadeIn>
-          <section className="max-w-[1500px] mx-auto px-6">
+          <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
             <div className="mb-4">
               <h3 className="text-xl font-semibold text-foreground">
                 Agent Identification by Selection Pattern
@@ -203,7 +243,7 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
         </FadeIn>
       )}
 
-      <div className="max-w-[1500px] mx-auto px-6">
+      <div className="max-w-[1500px] mx-auto px-4 sm:px-6">
         <BridgeText>
           Selection profiles are stable and model-specific. But do these preferences track what
           actually succeeds?
@@ -220,10 +260,12 @@ function SignatureRow({
   unique,
   topShare,
   topFamily,
-  tps,
+  cr1,
+  sessionAsr,
   maxH,
   maxUniq,
-  maxTps,
+  maxCr1,
+  maxAsr,
   selByFamily,
   families,
 }: {
@@ -233,20 +275,59 @@ function SignatureRow({
   unique: number;
   topShare: number;
   topFamily: string;
-  tps: number | null;
+  cr1: number;
+  sessionAsr: number;
   maxH: number;
   maxUniq: number;
-  maxTps: number;
+  maxCr1: number;
+  maxAsr: number;
   selByFamily: Record<string, number>;
   families: string[];
 }) {
   const [hover, setHover] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+  useEffect(() => setMounted(true), []);
+  // Follow the mouse pointer via direct DOM transform — never re-render the
+  // tooltip on mouse move (ResponsiveContainer would otherwise re-measure on
+  // every frame and cause visible jitter / scroll thrash).
+  useEffect(() => {
+    if (!hover) return;
+    const TOOLTIP_W = 440;
+    const TOOLTIP_H = 360;
+    const onMove = (e: MouseEvent) => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        const node = tooltipRef.current;
+        if (!node) return;
+        const offsetX = 14;
+        const offsetY = 18;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        let left = e.clientX + offsetX;
+        let top = e.clientY + offsetY;
+        if (left + TOOLTIP_W + 8 > vw) left = e.clientX - TOOLTIP_W - offsetX;
+        if (top + TOOLTIP_H + 8 > vh) top = e.clientY - TOOLTIP_H - offsetY;
+        left = Math.max(8, left);
+        top = Math.max(8, top);
+        node.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+      });
+    };
+    document.addEventListener("mousemove", onMove, { passive: true });
+    return () => {
+      document.removeEventListener("mousemove", onMove);
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [hover]);
+  const onEnter = () => setHover(true);
+  const onLeave = () => setHover(false);
   return (
     <>
       <div
-        className="relative px-5 py-4 border-t border-border flex items-center gap-2"
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
+        className="px-5 py-4 border-t border-border flex items-center gap-2"
+        onMouseEnter={onEnter}
+        onMouseLeave={onLeave}
       >
         <span
           className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -255,24 +336,56 @@ function SignatureRow({
         <span className="font-medium text-foreground">
           {AGENT_LABELS[agent] ?? agent}
         </span>
-        {hover && (
+        {mounted && hover && createPortal(
           <div
-            className="absolute z-50 left-0 top-full mt-2 bg-card border border-border rounded-md p-3 shadow-lg w-[300px] pointer-events-none"
+            ref={tooltipRef}
             role="tooltip"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: 440,
+              zIndex: 1000,
+              pointerEvents: "none",
+              transform: "translate3d(-9999px, -9999px, 0)",
+              willChange: "transform",
+            }}
+            className="rounded-lg border border-border bg-card shadow-2xl p-5"
           >
-            <div className="text-xs font-semibold text-foreground mb-2">
-              {AGENT_LABELS[agent] ?? agent} · Sel<sub>i</sub> by family
+            <div className="text-sm font-semibold text-foreground mb-3">
+              {AGENT_LABELS[agent] ?? agent} · Sel<sub>i</sub> by family (10 attack families)
             </div>
             <MiniFamilyBars
               selByFamily={selByFamily}
               families={families}
               familyLabels={FAMILY_LABELS}
               color={color}
-              height={180}
+              height={280}
               highlightFamily={topFamily}
             />
-          </div>
+          </div>,
+          document.body,
         )}
+      </div>
+      {/* Most Selected Family (Sel_i) */}
+      <div
+        className="px-4 py-4 border-t border-border flex items-center"
+        onMouseEnter={onEnter}
+        onMouseLeave={onLeave}
+      >
+        <div className="flex items-baseline gap-2 min-w-0">
+          <span className="text-foreground font-medium truncate">
+            <abbr
+              title={FAMILY_FULLNAME[topFamily] ?? topFamily}
+              className="no-underline decoration-dotted decoration-muted-foreground/40 underline underline-offset-2 cursor-help"
+            >
+              {FAMILY_LABELS[topFamily] ?? topFamily}
+            </abbr>
+          </span>
+          <span className="font-mono tabular-nums text-sm text-muted-foreground whitespace-nowrap">
+            ({topShare.toFixed(1)}%)
+          </span>
+        </div>
       </div>
       <BarCell
         value={entropy}
@@ -289,42 +402,135 @@ function SignatureRow({
         onHover={setHover}
       />
       <BarCell
-        value={topShare}
-        max={100}
+        value={cr1}
+        max={maxCr1}
         color={color}
         format={(v) => `${v.toFixed(1)}%`}
         onHover={setHover}
-        suffix={
-          <span className="ml-2 text-xs text-muted-foreground font-normal">
-            {FAMILY_LABELS[topFamily] ?? topFamily}
-          </span>
-        }
       />
-      {tps != null ? (
-        <BarCell
-          value={tps}
-          max={maxTps}
-          color={color}
-          format={(v) =>
-            v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v.toFixed(0)
-          }
-          onHover={setHover}
-          suffix={
-            <span className="ml-2 text-xs text-muted-foreground font-normal">
-              tok/✓
-            </span>
-          }
-        />
-      ) : (
-        <div
-          className="px-5 py-4 border-t border-border text-right text-muted-foreground"
-          onMouseEnter={() => setHover(true)}
-          onMouseLeave={() => setHover(false)}
-        >
-          —
-        </div>
-      )}
+      <BarCell
+        value={sessionAsr}
+        max={maxAsr}
+        color={color}
+        format={(v) => `${(v * 100).toFixed(1)}%`}
+        onHover={setHover}
+      />
     </>
+  );
+}
+
+function MobileSignatureCard({
+  agent,
+  color,
+  entropy,
+  unique,
+  topShare,
+  topFamily,
+  cr1,
+  sessionAsr,
+  maxH,
+  maxUniq,
+  maxCr1,
+  maxAsr,
+  selByFamily,
+  families,
+}: {
+  agent: string;
+  color: string;
+  entropy: number;
+  unique: number;
+  topShare: number;
+  topFamily: string;
+  cr1: number;
+  sessionAsr: number;
+  maxH: number;
+  maxUniq: number;
+  maxCr1: number;
+  maxAsr: number;
+  selByFamily: Record<string, number>;
+  families: string[];
+}) {
+  const rows: Array<{ label: React.ReactNode; value: string; pct: number; suffix?: string; suffixTitle?: string }> = [
+    {
+      label: <>Most Selected <span className="text-muted-foreground/70">Sel<sub>i</sub></span></>,
+      value: `${topShare.toFixed(1)}%`,
+      pct: topShare,
+      suffix: FAMILY_LABELS[topFamily] ?? topFamily,
+      suffixTitle: FAMILY_FULLNAME[topFamily],
+    },
+    {
+      label: <>H(X) <span className="text-muted-foreground/70">↑ breadth</span></>,
+      value: entropy.toFixed(2),
+      pct: maxH > 0 ? (entropy / maxH) * 100 : 0,
+    },
+    {
+      label: <>Unique / session</>,
+      value: unique.toFixed(1),
+      pct: maxUniq > 0 ? (unique / maxUniq) * 100 : 0,
+    },
+    {
+      label: <>Sel CR1 <span className="text-muted-foreground/70">↑ concentrated</span></>,
+      value: `${cr1.toFixed(1)}%`,
+      pct: maxCr1 > 0 ? (cr1 / maxCr1) * 100 : 0,
+    },
+    {
+      label: <>Session ASR <span className="text-muted-foreground/70">↑ better</span></>,
+      value: `${(sessionAsr * 100).toFixed(1)}%`,
+      pct: maxAsr > 0 ? (sessionAsr / maxAsr) * 100 : 0,
+    },
+  ];
+  return (
+    <div className="px-4 py-3">
+      <div className="flex items-center gap-2">
+        <span
+          className="w-2.5 h-2.5 rounded-full shrink-0"
+          style={{ backgroundColor: color }}
+        />
+        <span className="font-medium text-foreground">
+          {AGENT_LABELS[agent] ?? agent}
+        </span>
+      </div>
+      <div className="mt-3 space-y-2.5">
+        {rows.map((r, i) => (
+          <div key={i} className="grid grid-cols-[1fr_auto] gap-3 items-center">
+            <div className="text-xs text-muted-foreground">{r.label}</div>
+            <div className="font-mono tabular-nums text-sm text-foreground whitespace-nowrap">
+              {r.value}
+              {r.suffix && (
+                <span className="ml-1.5 text-xs text-muted-foreground font-normal">
+                  {r.suffixTitle ? (
+                    <abbr title={r.suffixTitle} className="no-underline decoration-dotted decoration-muted-foreground/40 underline underline-offset-2 cursor-help">
+                      {r.suffix}
+                    </abbr>
+                  ) : (
+                    r.suffix
+                  )}
+                </span>
+              )}
+            </div>
+            <div className="col-span-2 relative h-1.5 rounded-full bg-muted overflow-hidden">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full"
+                style={{ width: `${Math.min(100, r.pct)}%`, backgroundColor: color, opacity: 0.8 }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 pt-3 border-t border-border/60">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1.5">
+          Sel<sub>i</sub> across 10 families
+        </div>
+        <MiniFamilyBars
+          selByFamily={selByFamily}
+          families={families}
+          familyLabels={FAMILY_LABELS}
+          color={color}
+          height={140}
+          highlightFamily={topFamily}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -373,28 +579,18 @@ function JSDComparison({
     between_agent_median: number;
     between_agent_mean: number;
     centroid_within_mean: number;
-    target_breakdown?: Array<{
-      target: string;
-      within_prompt: number | null;
-      between_agent: number | null;
-      ratio: number | null;
-    }>;
   };
 }) {
   const isLight = useTheme();
-  const [showBreakdown, setShowBreakdown] = useState(false);
   const withinMean = jsd.centroid_within_mean;
   const ratio = jsd.between_agent_mean / withinMean;
   const maxVal = Math.max(withinMean, jsd.between_agent_mean);
   const withinColor = isLight ? "#64748b" : "#94a3b8";
   const betweenColor = isLight ? "#4f46e5" : "#6366f1";
 
-  const breakdown = jsd.target_breakdown ?? [];
-  const hasBreakdown = breakdown.length > 0;
-
   return (
-    <div className="rounded-lg border border-border bg-card p-6">
-      <div className="grid grid-cols-[1fr_auto_1fr] gap-6 items-stretch">
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-6 items-stretch">
         {/* Within-agent */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -410,7 +606,7 @@ function JSDComparison({
             condition-to-centroid drift, per agent
           </p>
           <div className="flex items-baseline gap-3">
-            <span className="text-3xl font-mono font-bold text-foreground tabular-nums">
+            <span className="text-2xl sm:text-3xl font-mono font-bold text-foreground tabular-nums">
               {withinMean.toFixed(3)}
             </span>
             <span className="text-xs text-muted-foreground font-mono">mean</span>
@@ -429,15 +625,15 @@ function JSDComparison({
           </span>
         </div>
 
-        {/* Center divider with ratio */}
-        <div className="flex flex-col items-center justify-center px-2">
-          <div className="h-full w-px bg-border" />
-          <div className="my-3 px-3 py-1.5 rounded-full bg-muted text-center">
+        {/* Center divider with ratio (vertical on sm+, horizontal on mobile) */}
+        <div className="flex flex-row sm:flex-col items-center justify-center sm:px-2">
+          <div className="flex-1 h-px sm:h-auto sm:w-px sm:flex-1 bg-border" />
+          <div className="mx-3 sm:mx-0 sm:my-3 px-3 py-1.5 rounded-full bg-muted text-center">
             <span className="text-lg font-mono font-bold text-foreground tabular-nums">
               {ratio.toFixed(2)}×
             </span>
           </div>
-          <div className="h-full w-px bg-border" />
+          <div className="flex-1 h-px sm:h-auto sm:w-px sm:flex-1 bg-border" />
         </div>
 
         {/* Between-agent */}
@@ -455,7 +651,7 @@ function JSDComparison({
             across agent pairs
           </p>
           <div className="flex items-baseline gap-3">
-            <span className="text-3xl font-mono font-bold text-foreground tabular-nums">
+            <span className="text-2xl sm:text-3xl font-mono font-bold text-foreground tabular-nums">
               {jsd.between_agent_mean.toFixed(3)}
             </span>
             <span className="text-xs text-muted-foreground font-mono">mean</span>
@@ -475,150 +671,16 @@ function JSDComparison({
         </div>
       </div>
 
-      {hasBreakdown && (
-        <div className="mt-6 pt-6 border-t border-border">
-          <button
-            type="button"
-            onClick={() => setShowBreakdown((v) => !v)}
-            className="text-sm font-medium px-3 py-1.5 rounded-md border border-border hover:bg-muted transition-colors"
-            aria-expanded={showBreakdown}
-          >
-            {showBreakdown ? "Hide" : "Show"} per-target breakdown
-          </button>
-
-          {showBreakdown && (
-            <TargetBreakdown
-              rows={breakdown}
-              withinColor={withinColor}
-              betweenColor={betweenColor}
-            />
-          )}
-        </div>
-      )}
+      {/* Per-target breakdown intentionally omitted from the site:
+          the aggregate marginal JSD (0.0379 < 0.0543) is the load-bearing
+          headline; the per-target cut shows Juice Shop with ratio < 1 because
+          that target alone has more vulnerabilities than the others, which
+          confuses the main claim. The full per-target table is in the paper
+          appendix where the surrounding context disambiguates it. */}
     </div>
   );
 }
 
-function TargetBreakdown({
-  rows,
-  withinColor,
-  betweenColor,
-}: {
-  rows: Array<{
-    target: string;
-    within_prompt: number | null;
-    between_agent: number | null;
-    ratio: number | null;
-  }>;
-  withinColor: string;
-  betweenColor: string;
-}) {
-  const targetLabels: Record<string, string> = {
-    "juice-shop": "Juice Shop",
-    mlflow: "MLflow",
-    "vuln-shop": "Vuln Shop",
-  };
-  const maxV = Math.max(
-    0.001,
-    ...rows.flatMap((r) => [r.within_prompt ?? 0, r.between_agent ?? 0]),
-  );
-
-  return (
-    <div className="mt-4 space-y-4">
-      <p className="text-xs text-muted-foreground">
-        JSD decomposed per target. Within-prompt = same prompt across agents;
-        between-agent = same agent across prompts. Ratio &gt; 1 means
-        between-agent separation dominates.
-      </p>
-      <div className="space-y-3">
-        {rows.map((r) => {
-          const wp = r.within_prompt ?? 0;
-          const ba = r.between_agent ?? 0;
-          const wpPct = (wp / maxV) * 100;
-          const baPct = (ba / maxV) * 100;
-          return (
-            <div
-              key={r.target}
-              className="grid grid-cols-[120px_1fr_72px] gap-3 items-center text-xs"
-            >
-              <div className="font-medium text-foreground">
-                {targetLabels[r.target] ?? r.target}
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{ backgroundColor: withinColor }}
-                  />
-                  <div className="relative h-2 flex-1 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="absolute inset-y-0 left-0 rounded-full"
-                      style={{
-                        width: `${wpPct}%`,
-                        backgroundColor: withinColor,
-                      }}
-                    />
-                  </div>
-                  <span className="font-mono tabular-nums w-14 text-right text-foreground">
-                    {wp.toFixed(3)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{ backgroundColor: betweenColor }}
-                  />
-                  <div className="relative h-2 flex-1 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="absolute inset-y-0 left-0 rounded-full"
-                      style={{
-                        width: `${baPct}%`,
-                        backgroundColor: betweenColor,
-                      }}
-                    />
-                  </div>
-                  <span className="font-mono tabular-nums w-14 text-right text-foreground">
-                    {ba.toFixed(3)}
-                  </span>
-                </div>
-              </div>
-              <div className="text-right">
-                <span
-                  className="inline-block font-mono tabular-nums text-sm font-semibold px-2 py-0.5 rounded-md"
-                  style={{
-                    color:
-                      (r.ratio ?? 0) >= 1
-                        ? "#16a34a"
-                        : "var(--muted-foreground, #71717a)",
-                    backgroundColor: "var(--muted, #f1f5f9)",
-                  }}
-                >
-                  {r.ratio != null ? `${r.ratio.toFixed(2)}×` : "—"}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: withinColor }}
-          />
-          within-prompt
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: betweenColor }}
-          />
-          between-agent
-        </span>
-      </div>
-    </div>
-  );
-}
 
 function RFIdentificationCard({
   rf,
@@ -641,15 +703,15 @@ function RFIdentificationCard({
   }));
 
   return (
-    <div className="rounded-lg border border-border bg-card p-6">
-      <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 items-start">
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+      <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-4 md:gap-6 items-start">
         {/* Headline accuracy */}
         <div className="space-y-3">
           <div className="text-xs font-mono uppercase tracking-wider text-indigo-500">
             Leave-one-session-out
           </div>
           <div className="flex items-baseline gap-3">
-            <span className="text-5xl font-mono font-bold text-foreground tabular-nums">
+            <span className="text-4xl sm:text-5xl font-mono font-bold text-foreground tabular-nums">
               {(acc * 100).toFixed(0)}%
             </span>
             <span className="text-xs text-muted-foreground">accuracy</span>

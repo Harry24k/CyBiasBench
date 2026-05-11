@@ -35,6 +35,23 @@ export const MODEL_COLORS: Record<string, string> = {
   glm: "#8B5CF6",
 };
 
+// Full names for the 10 attack-family abbreviations used throughout the
+// charts (SQLi, IDOR, SSRF, ...). Used as `<abbr title>` content so that
+// hovering the short tag reveals the long name on desktop and the
+// definition is announced by screen readers.
+export const FAMILY_FULLNAME: Record<string, string> = {
+  sqli: "SQL Injection",
+  xss: "Cross-Site Scripting",
+  cmdi: "Command Injection",
+  path_traversal: "Path Traversal",
+  auth_bypass: "Authentication Bypass",
+  idor: "Insecure Direct Object Reference",
+  ssrf: "Server-Side Request Forgery",
+  csrf: "Cross-Site Request Forgery",
+  file_upload: "Insecure File Upload",
+  info_disclosure: "Information Disclosure",
+};
+
 export const AGENT_ICONS: Record<string, string> = {
   claude: `${BASE_PATH}/icons/claude.svg`,
   codex: `${BASE_PATH}/icons/codex.svg`,

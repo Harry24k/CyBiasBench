@@ -28,6 +28,11 @@ jobs:
       - run: npm ci
 
       - run: npm run build
+        env:
+          # Activates the named, NeurIPS-stripped GitHub Pages build.
+          # Vercel deploys do NOT set this and stay in the anonymous +
+          # venue-visible mode.
+          NEXT_PUBLIC_DEPLOY_TARGET: github
 
       - uses: actions/upload-pages-artifact@v3
         with:

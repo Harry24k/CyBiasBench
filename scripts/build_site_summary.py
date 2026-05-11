@@ -254,7 +254,7 @@ def build_injection_correlations() -> dict:
     label_map = {
         "Sel -> compliance": "compliance_sel",
         "ASR_i -> compliance": "compliance_asri",
-        "ASR_i -> target ASR": "asr_transfer",
+        "ASR_i -> requested-family ASR": "asr_transfer",
         "Compliance -> session ASR": "compliance_session_asr",
     }
     for r in rows:
@@ -286,7 +286,7 @@ def build_compliance_predictors(
                 "family": row.attack_family,
                 "sel_i": sel_i,
                 "asr_i": asr_i,
-                "asr_i_s2": float(row.target_asr) if pd.notna(row.target_asr) else None,
+                "asr_i_s2": float(row.requested_family_asr) if pd.notna(row.requested_family_asr) else None,
                 "compliance": float(row.compliance) if pd.notna(row.compliance) else None,
             }
         )

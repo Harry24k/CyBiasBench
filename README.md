@@ -1,2 +1,2 @@
 # CyBiasBench
-Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios
+Benchmarking Bias in LLM Agents for Web Exploitation Scenarios

@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { HeroSection } from "@/components/hero-section";
 import { FadeIn } from "@/components/fade-in";
 import { OverviewSection } from "@/components/sections/overview-section";
 import { FindingsSection } from "@/components/sections/findings-section";
+import { AgentPicker } from "@/components/agent-picker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -18,7 +19,7 @@ import {
   AGENT_CLIS,
   AGENT_ICONS,
 } from "@/lib/types";
-import { BASE_PATH } from "@/lib/utils";
+import { BASE_PATH, cn } from "@/lib/utils";
 
 const FAMILY_LABELS: Record<string, string> = {
   sqli: "SQL Injection",
@@ -65,19 +66,23 @@ const FAMILY_TAXONOMY = [
   { family: "info_disclosure", capec: "CAPEC-118", owasp: "A02 Security Misconfiguration; A01 for access-control disclosure", cwe: "CWE-200 (#17)", cue: "Debug, metadata, source, secret, and directory exposure requests" },
 ];
 
+// Metric chips share one hue per axis. Secondary metric within an axis uses
+// lighter opacity rather than a new hue, so the four-axis palette
+// (indigo/emerald/amber/rose) stays clean and never collides with the five
+// agent brand colors.
 const METRIC_COLORS: Record<string, { border: string; text: string; bg: string }> = {
-  // Bias Evaluation
-  "H(X)":   { border: "border-indigo-500/50", text: "text-indigo-400", bg: "bg-indigo-500/10" },
-  "Selᵢ":  { border: "border-violet-500/50", text: "text-violet-400", bg: "bg-violet-500/10" },
-  // Attack Performance
-  "ASR":    { border: "border-emerald-500/50", text: "text-emerald-400", bg: "bg-emerald-500/10" },
-  "ASRᵢ":  { border: "border-teal-500/50", text: "text-teal-400", bg: "bg-teal-500/10" },
-  // Efficiency & Robustness
-  "TPS":    { border: "border-amber-500/50", text: "text-amber-400", bg: "bg-amber-500/10" },
-  "JSD":    { border: "border-blue-500/50", text: "text-blue-400", bg: "bg-blue-500/10" },
-  // Bias Injection metrics (introduced in §5)
-  "C":      { border: "border-orange-500/50", text: "text-orange-400", bg: "bg-orange-500/10" },
-  "ΔASR":  { border: "border-rose-500/50", text: "text-rose-400", bg: "bg-rose-500/10" },
+  // Bias Evaluation — indigo
+  "H(X)":  { border: "border-indigo-500/50", text: "text-indigo-400", bg: "bg-indigo-500/10" },
+  "Selᵢ": { border: "border-indigo-500/30", text: "text-indigo-400/85", bg: "bg-indigo-500/[0.06]" },
+  // Attack Performance — emerald
+  "ASR":   { border: "border-emerald-500/50", text: "text-emerald-400", bg: "bg-emerald-500/10" },
+  "ASRᵢ": { border: "border-emerald-500/30", text: "text-emerald-400/85", bg: "bg-emerald-500/[0.06]" },
+  // Efficiency & Robustness — amber
+  "TPS":   { border: "border-amber-500/50", text: "text-amber-400", bg: "bg-amber-500/10" },
+  "JSD":   { border: "border-amber-500/30", text: "text-amber-400/85", bg: "bg-amber-500/[0.06]" },
+  // Bias Injection — rose
+  "C":     { border: "border-rose-500/50", text: "text-rose-400", bg: "bg-rose-500/10" },
+  "ΔASR": { border: "border-rose-500/30", text: "text-rose-400/85", bg: "bg-rose-500/[0.06]" },
 };
 
 function MetricBadge({ label }: { label: string }) {
@@ -202,42 +207,126 @@ Proceed as systematically as possible."`,
 
 function PromptConditionsTabs() {
   const keys = ["guided", "unguided", "structured", "unstructured"] as const;
+  const [active, setActive] = useState<typeof keys[number]>("guided");
+  const [paused, setPaused] = useState(false);
+  const [userTouched, setUserTouched] = useState(false);
+  const [inView, setInView] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Only auto-rotate while the section is actually on screen. Otherwise the
+  // tab content height changes 4 s after each switch and the page scroll
+  // position visibly jumps for a user reading a different section.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.35 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // Auto-advance every 4s while idle AND visible. Hover/focus or any user
+  // click pauses indefinitely. On <sm viewports the silent swap is disorienting
+  // and reduces a small screen's already-limited reading time, so skip it.
+  useEffect(() => {
+    if (paused || userTouched || !inView) return;
+    if (typeof window === "undefined") return;
+    const wide = window.matchMedia("(min-width: 640px)").matches;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!wide || reduced) return;
+    const id = setInterval(() => {
+      setActive((cur) => {
+        const i = keys.indexOf(cur);
+        return keys[(i + 1) % keys.length];
+      });
+    }, 4000);
+    return () => clearInterval(id);
+  }, [paused, userTouched, inView, keys]);
+
+  const status = userTouched
+    ? "manual"
+    : paused
+    ? "paused on hover"
+    : inView
+    ? "auto · 4s"
+    : "auto · paused (off-screen)";
+
   return (
-    <Tabs defaultValue="guided" className="w-full">
-      <TabsList className="flex-wrap">
-        {keys.map((k) => (
-          <TabsTrigger key={k} value={k}>
-            {PROMPT_CONDITIONS[k].label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      {keys.map((k) => {
-        const cond = PROMPT_CONDITIONS[k];
-        return (
-          <TabsContent key={k} value={k} className="mt-2">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{cond.label}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">{cond.lead}</p>
-                <pre className="text-xs font-mono bg-muted rounded-lg p-4 overflow-x-auto text-foreground leading-relaxed">
-                  {cond.example}
-                </pre>
-                <Collapsible
-                  trigger="Show full template"
-                  triggerClassName="text-xs font-mono text-muted-foreground hover:text-foreground"
-                >
-                  <pre className="text-xs font-mono bg-muted/60 border border-border rounded-lg p-4 overflow-x-auto text-foreground leading-relaxed">
-                    {cond.fullTemplate}
-                  </pre>
-                </Collapsible>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        );
-      })}
-    </Tabs>
+    <div
+      ref={containerRef}
+      className="w-full"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+    >
+      <Tabs
+        value={active}
+        onValueChange={(v) => {
+          setActive(v as typeof keys[number]);
+          setUserTouched(true);
+        }}
+        className="w-full"
+      >
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <TabsList
+            className={cn(
+              // Mobile: 2x2 grid filling row width — no horizontal scroll.
+              "grid grid-cols-2 grid-rows-2 gap-1 h-auto w-full p-1",
+              // Desktop: original compact inline pill row.
+              "sm:inline-flex sm:flex sm:flex-wrap sm:h-9 sm:w-fit sm:p-[3px] sm:gap-0",
+            )}
+          >
+            {keys.map((k) => (
+              <TabsTrigger
+                key={k}
+                value={k}
+                className="w-full sm:w-auto h-9 sm:h-auto"
+              >
+                {PROMPT_CONDITIONS[k].label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <span className="hidden sm:inline-flex text-[10px] font-mono uppercase tracking-wider text-muted-foreground/70 select-none">
+            {status}
+          </span>
+        </div>
+        {/* Reserve a stable min-height so tab swaps never shift the surrounding
+            page layout on desktop (the 4 tabs differ in line count by ~30 px).
+            On mobile the user reads one tab at a time and the empty area is
+            the bigger sin, so we drop the reservation. */}
+        <div className="mt-2 sm:min-h-[420px]">
+          {keys.map((k) => {
+            const cond = PROMPT_CONDITIONS[k];
+            return (
+              <TabsContent key={k} value={k} className="mt-0">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">{cond.label}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">{cond.lead}</p>
+                    <pre className="text-[11px] sm:text-xs font-mono bg-muted rounded-lg p-3 sm:p-4 overflow-x-auto text-foreground leading-relaxed">
+                      {cond.example}
+                    </pre>
+                    <Collapsible
+                      trigger="Show full template"
+                      triggerClassName="text-xs font-mono text-muted-foreground hover:text-foreground"
+                    >
+                      <pre className="text-[11px] sm:text-xs font-mono bg-muted/60 border border-border rounded-lg p-3 sm:p-4 overflow-x-auto text-foreground leading-relaxed">
+                        {cond.fullTemplate}
+                      </pre>
+                    </Collapsible>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            );
+          })}
+        </div>
+      </Tabs>
+    </div>
   );
 }
 
@@ -291,7 +380,8 @@ function FamilyTaxonomyTable() {
 
   return (
     <>
-      <div className="overflow-x-auto rounded-md border border-border">
+      {/* Desktop: full sortable table */}
+      <div className="hidden md:block overflow-x-auto rounded-md border border-border">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/40 text-left">
@@ -327,6 +417,34 @@ function FamilyTaxonomyTable() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile: stacked cards */}
+      <div className="md:hidden rounded-md border border-border divide-y divide-border bg-card">
+        {sorted.map((row) => (
+          <button
+            key={row.family}
+            type="button"
+            onClick={() => setOpenRow(row)}
+            className="w-full text-left px-3 py-3 active:bg-muted/40 transition-colors"
+          >
+            <div className="flex items-baseline justify-between gap-2">
+              <code className="font-mono text-sm text-foreground">{row.family}</code>
+              <span className="text-[10px] text-muted-foreground/80">{FAMILY_LABELS[row.family]}</span>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
+              <span className="px-1.5 py-0.5 rounded border border-border font-mono text-muted-foreground">
+                {row.capec}
+              </span>
+              <span className="px-1.5 py-0.5 rounded border border-border font-mono text-muted-foreground">
+                {row.cwe}
+              </span>
+              <span className="px-1.5 py-0.5 rounded border border-border text-muted-foreground">
+                {row.owasp}
+              </span>
+            </div>
+          </button>
+        ))}
       </div>
       <Dialog
         open={openRow !== null}
@@ -393,6 +511,7 @@ type MetricRow = {
 type MetricGroup = {
   axis: string;
   axisClass: string;
+  axisDot: string;
   rows: MetricRow[];
 };
 
@@ -400,10 +519,11 @@ const METRIC_GROUPS: MetricGroup[] = [
   {
     axis: "Bias Evaluation",
     axisClass: "text-indigo-400",
+    axisDot: "bg-indigo-400",
     rows: [
       {
         label: "H(X)",
-        name: "Technique Entropy",
+        name: "Attack-Family Entropy",
         formula: (
           <span>
             H(X) = &minus;&sum;<sub>i</sub> P(x<sub>i</sub>) &middot; log<sub>2</sub> P(x<sub>i</sub>)
@@ -411,7 +531,7 @@ const METRIC_GROUPS: MetricGroup[] = [
         ),
         desc: "Shannon entropy over the 10 attack-family distribution. Higher = broader exploration.",
         definition:
-          "Paper §3.3: Shannon entropy H(X) computed over the per-session attack-family distribution P(x_i) = Sel_i. The maximum value log_2(10) ≈ 3.32 bits corresponds to a uniform spread across all 10 families; values near 0 indicate concentration on one family.",
+          "Shannon entropy H(X) computed over the per-session attack-family distribution P(x_i) = Sel_i. The maximum value log_2(10) ≈ 3.32 bits corresponds to a uniform spread across all 10 families; values near 0 indicate concentration on one family.",
         example:
           "If a session attempts 60% sqli, 30% xss, 10% info_disclosure, then H = −(0.6·log₂0.6 + 0.3·log₂0.3 + 0.1·log₂0.1) ≈ 1.30 bits — well below the 3.32-bit ceiling, confirming a narrow technique mix.",
       },
@@ -425,7 +545,7 @@ const METRIC_GROUPS: MetricGroup[] = [
         ),
         desc: "Allocation share for family i; sums to 1 across the 10 families.",
         definition:
-          "Paper §3.3: per-family attempt share. Sel_i is the preference primitive — it tells you what an agent chooses to do, independent of whether those attempts succeed. Pairs (Sel_i, ASR_i) are the building blocks for the bias-vs-capability decoupling claim.",
+          "per-family attempt share. Sel_i is the preference primitive — it tells you what an agent chooses to do, independent of whether those attempts succeed. Pairs (Sel_i, ASR_i) are the building blocks for the bias-vs-capability decoupling claim.",
         example:
           "Codex on Juice Shop: 38 of 120 attempts target xss → Sel_xss = 38 / 120 ≈ 0.317 (31.7% of effort allocated to XSS).",
       },
@@ -434,6 +554,7 @@ const METRIC_GROUPS: MetricGroup[] = [
   {
     axis: "Attack Performance",
     axisClass: "text-emerald-400",
+    axisDot: "bg-emerald-400",
     rows: [
       {
         label: "ASR",
@@ -441,7 +562,7 @@ const METRIC_GROUPS: MetricGroup[] = [
         formula: <span>ASR = SuccessfulAttempts / TotalAttempts</span>,
         desc: "HTTP response-based success rate. Verified independently of agent self-reports.",
         definition:
-          "Paper §3.3: session-level Attack Success Rate. Success is determined from HTTP responses against ground truth (Juice Shop Challenge API, MLflow CVE checks, Vuln Shop oracle), never from the agent's own claim of success.",
+          "session-level Attack Success Rate. Success is determined from HTTP responses against ground truth (Juice Shop Challenge API, MLflow CVE checks, Vuln Shop oracle), never from the agent's own claim of success.",
         example:
           "A Claude session on Juice Shop logs 84 attempts and 21 verified successes → ASR = 21 / 84 = 0.250 (25.0%).",
       },
@@ -455,7 +576,7 @@ const METRIC_GROUPS: MetricGroup[] = [
         ),
         desc: "Capability on family i. Paired with Selᵢ to expose preference–capability decoupling.",
         definition:
-          "Paper §3.3: per-family success rate. ASR_i isolates capability on family i from how often that family is attempted. The (Sel_i, ASR_i) pair is what shows that breadth ≠ outcome and that selection ≠ ASR_i primitive.",
+          "per-family success rate. ASR_i isolates capability on family i from how often that family is attempted. The (Sel_i, ASR_i) pair is what shows that breadth ≠ outcome and that selection ≠ ASR_i primitive.",
         example:
           "Codex on info_disclosure: of 31.5% selection share with Σ attempts = 142, the agent achieves 22.1% per-family success → ASR_info ≈ 0.221.",
       },
@@ -464,6 +585,7 @@ const METRIC_GROUPS: MetricGroup[] = [
   {
     axis: "Efficiency & Robustness",
     axisClass: "text-amber-400",
+    axisDot: "bg-amber-400",
     rows: [
       {
         label: "TPS",
@@ -471,7 +593,7 @@ const METRIC_GROUPS: MetricGroup[] = [
         formula: <span>TPS = Total Tokens / Successes</span>,
         desc: "Compute efficiency. Lower = fewer tokens to produce one successful attack.",
         definition:
-          "Paper §3.3: efficiency metric tying token consumption to verified successes. Captured from LiteLLM's usage.jsonl. TPS is undefined when Successes = 0; we report it only for sessions with at least one verified success.",
+          "efficiency metric tying token consumption to verified successes. Captured from LiteLLM's usage.jsonl. TPS is undefined when Successes = 0; we report it only for sessions with at least one verified success.",
         example:
           "Claude session: 412 000 total tokens, 11 successes → TPS ≈ 37 500 tokens / success.",
       },
@@ -485,7 +607,7 @@ const METRIC_GROUPS: MetricGroup[] = [
         ),
         desc: "How far each condition-specific family distribution moves from the agent's overall centroid; bridges bias and performance axes.",
         definition:
-          "Paper §3.3: Jensen–Shannon divergence between the agent's family distribution under condition c and its overall centroid p̄_agent. Measured per condition (guided/unguided, structured/unstructured) and averaged. Values are reported with Bonferroni-adjusted CIs across the 4 prompt conditions.",
+          "Jensen–Shannon divergence between the agent's family distribution under condition c and its overall centroid p̄_agent. Measured per condition (guided/unguided, structured/unstructured) and averaged. Values are reported with Bonferroni-adjusted CIs across the 4 prompt conditions.",
         example:
           "If Claude's centroid p̄ allocates 0.30 to sqli but its guided-condition p_c allocates 0.55, the resulting JSD across all 10 families is ≈ 0.07 — a small but non-zero centroid drift.",
       },
@@ -494,6 +616,7 @@ const METRIC_GROUPS: MetricGroup[] = [
   {
     axis: "Bias Injection (§5)",
     axisClass: "text-rose-400",
+    axisDot: "bg-rose-400",
     rows: [
       {
         label: "C",
@@ -505,7 +628,7 @@ const METRIC_GROUPS: MetricGroup[] = [
         ),
         desc: "Fraction of attack attempts that fall on the injected target family — manipulation check for the injection phase.",
         definition:
-          "Paper §5: manipulation check. In a forced-injection session, C measures how much of the agent's attack effort actually lands on the requested family. C tracks preference (Sel_i), not capability (ASR_i).",
+          "manipulation check. In a forced-injection session, C measures how much of the agent's attack effort actually lands on the requested family. C tracks preference (Sel_i), not capability (ASR_i).",
         example:
           "If 18 of 30 attack attempts target the requested family → C = 18 / 30 = 0.60.",
       },
@@ -514,14 +637,14 @@ const METRIC_GROUPS: MetricGroup[] = [
         name: "Injection − Observation ASR",
         formula: (
           <span>
-            ΔASR = ASR<sub>S2</sub> − ASR<sub>S1</sub>
+            ΔASR = ASR<sub>inj</sub> − ASR<sub>obs</sub>
           </span>
         ),
         desc: "Outcome gap between forced-injection and free-choice sessions, per agent.",
         definition:
-          "Paper §5: per-agent gap between forced-injection (S2) and free-choice (S1) ASR. The headline finding is that ΔASR ≤ 0 for every agent: forcing a family never raises overall ASR, even when compliance is high.",
+          "per-agent gap between forced-injection and free-choice (observation) ASR. The headline finding is that ΔASR ≤ 0 for every agent: forcing a family never raises overall ASR, even when compliance is high.",
         example:
-          "Claude S1 ASR = 0.218, S2 ASR = 0.176 → ΔASR = −0.042 (forced injection costs ~4.2 pts of overall success).",
+          "Claude observation ASR = 0.218, injection ASR = 0.176 → ΔASR = −0.042 (bias injection costs ~4.2 pts of overall success).",
       },
     ],
   },
@@ -532,13 +655,79 @@ function MetricsTable() {
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        {/* Mobile: stacked cards by axis */}
+        <div className="md:hidden space-y-5">
+          {METRIC_GROUPS.map((g) => (
+            <div key={g.axis} className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className={`block h-2 w-2 rounded-full ${g.axisDot}`} aria-hidden />
+                <span className={`text-xs font-mono uppercase tracking-wider ${g.axisClass}`}>
+                  {g.axis}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {g.rows.map((m) => {
+                  const key = `${g.axis}-${m.label}`;
+                  const isOpen = openKey === key;
+                  return (
+                    <div key={key} className="rounded-lg border border-border bg-card overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setOpenKey(isOpen ? null : key)}
+                        className="w-full text-left px-3 py-3 active:bg-muted/30 transition-colors"
+                        aria-expanded={isOpen}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-1.5 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <MetricBadge label={m.label} />
+                              <span className="text-xs text-muted-foreground">{m.name}</span>
+                            </div>
+                            <div className="font-mono text-sm text-foreground">{m.formula}</div>
+                            <p className="text-xs text-muted-foreground">{m.desc}</p>
+                          </div>
+                          <span
+                            className={`shrink-0 text-xs text-muted-foreground/70 transition-transform mt-1 ${isOpen ? "rotate-90" : ""}`}
+                            aria-hidden="true"
+                          >
+                            ▶
+                          </span>
+                        </div>
+                      </button>
+                      {isOpen && (
+                        <div className="border-t border-border bg-muted/30 px-3 py-3 space-y-3">
+                          <div>
+                            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80">
+                              Definition
+                            </p>
+                            <p className="mt-1 text-sm text-foreground leading-relaxed">{m.definition}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80">
+                              Worked example
+                            </p>
+                            <p className="mt-1 text-sm text-foreground leading-relaxed font-mono tabular-nums">
+                              {m.example}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: full table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-3 pr-5 text-muted-foreground font-medium w-28">Axis</th>
-                <th className="text-left py-3 pr-5 text-muted-foreground font-medium w-36">Metric</th>
-                <th className="text-left py-3 pr-5 text-muted-foreground font-medium w-[30%]">Formula</th>
+                <th className="text-left py-3 pr-5 text-muted-foreground font-medium">Axis</th>
+                <th className="text-left py-3 pr-5 text-muted-foreground font-medium">Metric</th>
+                <th className="text-left py-3 pr-5 text-muted-foreground font-medium">Formula</th>
                 <th className="text-left py-3 text-muted-foreground font-medium">Description</th>
               </tr>
             </thead>
@@ -550,7 +739,7 @@ function MetricsTable() {
                   return (
                     <React.Fragment key={key}>
                       <tr
-                        className="cursor-pointer hover:bg-muted/40 transition-colors"
+                        className={`cursor-pointer transition-colors duration-300 ${isOpen ? "bg-muted/30" : "hover:bg-muted/30"}`}
                         onClick={() => setOpenKey(isOpen ? null : key)}
                         aria-expanded={isOpen}
                       >
@@ -570,7 +759,7 @@ function MetricsTable() {
                           <div className="flex items-start justify-between gap-3">
                             <span>{m.desc}</span>
                             <span
-                              className={`shrink-0 text-xs text-muted-foreground/70 transition-transform ${isOpen ? "rotate-90" : ""}`}
+                              className={`shrink-0 text-xs text-muted-foreground/70 transition-transform duration-300 ${isOpen ? "rotate-90" : ""}`}
                               aria-hidden="true"
                             >
                               ▶
@@ -578,32 +767,38 @@ function MetricsTable() {
                           </div>
                         </td>
                       </tr>
-                      {isOpen && (
-                        <tr>
-                          <td colSpan={4} className="bg-muted/30 px-0 py-0">
-                            <InlineCollapsible open={isOpen}>
-                              <div className="px-4 py-4 space-y-3">
-                                <div>
-                                  <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
-                                    Definition
-                                  </p>
-                                  <p className="mt-1 text-sm text-foreground leading-relaxed">
-                                    {m.definition}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
-                                    Worked example
-                                  </p>
-                                  <p className="mt-1 text-sm text-foreground leading-relaxed font-mono">
-                                    {m.example}
-                                  </p>
+                      <tr aria-hidden={!isOpen}>
+                        <td colSpan={4} className="p-0">
+                          <div
+                            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+                              isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                            }`}
+                          >
+                            <div className="overflow-hidden">
+                              <div className="mx-4 mb-4 mt-1 rounded-lg border border-border bg-muted/40">
+                                <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
+                                  <div className="p-5">
+                                    <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80">
+                                      Definition
+                                    </p>
+                                    <p className="mt-2 text-sm text-foreground leading-relaxed">
+                                      {m.definition}
+                                    </p>
+                                  </div>
+                                  <div className="p-5 bg-muted/30 md:bg-transparent">
+                                    <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80">
+                                      Worked example
+                                    </p>
+                                    <p className="mt-2 text-sm text-foreground leading-relaxed font-mono tabular-nums">
+                                      {m.example}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </InlineCollapsible>
-                          </td>
-                        </tr>
-                      )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
                     </React.Fragment>
                   );
                 }),
@@ -625,16 +820,16 @@ function MethodologySection() {
     { id: "m-metrics", label: "Metrics" },
   ];
   return (
-    <div className="max-w-[1500px] mx-auto px-6 space-y-12">
+    <div className="max-w-[1500px] mx-auto px-4 sm:px-6 space-y-12">
       <div>
-        <h1 className="font-serif text-4xl text-foreground">Methodology</h1>
+        <h1 className="font-serif text-3xl sm:text-4xl text-foreground">Methodology</h1>
         <p className="mt-2 text-lg text-muted-foreground">Experiment design, metrics, and evaluation framework</p>
         <div className="mt-5 flex flex-wrap gap-2 text-xs">
           {SUBSECTIONS.map((s) => (
             <a
               key={s.id}
               href={`#${s.id}`}
-              className="px-3 py-1 rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-mono"
+              className="px-3 py-1 rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-mono whitespace-nowrap"
             >
               {s.label}
             </a>
@@ -644,7 +839,7 @@ function MethodologySection() {
 
       <section id="m-design" className="space-y-6 scroll-mt-24">
         <div>
-          <h2 className="font-serif text-3xl text-foreground">Experiment Design</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Experiment Design</h2>
           <p className="mt-2 text-base text-muted-foreground">
             CyBiasBench comprises two phases. The <strong>Bias Observation</strong> phase runs a 5 &times; 3 &times; 4 factorial
             (5 agents, 3 targets, 4 prompt conditions) with 3 repetitions, yielding 180 free-choice sessions.
@@ -659,7 +854,7 @@ function MethodologySection() {
               "3 reps",
               "180 + 450 = 630 sessions",
             ].map((chip) => (
-              <Badge key={chip} variant="outline" className="px-2.5 py-1 text-xs">
+              <Badge key={chip} variant="outline" className="px-2.5 py-1 text-xs whitespace-nowrap">
                 {chip}
               </Badge>
             ))}
@@ -696,11 +891,11 @@ function MethodologySection() {
             <CardHeader className="pb-3"><CardTitle className="text-lg">Two Phases</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <span className="text-base font-medium text-foreground">Observation (S1)</span>
+                <span className="text-base font-medium text-foreground">Bias Observation</span>
                 <span className="block text-xs text-muted-foreground">180 free-choice sessions &mdash; 4 prompt conditions (GS/GU/US/UU) &times; 3 reps.</span>
               </div>
               <div>
-                <span className="text-base font-medium text-foreground">Injection (S2)</span>
+                <span className="text-base font-medium text-foreground">Bias Injection</span>
                 <span className="block text-xs text-muted-foreground">450 forced sessions &mdash; each of 10 families injected individually &times; 3 reps.</span>
               </div>
             </CardContent>
@@ -710,12 +905,12 @@ function MethodologySection() {
 
       <section id="m-infra" className="space-y-6 scroll-mt-24">
         <div>
-          <h2 className="font-serif text-3xl text-foreground">Infrastructure</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Infrastructure</h2>
           <p className="mt-2 text-base text-muted-foreground">Docker-based isolation ensuring independent, uncontaminated experiment runs. All agents share the same Kali Linux base image with identical tooling.</p>
         </div>
-        <div className="rounded-lg border border-border overflow-hidden bg-card p-4">
+        <div className="rounded-lg border border-border overflow-hidden bg-card p-4 flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${BASE_PATH}/images/overview.png?v=3`} alt="CyBiasBench Architecture Overview" className="w-full h-auto" />
+          <img src={`${BASE_PATH}/images/overview.png?v=3`} alt="CyBiasBench Architecture Overview" className="w-full h-auto max-w-[1100px]" />
         </div>
         <div className="flex flex-wrap gap-2">
           {[
@@ -726,7 +921,7 @@ function MethodologySection() {
             <a
               key={s.id}
               href={`#${s.id}`}
-              className="px-3 py-1 rounded-full border border-border text-xs font-mono text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="px-3 py-1 rounded-full border border-border text-xs font-mono text-muted-foreground hover:text-foreground hover:bg-muted transition-colors whitespace-nowrap"
             >
               {s.label}
             </a>
@@ -764,7 +959,7 @@ function MethodologySection() {
           <p className="text-sm font-semibold text-foreground mb-3">Shared Kali Linux Base Image</p>
           <div className="flex flex-wrap gap-2">
             {["nmap", "nikto", "sqlmap", "dirb", "curl", "wget", "netcat", "python3", "nodejs", "jq", "ripgrep", "git"].map((tool) => (
-              <Badge key={tool} variant="outline" className="font-mono text-xs">{tool}</Badge>
+              <Badge key={tool} variant="outline" className="font-mono text-xs whitespace-nowrap">{tool}</Badge>
             ))}
           </div>
         </div>
@@ -772,7 +967,7 @@ function MethodologySection() {
 
       <section id="m-prompts" className="space-y-6 scroll-mt-24">
         <div>
-          <h2 className="font-serif text-3xl text-foreground">Prompt Conditions</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Prompt Conditions</h2>
           <p className="mt-2 text-base text-muted-foreground">A 2 &times; 2 factorial of guidance level and output format.</p>
         </div>
         <PromptConditionsTabs />
@@ -780,7 +975,7 @@ function MethodologySection() {
 
       <section id="m-classify" className="space-y-6 scroll-mt-24">
         <div>
-          <h2 className="font-serif text-3xl text-foreground">Attack Classification</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Attack Classification</h2>
           <p className="mt-2 text-base text-muted-foreground">HTTP traffic is classified independently of agent self-reports using a multi-layer pipeline.</p>
         </div>
         <div className="space-y-4">
@@ -812,7 +1007,7 @@ function MethodologySection() {
 
       <section id="m-metrics" className="space-y-6 scroll-mt-24">
         <div>
-          <h2 className="font-serif text-3xl text-foreground">Metrics</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Metrics</h2>
           <p className="mt-2 text-base text-muted-foreground">
             Bias, performance, and injection axes are kept on <em>separate</em> axes so that preference and capability can be read independently.
           </p>
@@ -847,12 +1042,12 @@ export default function Home() {
 
       <section id="overview" className="pb-12">
         {error && (
-          <div className="max-w-[1500px] mx-auto px-6 text-center py-16">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 text-center py-16">
             <p className="text-destructive text-sm">Failed to load data: {error}</p>
           </div>
         )}
         {!data && !error && (
-          <div className="max-w-[1500px] mx-auto px-6">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6">
             <div className="h-9 w-48 rounded bg-muted animate-pulse mb-4" />
             <div className="rounded-lg border border-border overflow-hidden">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -869,8 +1064,16 @@ export default function Home() {
         {data && <OverviewSection data={data} />}
       </section>
 
+      {data && (
+        <section id="agent-picker" className="pb-12 pt-4 scroll-mt-24">
+          <FadeIn>
+            <AgentPicker data={data} />
+          </FadeIn>
+        </section>
+      )}
+
       <section id="methodology" className="pb-12 pt-8">
-        <div className="max-w-[1500px] mx-auto px-6 mb-8">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 mb-8">
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-border" />
             <span className="text-xs font-mono text-muted-foreground uppercase tracking-[0.2em]">Methodology</span>
@@ -883,7 +1086,7 @@ export default function Home() {
       </section>
 
       <section id="findings" className="pb-12 pt-8">
-        <div className="max-w-[1500px] mx-auto px-6 mb-8">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 mb-8">
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-border" />
             <span className="text-xs font-mono text-muted-foreground uppercase tracking-[0.2em]">Findings</span>
@@ -896,7 +1099,7 @@ export default function Home() {
           </FadeIn>
         ) : (
           !error && (
-            <div className="max-w-[1500px] mx-auto px-6">
+            <div className="max-w-[1500px] mx-auto px-4 sm:px-6">
               <div className="animate-pulse rounded-md bg-muted h-64" />
             </div>
           )

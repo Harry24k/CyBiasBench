@@ -27,37 +27,47 @@ function formatP(p: number): string {
 export function FindingsSection({ data }: { data: PaperSummary }) {
   const h = data.headline_stats;
 
+  // Three cards correspond 1:1 to the paper's three layers of findings:
+  //  - §4 Bias Observation       → Layer1 (#findings-layer1)
+  //  - §4 Selection ≠ Performance → Layer2 (#findings-layer2)
+  //  - §5 Bias Injection          → Layer3 (#findings-layer3)
   const KEY_FINDINGS = [
     {
-      stat: `p = ${formatP(h.kruskal_H.p)}`,
-      label: "Behavioral profiles are model-specific",
-      desc: `Kruskal–Wallis across 5 agents on attack-family entropy H(X). η² = ${h.kruskal_H.eta2.toFixed(3)} (large). Profiles stable across prompt conditions.`,
-      sample: "n = 180 S1 sessions",
+      stat: `η² = ${h.kruskal_H.eta2.toFixed(2)}`,
+      label: "Attack-selection bias is agent-specific",
+      desc: `Each agent has a distinct allocation profile across the 10 attack families that persists across all four prompt conditions (Kruskal–Wallis on H(X), p = ${formatP(h.kruskal_H.p)}). A random forest identifies the producing agent at ${((h.rf_accuracy ?? 0.65) * 100).toFixed(0)}% accuracy from the selection vector alone.`,
+      sample: "180 free-choice sessions",
       tone: "bias" as const,
+      href: "#findings-layer1",
+      cta: "See Bias Observation →",
     },
     {
-      stat: `ρ = ${h.asr_transfer.rho >= 0 ? "+" : ""}${h.asr_transfer.rho.toFixed(3)}`,
-      label: "Per-family ASR transfers across settings",
-      desc: `Spearman correlation between free-choice ASRᵢ (S1) and forced-injection target ASR (S2). p = ${formatP(h.asr_transfer.p)}.`,
-      sample: `n = ${h.asr_transfer.n} (agent × family) cells`,
+      stat: "Selᵢ ⊥ ASRᵢ",
+      label: "Selection ≠ Performance",
+      desc: `What an agent picks does not track what works. Codex allocates 31.5% to info_disclosure but achieves only 22.1% ASRᵢ on it. Across-agent effect sizes confirm structural metrics (η²(H)=${h.kruskal_H.eta2.toFixed(2)}) separate agents far more strongly than session ASR (η²=${h.kruskal_session_asr.eta2.toFixed(2)}).`,
+      sample: "structural ≫ outcome",
       tone: "performance" as const,
+      href: "#findings-layer2",
+      cta: "See decoupling →",
     },
     {
-      stat: h.all_negative_delta_asr ? "ΔASR ≤ 0" : `ΔASR mixed`,
-      label: "Forced injection fails to improve outcomes",
-      desc: `All 5 agents show non-positive ΔASR from observation to injection. Compliance tracks preference (ρ = ${h.compliance_sel.rho.toFixed(3)}), not capability.`,
-      sample: "n = 450 S2 sessions (5 × 10 × 3 × 3)",
+      stat: h.all_negative_delta_asr ? "ΔASR ≤ 0" : "ΔASR mixed",
+      label: "Bias momentum: steering fails to help",
+      desc: `Under explicit family steering, compliance follows free-choice preference (ρ = +${h.compliance_sel.rho.toFixed(3)}) — not per-family capability (ρ = ${h.compliance_asri.rho.toFixed(3)}, n.s.). All 5 agents lose session ASR (ΔASR ≤ 0). Capability itself transfers cleanly (ρ = +${h.asr_transfer.rho.toFixed(3)}); the loss is allocation-level.`,
+      sample: "450 bias-injection sessions",
       tone: "injection" as const,
+      href: "#findings-layer3",
+      cta: "See Bias Injection →",
     },
   ];
 
   return (
     <div className="space-y-24">
       <FadeIn>
-        <div className="max-w-[1500px] mx-auto px-6 space-y-6">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 space-y-6">
           <div className="rounded-xl border border-border bg-muted/30 p-5">
             <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">
-              Paper metric groups (Table 1) + Bias Injection (§5)
+              Four metric axes used throughout the dashboard
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <AxisLegend
@@ -65,54 +75,58 @@ export function FindingsSection({ data }: { data: PaperSummary }) {
                 title="Bias Evaluation"
                 metrics="H(X) · Selᵢ"
                 question="How does the agent allocate effort?"
-                layer="Layer 1 — Bias Observation"
-                href="#findings-layer1"
+                layer="Bias Observation"
               />
               <AxisLegend
                 tone="performance"
                 title="Attack Performance"
                 metrics="ASR · ASRᵢ"
-                question="Does that allocation succeed?"
-                layer="Layer 2 — Selection ≠ Performance"
-                href="#findings-layer2"
+                question="Does that allocation actually succeed?"
+                layer="Selection ≠ Performance · ASR transfer"
               />
               <AxisLegend
                 tone="efficiency"
                 title="Efficiency & Robustness"
                 metrics="TPS · JSD"
-                question="Is the cost/stability bridged across bias and performance?"
-                layer="Layer 1 (JSD) · Overview (TPS)"
-                href="#findings-layer1"
+                question="At what cost, and how stably across prompts?"
+                layer="Prompt-stability JSD · Tokens per Success"
               />
               <AxisLegend
                 tone="injection"
-                title="Bias Injection (§5)"
+                title="Bias Injection"
                 metrics="C · ΔASR"
                 question="Can prompt steering reshape the allocation?"
-                layer="Layer 3 — Bias Injection"
-                href="#findings-layer3"
+                layer="Bias Injection setting"
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
             {KEY_FINDINGS.map((f) => (
-              <div
+              <a
                 key={f.label}
-                className={`rounded-xl border-2 bg-card p-5 ${
+                href={f.href}
+                className={`group flex flex-col rounded-xl border border-border bg-card p-4 sm:p-5 border-t-4 transition-colors hover:bg-muted/40 ${
                   f.tone === "bias"
-                    ? "border-indigo-500/50"
+                    ? "border-t-indigo-500/70"
                     : f.tone === "performance"
-                    ? "border-emerald-500/50"
-                    : "border-rose-500/50"
+                    ? "border-t-emerald-500/70"
+                    : "border-t-rose-500/60"
                 }`}
               >
-                <span className="text-3xl font-mono font-bold text-foreground">{f.stat}</span>
+                <span className="font-mono tabular-nums text-2xl sm:text-3xl font-bold text-foreground">
+                  {f.stat}
+                </span>
                 <p className="text-sm font-semibold text-foreground mt-2">{f.label}</p>
-                <p className="text-xs text-muted-foreground mt-1">{f.desc}</p>
-                <p className="text-[11px] font-mono text-muted-foreground/80 mt-3 pt-2 border-t border-border/60">
-                  {f.sample}
-                </p>
-              </div>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{f.desc}</p>
+                <div className="mt-3 pt-2 border-t border-border/60 flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-mono text-muted-foreground/80">
+                    {f.sample}
+                  </span>
+                  <span className="text-[11px] font-mono text-muted-foreground group-hover:text-foreground transition-colors">
+                    {f.cta}
+                  </span>
+                </div>
+              </a>
             ))}
           </div>
 
@@ -128,56 +142,74 @@ export function FindingsSection({ data }: { data: PaperSummary }) {
 }
 
 function SynthesisCard() {
+  // Three separable behavioral axes — selection, performance, momentum.
   const COLUMNS = [
     {
       key: "allocation",
       tone: "bias" as const,
-      title: "Allocation",
+      title: "Strategy selection",
       metrics: "H(X) · Selᵢ",
-      ref: "paper §3.3",
-      blurb: "How each agent splits effort across the 10 attack families.",
+      ref: "Bias Observation",
+      blurb: "What an agent chooses to attack.",
       detail:
-        "Each agent concentrates effort on a model-specific subset of attack families that persists across all four prompt conditions; agent identity dominates prompt variation.",
+        "Each agent's allocation profile across the 10 attack families is agent-specific and largely prompt-stable. Single-condition ASR underdescribes agent behavior because the structural attack-selection metrics separate agents an order of magnitude more strongly than session ASR (η²(H)=0.43 vs η²(ASR)=0.05).",
     },
     {
       key: "performance",
       tone: "performance" as const,
       title: "Attack performance",
       metrics: "ASR · ASRᵢ",
-      ref: "paper §4",
-      blurb: "Whether the chosen attacks actually succeed against the target.",
+      ref: "Selection ≠ Performance",
+      blurb: "Whether those attacks actually succeed.",
       detail:
-        "Per-family ASR transfers cleanly across observation and forced-injection settings (ρ = +0.702, p = 1.38×10⁻⁸); capability is a stable per-family property of the agent.",
+        "Per-family attack performance ASRᵢ is a stable property of each agent: it transfers cleanly from free-choice to bias-injection settings (ρ = +0.702, p = 1.38×10⁻⁸). Capability and selection vary independently — the agent that selects a family most often is rarely the one that succeeds on it most often.",
     },
     {
       key: "momentum",
       tone: "injection" as const,
       title: "Bias momentum",
       metrics: "Compliance · ΔASR",
-      ref: "paper §5–§6",
-      blurb: "How free-choice preferences resist forced redirection.",
+      ref: "Bias Injection",
+      blurb: "How preferences resist explicit steering.",
       detail:
-        "Compliance with explicit user steering tracks an agent's free-choice preferences (ρ = +0.529), not its per-family capabilities (ρ = -0.248). All five agents show ΔASR ≤ 0 — forced redistribution does not raise outcomes.",
+        "Under explicit family-level steering, compliance follows free-choice preference (ρ = +0.529) rather than per-family capability (ρ = −0.248, n.s.). All five agents show ΔASR ≤ 0; performance declines under steering reflect an allocation-level failure, not a capability gap.",
     },
   ];
+  const [open, setOpen] = useState(false);
 
   return (
-    <section id="findings-synthesis" className="scroll-mt-24 rounded-xl border border-border bg-card p-6 space-y-4">
-      <div>
-        <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
-          Synthesis
-        </p>
-        <h3 className="font-serif text-2xl text-foreground mt-1">
-          Three separable behavioral axes
-        </h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          Allocation, attack performance, and bias momentum each decouple from the others —
-          they must be measured independently.
-        </p>
+    <section id="findings-synthesis" className="relative scroll-mt-24 rounded-xl border border-border bg-gradient-to-br from-card via-card to-indigo-500/[0.04] dark:to-indigo-400/[0.05] p-6 space-y-4 overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-indigo-500/60 via-emerald-500/60 to-rose-500/60"
+      />
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+            Synthesis
+          </p>
+          <h3 className="font-serif text-2xl text-foreground mt-1">
+            Three separable behavioral axes
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
+            Strategy selection, attack performance, and bias momentum each decouple from the
+            others. Outcome-only benchmarks compress these distinct axes into one number;
+            CyBiasBench measures them independently.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="text-xs font-mono text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors cursor-pointer self-start"
+          aria-expanded={open}
+        >
+          <span>{open ? "Hide details" : "Read details"}</span>
+          <span className={`inline-block transition-transform duration-300 ${open ? "rotate-180" : ""}`}>▾</span>
+        </button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {COLUMNS.map(({ key, ...col }) => (
-          <SynthesisColumn key={key} {...col} />
+          <SynthesisColumn key={key} expanded={open} {...col} />
         ))}
       </div>
     </section>
@@ -191,6 +223,7 @@ function SynthesisColumn({
   ref,
   blurb,
   detail,
+  expanded,
 }: {
   tone: "bias" | "performance" | "injection";
   title: string;
@@ -198,8 +231,8 @@ function SynthesisColumn({
   ref: string;
   blurb: string;
   detail: string;
+  expanded: boolean;
 }) {
-  const [open, setOpen] = useState(false);
   const accent =
     tone === "bias"
       ? "border-indigo-500/40"
@@ -228,20 +261,18 @@ function SynthesisColumn({
         {metrics} <span className="text-muted-foreground/60">· {ref}</span>
       </p>
       <p className="text-sm text-foreground/90">{blurb}</p>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="text-xs font-mono text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors cursor-pointer"
-        aria-expanded={open}
+      <div
+        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+        aria-hidden={!expanded}
       >
-        <span>{open ? "Hide" : "Read more"}</span>
-        <span className={`transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
-      </button>
-      {open && (
-        <p className="text-xs text-muted-foreground leading-relaxed pt-1 border-t border-border/60">
-          {detail}
-        </p>
-      )}
+        <div className="overflow-hidden">
+          <p className="text-xs text-muted-foreground leading-relaxed pt-2 mt-2 border-t border-border/60">
+            {detail}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -252,14 +283,13 @@ function AxisLegend({
   metrics,
   question,
   layer,
-  href,
 }: {
   tone: "bias" | "performance" | "efficiency" | "injection";
   title: string;
   metrics: string;
   question: string;
   layer: string;
-  href: string;
+  href?: string;
 }) {
   const dot =
     tone === "bias"
@@ -278,10 +308,7 @@ function AxisLegend({
       ? "text-amber-400"
       : "text-rose-400";
   return (
-    <a
-      href={href}
-      className="block rounded-md p-2 -m-2 space-y-1.5 transition-colors hover:bg-muted/40 cursor-pointer"
-    >
+    <div className="block p-1 space-y-1.5">
       <div className="flex items-center gap-2">
         <span className={`w-2 h-2 rounded-full ${dot}`} />
         <span className={`text-sm font-semibold ${label}`}>{title}</span>
@@ -289,6 +316,6 @@ function AxisLegend({
       </div>
       <p className="text-xs italic text-muted-foreground">{question}</p>
       <p className="text-[11px] font-mono text-muted-foreground/70">{layer}</p>
-    </a>
+    </div>
   );
 }

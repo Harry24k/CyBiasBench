@@ -14,10 +14,10 @@ export function InjectionDesignDiagram() {
   const labelBg = isLight ? "#fff" : "#0f172a";
 
   return (
-    <div className="rounded-lg border border-border bg-card px-6 pt-10 pb-6">
-      <div className="grid grid-cols-[1fr_56px_1fr_56px_1fr] gap-3 items-stretch">
+    <div className="rounded-lg border border-border bg-card px-4 sm:px-6 pt-8 sm:pt-10 pb-6">
+      <div className="grid grid-cols-1 gap-3 items-stretch sm:grid-cols-[1fr_56px_1fr_56px_1fr]">
         <Stage
-          label="S1 — Bias Observation"
+          label="Bias Observation"
           title="Free-choice traces"
           body="Estimate Selᵢ and ASRᵢ from unrestricted runs."
           bg={obsBg}
@@ -33,7 +33,7 @@ export function InjectionDesignDiagram() {
         />
         <Arrow label="external steering" stroke={arrowStroke} labelBg={labelBg} />
         <Stage
-          label="S2 — Realized Behavior"
+          label="Realized Behavior"
           title="Compliance + Capability"
           body="Measure compliance (manipulation check) and target-restricted ASRᵢ."
           bg={realBg}
@@ -41,7 +41,7 @@ export function InjectionDesignDiagram() {
         />
       </div>
 
-      <div className="mt-5 pt-4 border-t border-border grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+      <div className="mt-5 pt-4 border-t border-border grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-xs">
         <BreakdownChip label="Agents" value="5" />
         <BreakdownChip label="Injected families" value="10" />
         <BreakdownChip label="Targets" value="3" />
@@ -97,44 +97,82 @@ function Arrow({
   stroke: string;
   labelBg: string;
 }) {
+  const markerId = `arrow-${label.replace(/\s/g, "-")}`;
   return (
-    <div className="relative flex items-center justify-center">
-      <svg
-        viewBox="0 0 56 24"
-        className="w-full h-6"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <defs>
-          <marker
-            id={`arrow-${label.replace(/\s/g, "-")}`}
-            viewBox="0 0 10 10"
-            refX="8"
-            refY="5"
-            markerWidth="6"
-            markerHeight="6"
-            orient="auto-start-reverse"
-          >
-            <path d="M 0 0 L 10 5 L 0 10 z" fill={stroke} />
-          </marker>
-        </defs>
-        <line
-          x1="2"
-          y1="12"
-          x2="54"
-          y2="12"
-          stroke={stroke}
-          strokeWidth="1.4"
-          markerEnd={`url(#arrow-${label.replace(/\s/g, "-")})`}
-        />
-      </svg>
-      <span
-        className="absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full px-1.5 py-0.5 text-[10px] font-mono whitespace-nowrap rounded text-muted-foreground"
-        style={{ backgroundColor: labelBg, border: `1px solid ${stroke}33` }}
-      >
-        {label}
-      </span>
-    </div>
+    <>
+      {/* Mobile: vertical arrow with inline label */}
+      <div className="sm:hidden flex items-center justify-center gap-2 py-0.5">
+        <svg viewBox="0 0 24 32" width="14" height="20" aria-hidden="true">
+          <defs>
+            <marker
+              id={`${markerId}-v`}
+              viewBox="0 0 10 10"
+              refX="5"
+              refY="8"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z" fill={stroke} />
+            </marker>
+          </defs>
+          <line
+            x1="12"
+            y1="2"
+            x2="12"
+            y2="28"
+            stroke={stroke}
+            strokeWidth="1.4"
+            markerEnd={`url(#${markerId}-v)`}
+          />
+        </svg>
+        <span
+          className="px-1.5 py-0.5 text-[10px] font-mono whitespace-nowrap rounded text-muted-foreground"
+          style={{ backgroundColor: labelBg, border: `1px solid ${stroke}33` }}
+        >
+          {label}
+        </span>
+      </div>
+
+      {/* Desktop: horizontal arrow with floating label */}
+      <div className="hidden sm:flex relative items-center justify-center">
+        <svg
+          viewBox="0 0 56 24"
+          className="w-full h-6"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <marker
+              id={markerId}
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z" fill={stroke} />
+            </marker>
+          </defs>
+          <line
+            x1="2"
+            y1="12"
+            x2="54"
+            y2="12"
+            stroke={stroke}
+            strokeWidth="1.4"
+            markerEnd={`url(#${markerId})`}
+          />
+        </svg>
+        <span
+          className="absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full px-1.5 py-0.5 text-[10px] font-mono whitespace-nowrap rounded text-muted-foreground"
+          style={{ backgroundColor: labelBg, border: `1px solid ${stroke}33` }}
+        >
+          {label}
+        </span>
+      </div>
+    </>
   );
 }
 

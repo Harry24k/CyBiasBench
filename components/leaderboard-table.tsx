@@ -17,6 +17,7 @@ import {
 import type { PaperSummary } from "@/lib/types";
 import { MiniFamilyBars } from "@/components/charts/mini-radar";
 import { useAgentColors } from "@/lib/use-theme";
+import { cn } from "@/lib/utils";
 
 type SortDir = "asc" | "desc";
 
@@ -48,7 +49,7 @@ const COLUMNS: Column[] = [
     key: "entropy",
     group: "bias",
     label: "H(X)",
-    desc: "Technique Entropy",
+    desc: "Attack-Family Entropy",
     higher: true,
     format: (v) => v != null ? v.toFixed(2) : "—",
     getValue: (a, d) => d.table1_agent_signatures[a]?.entropy ?? null,
@@ -57,7 +58,7 @@ const COLUMNS: Column[] = [
     key: "top_sel",
     group: "bias",
     label: "Top Selᵢ",
-    desc: "Dominant Family Share",
+    desc: "Most Selected Family Share",
     higher: false,
     format: (v) => v != null ? `${v.toFixed(1)}%` : "—",
     getValue: (a, d) => d.table1_agent_signatures[a]?.top_share ?? null,
@@ -73,7 +74,7 @@ const COLUMNS: Column[] = [
   },
   {
     key: "tps",
-    group: "performance",
+    group: "robustness",
     label: "TPS",
     desc: "Tokens Per Success",
     higher: false,
@@ -97,8 +98,8 @@ const COLUMNS: Column[] = [
 
 const GROUP_META: Record<string, { label: string; colorClass: string; count: number }> = {
   bias: { label: "Bias Evaluation", colorClass: "text-indigo-500", count: 2 },
-  performance: { label: "Attack Performance", colorClass: "text-emerald-500", count: 2 },
-  robustness: { label: "Efficiency & Robustness", colorClass: "text-amber-500", count: 1 },
+  performance: { label: "Attack Performance", colorClass: "text-emerald-500", count: 1 },
+  robustness: { label: "Efficiency & Robustness", colorClass: "text-amber-500", count: 2 },
 };
 
 interface Props {
@@ -133,9 +134,9 @@ export function LeaderboardTable({ data }: Props) {
   const groups = ["bias", "performance", "robustness"] as const;
 
   return (
-    <section className="max-w-[1500px] mx-auto px-6">
+    <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
       <div className="mb-6">
-        <h2 className="font-serif text-3xl text-foreground">Agent Signatures</h2>
+        <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Agent Signatures</h2>
         <p className="mt-2 text-base text-muted-foreground">
           Five frontier agents across {data.n_sessions.s1} free-choice sessions and {data.n_sessions.s2} injection sessions.
           Bias evaluation, attack performance, and robustness metrics are reported side-by-side; click any header to sort,
@@ -143,7 +144,52 @@ export function LeaderboardTable({ data }: Props) {
         </p>
       </div>
 
-      <div className="rounded-lg border border-border">
+      {/* Mobile: stacked agent cards (no horizontal scroll) */}
+      <div className="md:hidden space-y-3">
+        <div className="flex items-center gap-2">
+          <label
+            htmlFor="leaderboard-sort"
+            className="text-xs font-mono uppercase tracking-wider text-muted-foreground"
+          >
+            Sort
+          </label>
+          <select
+            id="leaderboard-sort"
+            value={`${sortKey}:${sortDir}`}
+            onChange={(e) => {
+              const [k, d] = e.target.value.split(":") as [string, SortDir];
+              setSortKey(k);
+              setSortDir(d);
+            }}
+            className="text-sm bg-card border border-border rounded-md px-2 py-1.5 text-foreground"
+          >
+            {COLUMNS.map((c) => (
+              <Fragment key={c.key}>
+                <option value={`${c.key}:desc`}>
+                  {c.desc} ({c.label}) {c.higher ? "high → low" : "low → high"}
+                </option>
+                <option value={`${c.key}:asc`}>
+                  {c.desc} ({c.label}) {c.higher ? "low → high" : "high → low"}
+                </option>
+              </Fragment>
+            ))}
+          </select>
+        </div>
+        <div className="rounded-lg border border-border divide-y divide-border bg-card overflow-hidden">
+          {sorted.map((agent) => (
+            <MobileLeaderboardCard
+              key={agent}
+              agent={agent}
+              data={data}
+              expanded={expanded === agent}
+              onToggle={() => setExpanded(expanded === agent ? null : agent)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop: full sortable table */}
+      <div className="hidden md:block rounded-lg border border-border">
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
@@ -253,7 +299,7 @@ function LeaderboardRow({
               {col.format(col.getValue(agent, data))}
               {isTopSel && hover && sig && (
                 <div
-                  className="absolute z-50 right-0 top-full mt-1 bg-card border border-border rounded-md p-3 shadow-lg text-xs text-left w-[260px] pointer-events-none"
+                  className="absolute z-[100] right-0 top-full mt-1 bg-card border border-border rounded-md p-4 shadow-xl text-sm text-left w-[340px] pointer-events-none"
                   role="tooltip"
                 >
                   <div className="font-semibold text-foreground mb-2">
@@ -342,6 +388,96 @@ function LeaderboardRow({
         </TableRow>
       )}
     </Fragment>
+  );
+}
+
+function MobileLeaderboardCard({
+  agent,
+  data,
+  expanded,
+  onToggle,
+}: {
+  agent: string;
+  data: PaperSummary;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const sig = data.table1_agent_signatures[agent];
+  const agentColors = useAgentColors();
+  const color = agentColors[agent] ?? "#888";
+
+  return (
+    <div className="bg-card">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full text-left px-4 py-3 active:bg-muted/40 transition-colors"
+        aria-expanded={expanded}
+      >
+        <div className="flex items-center gap-3">
+          <AgentBadge agent={agent} />
+          <div className="min-w-0 flex-1">
+            <div className="font-medium text-foreground truncate">
+              {AGENT_LABELS[agent] ?? agent}
+            </div>
+            <div className="text-xs text-muted-foreground font-mono truncate">
+              {AGENT_MODELS[agent] ?? ""}
+            </div>
+          </div>
+          <span
+            className={cn(
+              "text-xs text-muted-foreground transition-transform inline-block",
+              expanded && "rotate-180",
+            )}
+            aria-hidden="true"
+          >
+            ▾
+          </span>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {COLUMNS.map((col) => {
+            const meta = GROUP_META[col.group];
+            const v = col.getValue(agent, data);
+            return (
+              <div
+                key={col.key}
+                className="rounded-md border border-border/70 bg-muted/30 px-2.5 py-1.5"
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className={cn("text-[10px] font-mono uppercase tracking-wider", meta.colorClass)}>
+                    {col.label}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground/70">
+                    {col.higher ? "↑" : "↓"}
+                  </span>
+                </div>
+                <div className="mt-0.5 font-mono tabular-nums text-base text-foreground">
+                  {col.format(v)}
+                </div>
+                <div className="text-[10px] text-muted-foreground truncate">
+                  {col.desc}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </button>
+      {expanded && sig && (
+        <div className="px-4 pb-4 -mt-1">
+          <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
+            Sel<sub>i</sub> by family
+          </div>
+          <MiniFamilyBars
+            selByFamily={data.fig3_selection_per_agent[agent] ?? {}}
+            families={data.families}
+            familyLabels={FAMILY_LABELS}
+            color={color}
+            height={220}
+            highlightFamily={sig.top_family}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 

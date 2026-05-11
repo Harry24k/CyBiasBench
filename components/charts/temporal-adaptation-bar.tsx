@@ -80,7 +80,7 @@ export default function TemporalAdaptationBar({ data }: Props) {
     <div className="rounded-lg border border-border bg-card p-4">
       <div className="mb-3">
         <h3 className="text-base font-semibold text-foreground">
-          Temporal adaptation (paper Appendix mirror)
+          Temporal adaptation
         </h3>
         <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
           Bars: probability of switching family after failure / success /

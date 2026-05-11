@@ -26,6 +26,22 @@ export function useChartColors() {
   };
 }
 
+// Track narrow viewports for layout decisions that Tailwind classes alone
+// cannot express (e.g. Recharts pixel heights). Returns false during SSR and
+// the first paint, then re-renders once the media query resolves.
+export function useIsMobile(maxPx: number = 639) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia(`(max-width: ${maxPx}px)`);
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, [maxPx]);
+  return isMobile;
+}
+
 export function useAgentColors(): Record<string, string> {
   const isLight = useTheme();
   return {

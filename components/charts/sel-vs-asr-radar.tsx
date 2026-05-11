@@ -107,19 +107,19 @@ export function SelVsAsrRadar({
     const cls = classifyCell(d.selRaw, d.asrRaw);
     return (
       <div
-        className="rounded-md text-xs leading-tight"
+        className="rounded-md text-sm leading-snug"
         style={{
           backgroundColor: colors.tooltipBg,
           color: colors.tooltipText,
           border: `1px solid ${colors.tooltipBorder}`,
-          padding: "8px 10px",
-          minWidth: 150,
+          padding: "12px 14px",
+          minWidth: 220,
         }}
       >
-        <div className="font-semibold mb-1.5" style={{ color }}>
+        <div className="font-semibold mb-2 text-base" style={{ color }}>
           {d.metric}
         </div>
-        <div className="font-mono tabular-nums space-y-0.5">
+        <div className="font-mono tabular-nums space-y-1 text-[13px]">
           <div>
             Sel<sub>i</sub>{" "}
             <span style={{ color }}>{(d.selRaw * 100).toFixed(1)}%</span>
@@ -129,7 +129,7 @@ export function SelVsAsrRadar({
             <span>{(d.asrRaw * 100).toFixed(1)}%</span>
           </div>
         </div>
-        <div className={`mt-1.5 text-[11px] ${cls.tone}`}>{cls.label}</div>
+        <div className={`mt-2 text-xs ${cls.tone}`}>{cls.label}</div>
       </div>
     );
   };
@@ -161,7 +161,7 @@ export function SelVsAsrRadar({
           <PolarGrid stroke={colors.grid} />
           <PolarAngleAxis
             dataKey="metric"
-            tick={{ fontSize: 11, fill: colors.tick }}
+            tick={{ fontSize: 10, fill: colors.tick }}
           />
           <PolarRadiusAxis
             tick={false}

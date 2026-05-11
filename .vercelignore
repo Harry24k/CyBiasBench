@@ -1,0 +1,32 @@
+# Anything below is excluded from the upload Vercel CLI sends to its build
+# servers. The deployed site never sees these — even if a reviewer inspects
+# response headers or attempts a path traversal.
+
+# Paper sources contain the full author block + LaTeX with real names.
+paper/
+analysis/
+
+# Local workflow / agent state.
+.claude/
+.mcp.json
+
+# Screenshots / scratch artifacts.
+overleaf_review_left.png
+overleaf_review_panel.png
+*.tex.local
+
+# Local notes and worktrees.
+paper/notes/
+.claude/worktrees/
+
+# Build caches that would be re-created on Vercel anyway.
+.next/
+out/
+
+# Local-only env files.
+.env.local
+.env.development.local
+.env.production.local
+
+# OS noise.
+.DS_Store

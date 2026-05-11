@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { useTheme } from "@/lib/use-theme";
 import { AGENT_LABELS } from "@/lib/types";
 
@@ -252,27 +253,56 @@ function HeatmapCell({
   onClick: () => void;
 }) {
   const [hover, setHover] = useState(false);
+  const cellRef = useRef<HTMLTableCellElement | null>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number; placeAbove: boolean; width: number }>({ top: 0, left: 0, placeAbove: true, width: 280 });
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  useLayoutEffect(() => {
+    if (!hover || !cellRef.current) return;
+    const update = () => {
+      const r = cellRef.current!.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      // Clamp tooltip width to viewport so 320 px phones don't see overflow.
+      const w = Math.min(280, vw - 16);
+      const margin = 10;
+      const placeAbove = r.top > 220;
+      const top = placeAbove ? r.top - margin - 200 : r.bottom + margin;
+      let left = r.left + r.width / 2 - w / 2;
+      left = Math.max(8, Math.min(left, vw - w - 8));
+      setCoords({ top: Math.max(8, Math.min(top, vh - 220)), left, placeAbove, width: w });
+    };
+    update();
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [hover]);
   const delta = v - pooledPct;
   const sign = delta > 0 ? "+" : "";
   return (
     <td
-      className="relative p-0 border-t border-border"
+      ref={cellRef}
+      className="p-0 border-t border-border"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
       <button
         type="button"
         onClick={onClick}
-        className="block w-full px-1 py-1.5 text-center font-mono text-[11px] font-semibold tabular-nums cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        className="block w-full px-1 py-1.5 text-center font-mono text-[11px] font-semibold tabular-nums cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-colors duration-300"
         style={{ backgroundColor: style.bg, color: style.text }}
         aria-label={`${agentLabel} ${familyLabel} ${v.toFixed(2)} percent under ${condLabel}`}
       >
         {v >= 0.05 ? v.toFixed(1) : "-"}
       </button>
-      {hover && (
+      {mounted && hover && createPortal(
         <div
-          className="absolute z-50 left-1/2 -translate-x-1/2 -top-2 -translate-y-full bg-card border border-border rounded-md p-3 shadow-lg text-xs whitespace-nowrap pointer-events-none"
           role="tooltip"
+          style={{ position: "fixed", top: coords.top, left: coords.left, width: coords.width, zIndex: 1000, pointerEvents: "none" }}
+          className="rounded-lg border border-border bg-card shadow-2xl p-4 text-sm"
         >
           <div className="font-semibold text-foreground mb-1">
             {agentLabel} · {familyLabel}
@@ -300,7 +330,8 @@ function HeatmapCell({
           <div className="text-muted-foreground mt-1 text-[10px]">
             Click to compare all four conditions
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </td>
   );
@@ -341,7 +372,7 @@ function CellDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4"
       onClick={onClose}
       role="presentation"
     >
