@@ -1,5 +1,4 @@
 import { SITE, REPO, PAPER } from "@/lib/config";
-import { BASE_PATH } from "@/lib/utils";
 
 // Inline literals — see hero-section.tsx for the same trick. Lets the bundler
 // drop both the venue paragraph (NeurIPS string) and the "Anonymous review
@@ -9,8 +8,6 @@ const IS_ANON_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 const VENUE_VISIBLE_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 
 export function Footer() {
-  const paperHref = PAPER.pdfPath ? `${BASE_PATH}${PAPER.pdfPath}` : null;
-
   return (
     <footer className="border-t border-border mt-24">
       <div className="max-w-[1500px] mx-auto px-4 sm:px-6 py-10 space-y-4 text-sm text-muted-foreground">
@@ -20,9 +17,9 @@ export function Footer() {
             {" "}&mdash; Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-mono">
-            {paperHref ? (
+            {PAPER.href ? (
               <a
-                href={paperHref}
+                href={PAPER.href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-foreground transition-colors"

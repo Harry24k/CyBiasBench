@@ -1,4 +1,4 @@
-import { RESEARCHERS } from "@/lib/config";
+import { RESEARCHERS, PAPER } from "@/lib/config";
 
 // Inline literals so Next.js' build-time NEXT_PUBLIC_* substitution turns
 // these into constant booleans, letting the bundler dead-code-eliminate the
@@ -61,6 +61,20 @@ export function HeroSection() {
       <p className="mt-6 text-[11px] sm:text-xs font-mono text-muted-foreground/80">
         5 agents &middot; 3 targets &middot; 4 prompt conditions &middot; 630 sessions
       </p>
+
+      {PAPER.href && (
+        <div className="mt-5 flex justify-center">
+          <a
+            href={PAPER.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-border text-sm text-foreground hover:bg-muted transition-colors"
+          >
+            <span>{PAPER.label}</span>
+            <span aria-hidden className="text-muted-foreground">↗</span>
+          </a>
+        </div>
+      )}
 
       <div className="mt-10 sm:mt-12">
         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">

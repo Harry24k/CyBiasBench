@@ -95,7 +95,17 @@ export const REPO = {
   label: IS_ANONYMOUS ? "Anonymized" : "GitHub",
 };
 
+// Paper link is GH-only (arXiv preprint carries the real author block, so
+// linking it from the anonymous Vercel build would deanonymize). The inline
+// `process.env.NEXT_PUBLIC_DEPLOY_TARGET` check lets the bundler DCE the
+// arXiv URL from the Vercel JS chunk entirely.
 export const PAPER = {
-  pdfPath: IS_ANONYMOUS ? null : "/paper/full_paper.pdf",
-  label: IS_ANONYMOUS ? "PDF (under review)" : "Paper PDF",
+  href:
+    process.env.NEXT_PUBLIC_DEPLOY_TARGET === "github"
+      ? "https://arxiv.org/abs/2605.07830"
+      : null,
+  label:
+    process.env.NEXT_PUBLIC_DEPLOY_TARGET === "github"
+      ? "Paper (arXiv)"
+      : "PDF (under review)",
 };
