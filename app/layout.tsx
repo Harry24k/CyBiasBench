@@ -7,20 +7,26 @@ import { SITE, RESEARCHERS, REPO, IS_ANONYMOUS } from "@/lib/config";
 // Inline literal so Next.js' build-time NEXT_PUBLIC_* substitution lets the
 // bundler dead-code-eliminate venue keywords on the GitHub Pages build.
 const VENUE_VISIBLE_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
-import { BASE_PATH } from "@/lib/utils";
 
+// SITE_URL is the full canonical share URL. SITE.url already embeds the
+// per-build path (4open.science/r/... on Vercel, /CyBiasBench/ on GH Pages),
+// so we use it as-is without re-appending BASE_PATH — the previous
+// SITE_URL pattern produced `.../CyBiasBench/CyBiasBench`
+// on the GH build.
 const SITE_URL = SITE.url.replace(/\/$/, "");
+
 // OG host = the deployment that actually serves the image. Each build
 // publishes its OWN og.png so social previews never cross-fetch and a stale
 // image on one host can't poison the other. NEXT_PUBLIC_OG_HOST overrides
-// the default for ad-hoc preview deploys.
+// the default for ad-hoc preview deploys. The `?v=` query param is a cache
+// buster — bump when the og.png contents change so Kakao/X/etc. re-fetch.
 const OG_HOST = (
   process.env.NEXT_PUBLIC_OG_HOST ??
   (process.env.NEXT_PUBLIC_DEPLOY_TARGET === "github"
     ? "https://harry24k.github.io/CyBiasBench"
     : "https://cy-bias-bench.vercel.app")
 ).replace(/\/$/, "");
-const OG_IMAGE = `${OG_HOST}/og.png`;
+const OG_IMAGE = `${OG_HOST}/og.png?v=3`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -41,7 +47,7 @@ export const metadata: Metadata = {
     type: "article",
     title: SITE.name,
     description: SITE.shortDescription,
-    url: `${SITE_URL}${BASE_PATH}`,
+    url: SITE_URL,
     siteName: SITE.name,
     images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: "CyBiasBench: 630-session benchmark for attack-selection bias in LLM cyber-attack agents" }],
   },
@@ -76,7 +82,7 @@ function StructuredData() {
     license: "https://creativecommons.org/licenses/by/4.0/",
     isAccessibleForFree: true,
     image: OG_IMAGE,
-    url: `${SITE_URL}${BASE_PATH}`,
+    url: SITE_URL,
   };
 
   const dataset = {
@@ -88,7 +94,7 @@ function StructuredData() {
     creator: authorList,
     license: "https://creativecommons.org/licenses/by/4.0/",
     isAccessibleForFree: true,
-    url: `${SITE_URL}${BASE_PATH}`,
+    url: SITE_URL,
     version: `${SITE.year}.04`,
     measurementTechnique: [
       "Attack-family classification of HTTP requests via OWASP CRS + CAPEC/CWE/WSTG patterns",

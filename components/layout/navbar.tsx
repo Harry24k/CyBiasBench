@@ -6,6 +6,10 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { REPO } from "@/lib/config";
 
+// Inline literal so the bundler can dead-code-eliminate the
+// "Anonymous review build" branch on the GitHub Pages build.
+const IS_ANON_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
+
 interface SubItem {
   id: string;
   label: string;
@@ -325,9 +329,16 @@ function MobileMenu({
                 })}
 
                 <div className="mt-2 pt-3 border-t border-border">
-                  {REPO.url ? (
+                  {IS_ANON_INLINE ? (
+                    <span
+                      className="block w-full px-3 py-2.5 text-base text-muted-foreground/50 rounded-md cursor-not-allowed"
+                      title="Anonymous review build"
+                    >
+                      {REPO.label}
+                    </span>
+                  ) : (
                     <a
-                      href={REPO.url}
+                      href={REPO.url ?? undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => setOpen(false)}
@@ -335,13 +346,6 @@ function MobileMenu({
                     >
                       {REPO.label}
                     </a>
-                  ) : (
-                    <span
-                      className="block w-full px-3 py-2.5 text-base text-muted-foreground/50 rounded-md cursor-not-allowed"
-                      title="Anonymous review build"
-                    >
-                      {REPO.label}
-                    </span>
                   )}
                 </div>
               </div>
@@ -471,22 +475,22 @@ export function Navbar() {
               </button>
             )
           )}
-          {REPO.url ? (
-            <a
-              href={REPO.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:inline-flex ml-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
-            >
-              {REPO.label}
-            </a>
-          ) : (
+          {IS_ANON_INLINE ? (
             <span
               className="hidden md:inline-flex ml-2 px-3 py-1.5 text-sm text-muted-foreground/50 rounded-md cursor-not-allowed"
               title="Anonymous review build"
             >
               {REPO.label}
             </span>
+          ) : (
+            <a
+              href={REPO.url ?? undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:inline-flex ml-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
+            >
+              {REPO.label}
+            </a>
           )}
           <ThemeToggle />
           <MobileMenu active={active} onNavigate={scrollTo} />

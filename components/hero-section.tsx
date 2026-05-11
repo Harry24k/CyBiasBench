@@ -1,8 +1,12 @@
-import { RESEARCHERS, IS_ANONYMOUS } from "@/lib/config";
+import { RESEARCHERS } from "@/lib/config";
 
-// Inline literal so Next.js' build-time replacement of NEXT_PUBLIC_* vars
-// turns this into a constant boolean, letting the bundler dead-code-eliminate
-// the entire venue eyebrow (string included) on the GitHub Pages build.
+// Inline literals so Next.js' build-time NEXT_PUBLIC_* substitution turns
+// these into constant booleans, letting the bundler dead-code-eliminate the
+// venue eyebrow and the "(anonymized for review)" annotation entirely on
+// the GitHub Pages build. Using the imported IS_ANONYMOUS would leave both
+// branches of every ternary in the JS chunk — visible to anyone reading
+// view-source.
+const IS_ANON_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 const VENUE_VISIBLE_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 
 export function HeroSection() {
@@ -60,7 +64,7 @@ export function HeroSection() {
 
       <div className="mt-10 sm:mt-12">
         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">
-          {IS_ANONYMOUS ? "Authors (anonymized for review)" : "Authors"}
+          {IS_ANON_INLINE ? "Authors (anonymized for review)" : "Authors"}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-4 sm:gap-x-8">
           {RESEARCHERS.map((r) => (
