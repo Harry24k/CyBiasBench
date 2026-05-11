@@ -67,15 +67,15 @@ export function HeroSection() {
             <div key={r.name} className="flex flex-col items-center">
               <span className="text-base text-foreground/90">
                 {r.name}
-                {r.equal && <sup className="text-muted-foreground ml-0.5">†</sup>}
-                {r.corresponding && <sup className="text-muted-foreground ml-0.5">*</sup>}
+                {r.equal && <sup className="text-muted-foreground ml-0.5">*</sup>}
+                {r.corresponding && <sup className="text-muted-foreground ml-0.5">†</sup>}
               </span>
               <span className="text-xs text-muted-foreground mt-0.5">{r.affiliation}</span>
             </div>
           ))}
         </div>
         <p className="text-xs text-muted-foreground/70 mt-3">
-          <sup>†</sup> Equal contribution &nbsp;·&nbsp; <sup>*</sup> Corresponding authors
+          <sup>*</sup> Equal contribution &nbsp;·&nbsp; <sup>†</sup> Corresponding authors
         </p>
       </div>
     </section>
