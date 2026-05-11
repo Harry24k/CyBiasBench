@@ -114,7 +114,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
     <div id="findings-layer2" className="space-y-14 scroll-mt-24">
       <header className="max-w-[1500px] mx-auto px-4 sm:px-6">
         <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Selection ≠ Performance</h2>
-        <p className="mt-3 text-base text-muted-foreground max-w-3xl">
+        <p className="mt-3 text-base text-muted-foreground max-w-3xl text-pretty">
           Allocation profiles do not mirror per-family success. Most-selected families are
           frequently not the highest-ASR<sub>i</sub> families, and session-level entropy is
           uncorrelated with session ASR for 4 of 5 agents. Across-agent effect sizes confirm

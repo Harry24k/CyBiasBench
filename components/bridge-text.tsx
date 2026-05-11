@@ -7,7 +7,7 @@ export function BridgeText({ children }: { children: React.ReactNode }) {
         aria-hidden="true"
         className="mx-auto mb-5 sm:mb-7 h-px w-12 bg-foreground/30"
       />
-      <p className="font-serif italic text-xl sm:text-2xl text-foreground/85 leading-snug">
+      <p className="font-serif italic text-xl sm:text-2xl text-foreground/85 leading-snug text-balance">
         {children}
       </p>
       <div

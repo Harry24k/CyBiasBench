@@ -1,9 +1,14 @@
-import { RESEARCHERS, IS_ANONYMOUS, VENUE_VISIBLE } from "@/lib/config";
+import { RESEARCHERS, IS_ANONYMOUS } from "@/lib/config";
+
+// Inline literal so Next.js' build-time replacement of NEXT_PUBLIC_* vars
+// turns this into a constant boolean, letting the bundler dead-code-eliminate
+// the entire venue eyebrow (string included) on the GitHub Pages build.
+const VENUE_VISIBLE_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 
 export function HeroSection() {
   return (
     <section className="pt-10 sm:pt-24 pb-8 sm:pb-16 max-w-[1500px] mx-auto px-4 sm:px-6 text-center">
-      {VENUE_VISIBLE && (
+      {VENUE_VISIBLE_INLINE && (
         <p className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.22em] text-muted-foreground mb-3 sm:mb-4">
           NeurIPS 2026 · Evaluations &amp; Datasets Track
         </p>
@@ -15,8 +20,8 @@ export function HeroSection() {
         Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios
       </p>
 
-      <p className="mt-6 sm:mt-8 text-base sm:text-lg text-foreground/90 max-w-2xl mx-auto leading-snug">
-        Same target, same task — but each agent reaches for a different attack.
+      <p className="mt-6 sm:mt-8 text-base sm:text-lg text-foreground/90 max-w-2xl mx-auto leading-snug text-balance">
+        <strong className="text-foreground">Same target, same task — but each agent reaches for a different attack.</strong>{" "}
         And forcing an agent off its preference{" "}
         <strong className="text-foreground">drops</strong> attack success, not raises it.
       </p>
@@ -62,13 +67,16 @@ export function HeroSection() {
             <div key={r.name} className="flex flex-col items-center">
               <span className="text-base text-foreground/90">
                 {r.name}
-                {r.corresponding && <span className="text-muted-foreground">*</span>}
+                {r.equal && <sup className="text-muted-foreground ml-0.5">†</sup>}
+                {r.corresponding && <sup className="text-muted-foreground ml-0.5">*</sup>}
               </span>
               <span className="text-xs text-muted-foreground mt-0.5">{r.affiliation}</span>
             </div>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground/70 mt-3">* Corresponding Author</p>
+        <p className="text-xs text-muted-foreground/70 mt-3">
+          <sup>†</sup> Equal contribution &nbsp;·&nbsp; <sup>*</sup> Corresponding authors
+        </p>
       </div>
     </section>
   );

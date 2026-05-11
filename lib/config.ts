@@ -18,9 +18,9 @@
  *   • Vercel deploy   : NEXT_PUBLIC_DEPLOY_TARGET=vercel  (default)
  *   • GH Pages deploy : NEXT_PUBLIC_DEPLOY_TARGET=github  (set in workflow)
  *
- * NEXT_PUBLIC_REAL_RESEARCHERS / NEXT_PUBLIC_REAL_REPO env vars override
- * the hardcoded defaults if you need to ship a different roster without a
- * code change.
+ * Real author / repo data is wrapped in inline `process.env.NEXT_PUBLIC_*`
+ * checks so Next.js' build-time substitution lets the bundler DCE the
+ * data on the Vercel build — names never appear in the Vercel JS bundle.
  */
 
 const DEPLOY_TARGET = process.env.NEXT_PUBLIC_DEPLOY_TARGET ?? "vercel";
@@ -30,11 +30,6 @@ export const IS_ANONYMOUS = DEPLOY_TARGET !== "github";
 
 /** True everywhere except the GitHub Pages build. Gates NeurIPS keywords. */
 export const VENUE_VISIBLE = DEPLOY_TARGET !== "github";
-
-const REAL_SITE_URL = process.env.NEXT_PUBLIC_REAL_SITE_URL ?? "";
-const REAL_REPO_URL =
-  process.env.NEXT_PUBLIC_REAL_REPO ?? "https://github.com/Harry24k/CyBiasBench";
-const REAL_RESEARCHERS_RAW = process.env.NEXT_PUBLIC_REAL_RESEARCHERS ?? "";
 
 export const SITE = {
   name: "CyBiasBench",
@@ -52,58 +47,48 @@ export const SITE = {
   // GitHub Pages URL is only ever read from an env var, never embedded.
   url: IS_ANONYMOUS
     ? "https://anonymous.4open.science/r/CyBiasBench-2026/"
-    : REAL_SITE_URL || "https://anonymous.4open.science/r/CyBiasBench-2026/",
+    : "https://harry24k.github.io/CyBiasBench/",
 };
 
 interface Researcher {
   name: string;
   affiliation: string;
+  /** First-author equal-contribution mark (LaTeX `\thanks{Equal contribution}`). */
+  equal?: boolean;
+  /** Corresponding-author mark (LaTeX `\thanks{Corresponding authors}`). */
   corresponding?: boolean;
 }
 
 const ANONYMOUS_RESEARCHERS: Researcher[] = [
-  { name: "Anonymous Author 1", affiliation: "Anonymous Institution" },
-  { name: "Anonymous Author 2", affiliation: "Anonymous Institution" },
-  { name: "Anonymous Author 3", affiliation: "Anonymous Institution" },
+  { name: "Anonymous Author 1", affiliation: "Anonymous Institution", equal: true },
+  { name: "Anonymous Author 2", affiliation: "Anonymous Institution", equal: true },
+  { name: "Anonymous Author 3", affiliation: "Anonymous Institution", equal: true },
   { name: "Anonymous Author 4", affiliation: "Anonymous Institution", corresponding: true },
+  { name: "Anonymous Author 5", affiliation: "Anonymous Institution", corresponding: true },
 ];
 
-// Default real roster — used when IS_ANONYMOUS is false and no env override
-// is provided. Matches the author block in the LaTeX source.
-const DEFAULT_REAL_RESEARCHERS: Researcher[] = [
-  { name: "Hoki Kim", affiliation: "Chung-Ang University", corresponding: true },
-  { name: "Keonwoo Kim", affiliation: "NAVER Digital Healthcare LAB" },
-  { name: "Sungwon Chae", affiliation: "Seoul National University" },
-  { name: "Sangwon Yoon", affiliation: "Ministry of Justice, Republic of Korea" },
-];
-
-// Real researchers can also be encoded as a JSON-serialised env var of the
-// form '[{"name":"...","affiliation":"...","corresponding":true}, ...]' —
-// useful for shipping a different roster without a code change.
-function parseRealResearchers(): Researcher[] {
-  if (!REAL_RESEARCHERS_RAW) return [];
-  try {
-    const parsed = JSON.parse(REAL_RESEARCHERS_RAW);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (x): x is Researcher =>
-        typeof x === "object" &&
-        x != null &&
-        typeof x.name === "string" &&
-        typeof x.affiliation === "string",
-    );
-  } catch {
-    return [];
-  }
-}
-
-const envResearchers = parseRealResearchers();
+// Real roster — kept inside an inline NEXT_PUBLIC_DEPLOY_TARGET check so the
+// names are physically removed from the Vercel JS bundle by the bundler.
+// Order, equal-contribution and corresponding flags follow the LaTeX source.
+const REAL_RESEARCHERS: Researcher[] =
+  process.env.NEXT_PUBLIC_DEPLOY_TARGET === "github"
+    ? [
+        { name: "Taein Lim", affiliation: "Chung-Ang University", equal: true },
+        { name: "Seongyong Ju", affiliation: "Chung-Ang University", equal: true },
+        { name: "Munhyeok Kim", affiliation: "Chung-Ang University", equal: true },
+        { name: "Hyunjun Kim", affiliation: "Myongji University", corresponding: true },
+        { name: "Hoki Kim", affiliation: "Chung-Ang University", corresponding: true },
+      ]
+    : [];
 
 export const RESEARCHERS: Researcher[] = IS_ANONYMOUS
   ? ANONYMOUS_RESEARCHERS
-  : envResearchers.length > 0
-    ? envResearchers
-    : DEFAULT_REAL_RESEARCHERS;
+  : REAL_RESEARCHERS;
+
+const REAL_REPO_URL =
+  process.env.NEXT_PUBLIC_DEPLOY_TARGET === "github"
+    ? "https://github.com/Harry24k/CyBiasBench"
+    : "";
 
 export const REPO = {
   url: IS_ANONYMOUS ? null : REAL_REPO_URL || null,

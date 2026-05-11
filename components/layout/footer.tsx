@@ -1,5 +1,10 @@
-import { SITE, REPO, PAPER, IS_ANONYMOUS, VENUE_VISIBLE } from "@/lib/config";
+import { SITE, REPO, PAPER, IS_ANONYMOUS } from "@/lib/config";
 import { BASE_PATH } from "@/lib/utils";
+
+// Inline literal — see hero-section.tsx for the same trick. Lets the bundler
+// drop the venue paragraph (NeurIPS string included) from the GitHub Pages
+// chunk entirely, not just at render time.
+const VENUE_VISIBLE_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 
 export function Footer() {
   const paperHref = PAPER.pdfPath ? `${BASE_PATH}${PAPER.pdfPath}` : null;
@@ -41,7 +46,7 @@ export function Footer() {
             <span>{SITE.year}</span>
           </div>
         </div>
-        {VENUE_VISIBLE ? (
+        {VENUE_VISIBLE_INLINE ? (
           <p className="text-[11px] text-muted-foreground/70">
             {IS_ANONYMOUS
               ? "Anonymous review build — author and repository identifiers are masked. Submitted to "

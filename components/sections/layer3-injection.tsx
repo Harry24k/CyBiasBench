@@ -93,7 +93,7 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
         <h2 className="font-serif text-2xl sm:text-3xl text-foreground">
           Bias Injection
         </h2>
-        <p className="mt-3 text-base text-muted-foreground max-w-3xl">
+        <p className="mt-3 text-base text-muted-foreground max-w-3xl text-pretty">
           Explicitly steering an agent toward a requested attack family redirects allocation but
           does not reshape preference. Compliance tracks what agents already liked to pick
           (ρ = +{h.compliance_sel.rho.toFixed(3)}, p = {formatP(h.compliance_sel.p)}), not what

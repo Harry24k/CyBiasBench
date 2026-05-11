@@ -66,7 +66,7 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
     <div id="findings-layer1" className="space-y-14 scroll-mt-24">
       <header className="max-w-[1500px] mx-auto px-4 sm:px-6">
         <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Bias Observation</h2>
-        <p className="mt-3 text-base text-muted-foreground max-w-3xl">
+        <p className="mt-3 text-base text-muted-foreground max-w-3xl text-pretty">
           Under free choice, each agent exposes a distinctive allocation profile over the 10
           attack families. Kruskal–Wallis on H(X) rejects a shared distribution
           (H = {kw.H.toFixed(2)}, p = {formatP(kw.p)}, η² = {kw.eta2.toFixed(3)}), and prompt

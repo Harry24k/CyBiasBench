@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import { SITE, RESEARCHERS, REPO, IS_ANONYMOUS, VENUE_VISIBLE } from "@/lib/config";
+import { SITE, RESEARCHERS, REPO, IS_ANONYMOUS } from "@/lib/config";
+
+// Inline literal so Next.js' build-time NEXT_PUBLIC_* substitution lets the
+// bundler dead-code-eliminate venue keywords on the GitHub Pages build.
+const VENUE_VISIBLE_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 import { BASE_PATH } from "@/lib/utils";
 
 const SITE_URL = SITE.url.replace(/\/$/, "");
@@ -24,7 +28,7 @@ export const metadata: Metadata = {
     "attack-selection bias",
     "web exploitation",
     "agent evaluation",
-    ...(VENUE_VISIBLE ? ["NeurIPS 2026", "datasets and benchmarks"] : []),
+    ...(VENUE_VISIBLE_INLINE ? ["NeurIPS 2026", "datasets and benchmarks"] : []),
   ],
   authors: IS_ANONYMOUS
     ? [{ name: "Anonymous Authors" }]
