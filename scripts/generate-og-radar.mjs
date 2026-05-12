@@ -72,7 +72,7 @@ function axisLines(cx, cy, r) {
     const angle = -Math.PI / 2 + (i * 2 * Math.PI) / N;
     const x = cx + r * Math.cos(angle);
     const y = cy + r * Math.sin(angle);
-    return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(2)}" y2="${y.toFixed(2)}" stroke="#d4d4d8" stroke-width="0.6" />`;
+    return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(2)}" y2="${y.toFixed(2)}" stroke="#a1a1aa" stroke-width="0.9" />`;
   }).join("");
 }
 
@@ -84,9 +84,9 @@ function radarSvg(agent, size = 210, r = 88) {
   const asrValues = families.map((f) => asr[agent]?.[f] ?? 0);
   return `
     <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e4e4e7" stroke-width="1" />
-      <circle cx="${cx}" cy="${cy}" r="${r * 0.66}" fill="none" stroke="#e4e4e7" stroke-width="0.6" />
-      <circle cx="${cx}" cy="${cy}" r="${r * 0.33}" fill="none" stroke="#e4e4e7" stroke-width="0.6" />
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#a1a1aa" stroke-width="1.2" />
+      <circle cx="${cx}" cy="${cy}" r="${r * 0.66}" fill="none" stroke="#b4b4b8" stroke-width="0.9" />
+      <circle cx="${cx}" cy="${cy}" r="${r * 0.33}" fill="none" stroke="#b4b4b8" stroke-width="0.9" />
       ${axisLines(cx, cy, r)}
       <!-- Sel_i: filled polygon (allocation / preference) -->
       <polygon points="${polygonPoints(selValues, maxSel, cx, cy, r)}" fill="${color}" fill-opacity="0.28" stroke="${color}" stroke-width="2" stroke-linejoin="round" />
@@ -109,7 +109,7 @@ const HTML = `<!DOCTYPE html>
     body {
       width: 1200px;
       height: 630px;
-      padding: 40px 72px;
+      padding: 40px 72px 56px;
       background:
         radial-gradient(ellipse at 12% 0%, rgba(99, 102, 241, 0.10) 0%, transparent 55%),
         radial-gradient(ellipse at 88% 100%, rgba(244, 63, 94, 0.08) 0%, transparent 55%),
@@ -153,7 +153,7 @@ const HTML = `<!DOCTYPE html>
       grid-template-columns: repeat(5, 1fr);
       gap: 8px;
       align-items: end;
-      margin-top: 36px;
+      margin-top: 8px;
     }
     .radar-card {
       display: flex;
@@ -165,19 +165,19 @@ const HTML = `<!DOCTYPE html>
     }
     .agent-name {
       font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
-      font-size: 14px;
+      font-size: 18px;
       font-weight: 600;
       letter-spacing: 0.04em;
       margin-top: 12px;
     }
     .meta {
       font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
-      font-size: 13px;
-      letter-spacing: 0.06em;
+      font-size: 16px;
+      letter-spacing: 0.08em;
       color: #71717a;
       text-transform: uppercase;
       text-align: center;
-      margin-top: 36px;
+      margin-top: 24px;
     }
   </style>
 </head>

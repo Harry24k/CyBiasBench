@@ -26,7 +26,7 @@ const OG_HOST = (
     ? "https://harry24k.github.io/CyBiasBench"
     : "https://cy-bias-bench.vercel.app")
 ).replace(/\/$/, "");
-const OG_IMAGE = `${OG_HOST}/og.png?v=3`;
+const OG_IMAGE = `${OG_HOST}/og.png?v=4`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
