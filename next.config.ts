@@ -6,7 +6,6 @@ import { resolve } from "path";
 // the bundle ships without a path prefix and assets resolve at "/".
 const isVercel =
   process.env.VERCEL === "1" ||
-  process.env.DEPLOY_TARGET === "vercel" ||
   process.env.NEXT_PUBLIC_DEPLOY_TARGET === "vercel";
 
 const nextConfig: NextConfig = {

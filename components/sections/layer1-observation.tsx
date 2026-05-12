@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
 import { FadeIn } from "@/components/fade-in";
 import { BridgeText } from "@/components/bridge-text";
 import { ConditionHeatmapGrid } from "@/components/charts/condition-heatmap-grid";
@@ -81,8 +79,7 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
             <h3 className="text-xl font-semibold text-foreground">Agent Signatures</h3>
             <p className="text-sm text-muted-foreground mt-1">
               Three bias indicators per agent: entropy H(X), mean unique families per session,
-              and the most-selected family&apos;s share (Sel<sub>i</sub>). Hover any desktop
-              row to see the full Sel<sub>i</sub> distribution across all 10 attack families.
+              and the most-selected family&apos;s share (Sel<sub>i</sub>).
             </p>
           </div>
 
@@ -130,8 +127,6 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
                     maxUniq={maxUniq}
                     maxCr1={maxCr1}
                     maxAsr={maxAsr}
-                    selByFamily={data.fig3_selection_per_agent[a] ?? {}}
-                    families={families}
                   />
                 );
               })}
@@ -266,8 +261,6 @@ function SignatureRow({
   maxUniq,
   maxCr1,
   maxAsr,
-  selByFamily,
-  families,
 }: {
   agent: string;
   color: string;
@@ -281,54 +274,10 @@ function SignatureRow({
   maxUniq: number;
   maxCr1: number;
   maxAsr: number;
-  selByFamily: Record<string, number>;
-  families: string[];
 }) {
-  const [hover, setHover] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const tooltipRef = useRef<HTMLDivElement | null>(null);
-  const rafRef = useRef<number | null>(null);
-  useEffect(() => setMounted(true), []);
-  // Follow the mouse pointer via direct DOM transform — never re-render the
-  // tooltip on mouse move (ResponsiveContainer would otherwise re-measure on
-  // every frame and cause visible jitter / scroll thrash).
-  useEffect(() => {
-    if (!hover) return;
-    const TOOLTIP_W = 440;
-    const TOOLTIP_H = 360;
-    const onMove = (e: MouseEvent) => {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
-        const node = tooltipRef.current;
-        if (!node) return;
-        const offsetX = 14;
-        const offsetY = 18;
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        let left = e.clientX + offsetX;
-        let top = e.clientY + offsetY;
-        if (left + TOOLTIP_W + 8 > vw) left = e.clientX - TOOLTIP_W - offsetX;
-        if (top + TOOLTIP_H + 8 > vh) top = e.clientY - TOOLTIP_H - offsetY;
-        left = Math.max(8, left);
-        top = Math.max(8, top);
-        node.style.transform = `translate3d(${left}px, ${top}px, 0)`;
-      });
-    };
-    document.addEventListener("mousemove", onMove, { passive: true });
-    return () => {
-      document.removeEventListener("mousemove", onMove);
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-    };
-  }, [hover]);
-  const onEnter = () => setHover(true);
-  const onLeave = () => setHover(false);
   return (
     <>
-      <div
-        className="px-5 py-4 border-t border-border flex items-center gap-2"
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
-      >
+      <div className="px-5 py-4 border-t border-border flex items-center gap-2">
         <span
           className="w-2.5 h-2.5 rounded-full shrink-0"
           style={{ backgroundColor: color }}
@@ -336,43 +285,9 @@ function SignatureRow({
         <span className="font-medium text-foreground">
           {AGENT_LABELS[agent] ?? agent}
         </span>
-        {mounted && hover && createPortal(
-          <div
-            ref={tooltipRef}
-            role="tooltip"
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: 440,
-              zIndex: 1000,
-              pointerEvents: "none",
-              transform: "translate3d(-9999px, -9999px, 0)",
-              willChange: "transform",
-            }}
-            className="rounded-lg border border-border bg-card shadow-2xl p-5"
-          >
-            <div className="text-sm font-semibold text-foreground mb-3">
-              {AGENT_LABELS[agent] ?? agent} · Sel<sub>i</sub> by family (10 attack families)
-            </div>
-            <MiniFamilyBars
-              selByFamily={selByFamily}
-              families={families}
-              familyLabels={FAMILY_LABELS}
-              color={color}
-              height={280}
-              highlightFamily={topFamily}
-            />
-          </div>,
-          document.body,
-        )}
       </div>
       {/* Most Selected Family (Sel_i) */}
-      <div
-        className="px-4 py-4 border-t border-border flex items-center"
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
-      >
+      <div className="px-4 py-4 border-t border-border flex items-center">
         <div className="flex items-baseline gap-2 min-w-0">
           <span className="text-foreground font-medium truncate">
             <abbr
@@ -387,33 +302,14 @@ function SignatureRow({
           </span>
         </div>
       </div>
-      <BarCell
-        value={entropy}
-        max={maxH}
-        color={color}
-        format={(v) => v.toFixed(2)}
-        onHover={setHover}
-      />
-      <BarCell
-        value={unique}
-        max={maxUniq}
-        color={color}
-        format={(v) => v.toFixed(1)}
-        onHover={setHover}
-      />
-      <BarCell
-        value={cr1}
-        max={maxCr1}
-        color={color}
-        format={(v) => `${v.toFixed(1)}%`}
-        onHover={setHover}
-      />
+      <BarCell value={entropy} max={maxH} color={color} format={(v) => v.toFixed(2)} />
+      <BarCell value={unique} max={maxUniq} color={color} format={(v) => v.toFixed(1)} />
+      <BarCell value={cr1} max={maxCr1} color={color} format={(v) => `${v.toFixed(1)}%`} />
       <BarCell
         value={sessionAsr}
         max={maxAsr}
         color={color}
         format={(v) => `${(v * 100).toFixed(1)}%`}
-        onHover={setHover}
       />
     </>
   );
@@ -540,22 +436,16 @@ function BarCell({
   color,
   format,
   suffix,
-  onHover,
 }: {
   value: number;
   max: number;
   color: string;
   format: (v: number) => string;
   suffix?: React.ReactNode;
-  onHover?: (v: boolean) => void;
 }) {
   const pct = max > 0 ? (value / max) * 100 : 0;
   return (
-    <div
-      className="px-5 py-4 border-t border-border"
-      onMouseEnter={onHover ? () => onHover(true) : undefined}
-      onMouseLeave={onHover ? () => onHover(false) : undefined}
-    >
+    <div className="px-5 py-4 border-t border-border">
       <div className="flex items-center justify-end gap-3">
         <div className="relative h-2 w-full max-w-[180px] rounded-full bg-muted overflow-hidden">
           <div

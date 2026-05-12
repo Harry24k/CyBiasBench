@@ -104,7 +104,7 @@ export function AgentPicker({ data }: { data: PaperSummary }) {
             <legend className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1.5">
               Optimize for
             </legend>
-            <div className="inline-flex rounded-md border border-border overflow-hidden self-start sm:self-stretch">
+            <div className="inline-flex rounded-md border border-border overflow-hidden self-start">
               {(["accuracy", "balanced", "efficiency"] as Priority[]).map((p, i) => (
                 <button
                   key={p}

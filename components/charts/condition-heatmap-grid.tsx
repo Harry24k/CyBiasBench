@@ -256,7 +256,20 @@ function HeatmapCell({
   const cellRef = useRef<HTMLTableCellElement | null>(null);
   const [coords, setCoords] = useState<{ top: number; left: number; placeAbove: boolean; width: number }>({ top: 0, left: 0, placeAbove: true, width: 280 });
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  // Touch devices fire synthetic mouseenter on tap, which would open the
+  // tooltip and the modal simultaneously. Only enable hover on devices
+  // whose primary input actually supports hover (desktop pointers).
+  const [canHover, setCanHover] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window !== "undefined" && window.matchMedia) {
+      const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+      setCanHover(mq.matches);
+      const onChange = (e: MediaQueryListEvent) => setCanHover(e.matches);
+      mq.addEventListener?.("change", onChange);
+      return () => mq.removeEventListener?.("change", onChange);
+    }
+  }, []);
   useLayoutEffect(() => {
     if (!hover || !cellRef.current) return;
     const update = () => {
@@ -286,8 +299,8 @@ function HeatmapCell({
     <td
       ref={cellRef}
       className="p-0 border-t border-border"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      onMouseEnter={canHover ? () => setHover(true) : undefined}
+      onMouseLeave={canHover ? () => setHover(false) : undefined}
     >
       <button
         type="button"
@@ -352,12 +365,21 @@ function CellDialog({
   pooledByAgent?: Record<string, Record<string, number>>;
   onClose: () => void;
 }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Lock body scroll while modal is open so touch users can't scroll the
+    // dimmed page underneath.
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
   }, [onClose]);
 
   const values = COND_ORDER.map((c) => ({
@@ -370,7 +392,8 @@ function CellDialog({
   const agentLabel = AGENT_LABELS[agent] ?? agent;
   const familyLabel = familyLabels[family] ?? family;
 
-  return (
+  if (!mounted) return null;
+  return createPortal(
     <div
       className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4"
       onClick={onClose}
@@ -440,6 +463,7 @@ function CellDialog({
           Press <span className="font-mono">Esc</span> or click outside to close.
         </p>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

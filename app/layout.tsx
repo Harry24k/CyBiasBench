@@ -17,15 +17,13 @@ const SITE_URL = SITE.url.replace(/\/$/, "");
 
 // OG host = the deployment that actually serves the image. Each build
 // publishes its OWN og.png so social previews never cross-fetch and a stale
-// image on one host can't poison the other. NEXT_PUBLIC_OG_HOST overrides
-// the default for ad-hoc preview deploys. The `?v=` query param is a cache
-// buster — bump when the og.png contents change so Kakao/X/etc. re-fetch.
-const OG_HOST = (
-  process.env.NEXT_PUBLIC_OG_HOST ??
-  (process.env.NEXT_PUBLIC_DEPLOY_TARGET === "github"
+// image on one host can't poison the other. The `?v=` query param is a
+// cache buster — bump when the og.png contents change so Kakao/X/etc.
+// re-fetch.
+const OG_HOST =
+  process.env.NEXT_PUBLIC_DEPLOY_TARGET === "github"
     ? "https://harry24k.github.io/CyBiasBench"
-    : "https://cy-bias-bench.vercel.app")
-).replace(/\/$/, "");
+    : "https://cy-bias-bench.vercel.app";
 const OG_IMAGE = `${OG_HOST}/og.png?v=4`;
 
 export const metadata: Metadata = {
