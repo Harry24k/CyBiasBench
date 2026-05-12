@@ -261,12 +261,11 @@ function LeaderboardRow({
   expanded: boolean;
   onToggle: () => void;
 }) {
-  const [hover, setHover] = useState(false);
   const sig = data.table1_agent_signatures[agent];
   const agentColors = useAgentColors();
   const color = agentColors[agent] ?? "#888";
   const tps = data.tps_per_agent?.[agent] ?? null;
-  const jsdAgent = data.table2_jsd?.per_agent?.[agent];
+  const jsd = data.table2_jsd?.per_agent?.[agent]?.centroid_mean ?? null;
 
   return (
     <Fragment>
@@ -286,69 +285,15 @@ function LeaderboardRow({
         </TableCell>
         {COLUMNS.map((col, i) => {
           const isGroupStart = i === 0 || COLUMNS[i - 1].group !== col.group;
-          const isTopSel = col.key === "top_sel";
+          const value = col.format(col.getValue(agent, data));
           return (
             <TableCell
               key={col.key}
               className={`text-right font-mono text-base tabular-nums px-5 py-4 ${
                 isGroupStart && i > 0 ? "border-l border-border " : ""
-              }${isTopSel ? "relative" : ""}`}
-              onMouseEnter={isTopSel ? () => setHover(true) : undefined}
-              onMouseLeave={isTopSel ? () => setHover(false) : undefined}
+              }`}
             >
-              {col.format(col.getValue(agent, data))}
-              {isTopSel && hover && sig && (
-                <div
-                  className="absolute z-[100] right-0 top-full mt-1 bg-card border border-border rounded-md p-4 shadow-xl text-sm text-left w-[340px] pointer-events-none"
-                  role="tooltip"
-                >
-                  <div className="font-semibold text-foreground mb-2">
-                    {AGENT_LABELS[agent] ?? agent} · full metrics
-                  </div>
-                  <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 font-mono tabular-nums">
-                    <dt className="text-muted-foreground">H(X)</dt>
-                    <dd className="text-foreground">{sig.entropy.toFixed(2)}</dd>
-                    <dt className="text-muted-foreground">Unique / session</dt>
-                    <dd className="text-foreground">
-                      {sig.unique_techniques.toFixed(2)}
-                    </dd>
-                    <dt className="text-muted-foreground">Selection CR1</dt>
-                    <dd className="text-foreground">
-                      {sig.selection_cr1 != null
-                        ? `${sig.selection_cr1.toFixed(1)}%`
-                        : "—"}
-                    </dd>
-                    <dt className="text-muted-foreground">
-                      Top Sel<sub>i</sub> ({sig.top_family})
-                    </dt>
-                    <dd className="text-foreground">
-                      {sig.top_share.toFixed(1)}%
-                    </dd>
-                    <dt className="text-muted-foreground">Session ASR</dt>
-                    <dd className="text-foreground">
-                      {(sig.session_asr_mean * 100).toFixed(1)}%
-                    </dd>
-                    {tps != null && (
-                      <>
-                        <dt className="text-muted-foreground">TPS</dt>
-                        <dd className="text-foreground">
-                          {tps >= 1000
-                            ? `${(tps / 1000).toFixed(1)}k`
-                            : tps.toFixed(0)}
-                        </dd>
-                      </>
-                    )}
-                    {jsdAgent?.centroid_mean != null && (
-                      <>
-                        <dt className="text-muted-foreground">JSD (within)</dt>
-                        <dd className="text-foreground">
-                          {jsdAgent.centroid_mean.toFixed(4)}
-                        </dd>
-                      </>
-                    )}
-                  </dl>
-                </div>
-              )}
+              {value}
             </TableCell>
           );
         })}
@@ -356,38 +301,161 @@ function LeaderboardRow({
           <button
             type="button"
             onClick={onToggle}
-            className="text-sm font-medium px-2 py-1 rounded-md border border-border hover:bg-muted transition-colors"
+            className={cn(
+              "text-sm font-medium px-2 py-1 rounded-md border border-border transition-colors",
+              expanded ? "bg-muted text-foreground" : "hover:bg-muted",
+            )}
             aria-expanded={expanded}
             aria-label={`${expanded ? "Collapse" : "Expand"} ${
               AGENT_LABELS[agent] ?? agent
             } selection profile`}
           >
-            <span className="inline-block transition-transform" style={{ transform: expanded ? "rotate(180deg)" : "none" }}>
+            <span
+              className={cn(
+                "inline-block transition-transform",
+                expanded && "rotate-180",
+              )}
+            >
               ▾
             </span>
           </button>
         </TableCell>
       </TableRow>
-      {expanded && (
-        <TableRow className="border-border bg-muted/30 hover:bg-muted/30">
-          <TableCell colSpan={COLUMNS.length + 2} className="px-6 py-4">
-            <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
-              Sel<sub>i</sub> by family — {AGENT_LABELS[agent] ?? agent}
-            </div>
-            <div className="max-w-[600px]">
-              <MiniFamilyBars
-                selByFamily={data.fig3_selection_per_agent[agent] ?? {}}
-                families={data.families}
-                familyLabels={FAMILY_LABELS}
-                color={color}
-                height={220}
-                highlightFamily={sig?.top_family}
-              />
-            </div>
+      {expanded && sig && (
+        <TableRow className="border-border bg-muted/[0.18] hover:bg-muted/[0.18]">
+          <TableCell colSpan={COLUMNS.length + 2} className="px-6 py-5">
+            <LeaderboardDetailsPanel
+              agent={agent}
+              color={color}
+              sig={sig}
+              tps={tps}
+              jsd={jsd}
+              selByFamily={data.fig3_selection_per_agent[agent] ?? {}}
+              families={data.families}
+            />
           </TableCell>
         </TableRow>
       )}
     </Fragment>
+  );
+}
+
+function LeaderboardDetailsPanel({
+  agent,
+  color,
+  sig,
+  tps,
+  jsd,
+  selByFamily,
+  families,
+}: {
+  agent: string;
+  color: string;
+  sig: NonNullable<PaperSummary["table1_agent_signatures"][string]>;
+  tps: number | null;
+  jsd: number | null;
+  selByFamily: Record<string, number>;
+  families: string[];
+}) {
+  const topFamilyLabel = FAMILY_LABELS[sig.top_family] ?? sig.top_family;
+  return (
+    <div className="rounded-lg border border-border bg-card overflow-hidden">
+      <div className="h-1" style={{ backgroundColor: color }} />
+      <div className="border-b border-border px-5 py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <span
+              className="mt-1 h-2.5 w-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: color }}
+            />
+            <div>
+              <div className="font-semibold text-foreground">
+                {AGENT_LABELS[agent] ?? agent} Agent Signature
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Selection profile and full metric summary from free-choice sessions.
+              </p>
+            </div>
+          </div>
+          <span
+            className="rounded-md border border-border bg-muted/40 px-2 py-1 font-mono text-xs text-foreground tabular-nums"
+          >
+            Top {topFamilyLabel} · {sig.top_share.toFixed(1)}%
+          </span>
+        </div>
+      </div>
+
+      <div className="grid gap-5 p-5 lg:grid-cols-[1.25fr_0.95fr]">
+        <div className="rounded-lg border border-border bg-background/30 p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                Sel<sub>i</sub> by Family
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Top family: <span className="text-foreground">{topFamilyLabel}</span>{" "}
+                <span className="font-mono tabular-nums">
+                  ({sig.top_share.toFixed(1)}%)
+                </span>
+              </p>
+            </div>
+            <span className="rounded-md border border-border bg-muted/40 px-2 py-1 font-mono text-xs text-foreground tabular-nums">
+              10 families
+            </span>
+          </div>
+          <MiniFamilyBars
+            selByFamily={selByFamily}
+            families={families}
+            familyLabels={FAMILY_LABELS}
+            color={color}
+            height={300}
+            highlightFamily={sig.top_family}
+          />
+        </div>
+
+        <div className="rounded-lg border border-border bg-background/30 p-4">
+          <p className="text-sm font-semibold text-foreground">Full Metrics</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Bias, performance, and robustness indicators for this agent.
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <HoverStat label="H(X)" value={sig.entropy.toFixed(2)} />
+            <HoverStat label="Top Selᵢ" value={`${sig.top_share.toFixed(1)}%`} />
+            <HoverStat label="Session ASR" value={`${(sig.session_asr_mean * 100).toFixed(1)}%`} />
+            <HoverStat label="Unique / Session" value={sig.unique_techniques.toFixed(2)} />
+            <HoverStat
+              label="Selection CR1"
+              value={sig.selection_cr1 != null ? `${sig.selection_cr1.toFixed(1)}%` : "—"}
+            />
+            <HoverStat
+              label="TPS"
+              value={
+                tps != null
+                  ? tps >= 1000
+                    ? `${(tps / 1000).toFixed(1)}k`
+                    : tps.toFixed(0)
+                  : "—"
+              }
+            />
+            <HoverStat label="JSD" value={jsd != null ? jsd.toFixed(4) : "—"} />
+            <HoverStat label="Sessions" value="36" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HoverStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-border/70 bg-muted/25 px-2.5 py-2">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
+      <div className="mt-1 font-mono text-sm text-foreground tabular-nums">
+        {value}
+      </div>
+    </div>
   );
 }
 
