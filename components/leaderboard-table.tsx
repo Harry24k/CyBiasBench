@@ -419,15 +419,15 @@ function LeaderboardDetailsPanel({
             Bias, performance, and robustness indicators for this agent.
           </p>
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <HoverStat label="H(X)" value={sig.entropy.toFixed(2)} />
-            <HoverStat label="Top Selᵢ" value={`${sig.top_share.toFixed(1)}%`} />
-            <HoverStat label="Session ASR" value={`${(sig.session_asr_mean * 100).toFixed(1)}%`} />
-            <HoverStat label="Unique / Session" value={sig.unique_techniques.toFixed(2)} />
-            <HoverStat
+            <StatTile label="H(X)" value={sig.entropy.toFixed(2)} />
+            <StatTile label="Top Selᵢ" value={`${sig.top_share.toFixed(1)}%`} />
+            <StatTile label="Session ASR" value={`${(sig.session_asr_mean * 100).toFixed(1)}%`} />
+            <StatTile label="Unique / Session" value={sig.unique_techniques.toFixed(2)} />
+            <StatTile
               label="Selection CR1"
               value={sig.selection_cr1 != null ? `${sig.selection_cr1.toFixed(1)}%` : "—"}
             />
-            <HoverStat
+            <StatTile
               label="TPS"
               value={
                 tps != null
@@ -437,8 +437,8 @@ function LeaderboardDetailsPanel({
                   : "—"
               }
             />
-            <HoverStat label="JSD" value={jsd != null ? jsd.toFixed(4) : "—"} />
-            <HoverStat label="Sessions" value="36" />
+            <StatTile label="JSD" value={jsd != null ? jsd.toFixed(4) : "—"} />
+            <StatTile label="Sessions" value={String(sig.n_sessions)} />
           </div>
         </div>
       </div>
@@ -446,7 +446,7 @@ function LeaderboardDetailsPanel({
   );
 }
 
-function HoverStat({ label, value }: { label: string; value: string }) {
+function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-border/70 bg-muted/25 px-2.5 py-2">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">

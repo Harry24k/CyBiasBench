@@ -1073,7 +1073,7 @@ function MethodologySection() {
         </div>
 
         <MetricsTable />
-        <p className="text-xs text-muted-foreground">Click any row for the §3.3 definition and a worked numeric example.</p>
+        <p className="text-xs text-muted-foreground">Click any row for the definition and a worked numeric example.</p>
       </section>
     </div>
   );
