@@ -72,17 +72,17 @@ const FAMILY_TAXONOMY = [
 // agent brand colors.
 const METRIC_COLORS: Record<string, { border: string; text: string; bg: string }> = {
   // Bias Evaluation — indigo
-  "H(X)":  { border: "border-indigo-500/50", text: "text-indigo-400", bg: "bg-indigo-500/10" },
-  "Selᵢ": { border: "border-indigo-500/30", text: "text-indigo-400/85", bg: "bg-indigo-500/[0.06]" },
+  "H(X)":  { border: "border-indigo-500/70", text: "text-indigo-500", bg: "bg-indigo-500/[0.16]" },
+  "Selᵢ": { border: "border-indigo-500/60", text: "text-indigo-500", bg: "bg-indigo-500/[0.12]" },
   // Attack Performance — emerald
-  "ASR":   { border: "border-emerald-500/50", text: "text-emerald-400", bg: "bg-emerald-500/10" },
-  "ASRᵢ": { border: "border-emerald-500/30", text: "text-emerald-400/85", bg: "bg-emerald-500/[0.06]" },
+  "ASR":   { border: "border-emerald-500/70", text: "text-emerald-500", bg: "bg-emerald-500/[0.16]" },
+  "ASRᵢ": { border: "border-emerald-500/60", text: "text-emerald-500", bg: "bg-emerald-500/[0.12]" },
   // Efficiency & Robustness — amber
-  "TPS":   { border: "border-amber-500/50", text: "text-amber-400", bg: "bg-amber-500/10" },
-  "JSD":   { border: "border-amber-500/30", text: "text-amber-400/85", bg: "bg-amber-500/[0.06]" },
+  "TPS":   { border: "border-amber-500/70", text: "text-amber-500", bg: "bg-amber-500/[0.16]" },
+  "JSD":   { border: "border-amber-500/60", text: "text-amber-500", bg: "bg-amber-500/[0.12]" },
   // Bias Injection — rose
-  "C":     { border: "border-rose-500/50", text: "text-rose-400", bg: "bg-rose-500/10" },
-  "ΔASR": { border: "border-rose-500/30", text: "text-rose-400/85", bg: "bg-rose-500/[0.06]" },
+  "C":     { border: "border-rose-500/70", text: "text-rose-500", bg: "bg-rose-500/[0.16]" },
+  "ΔASR": { border: "border-rose-500/60", text: "text-rose-500", bg: "bg-rose-500/[0.12]" },
 };
 
 function MetricBadge({ label }: { label: string }) {
@@ -512,14 +512,18 @@ type MetricGroup = {
   axis: string;
   axisClass: string;
   axisDot: string;
+  detailBorder: string;
+  detailBg: string;
   rows: MetricRow[];
 };
 
 const METRIC_GROUPS: MetricGroup[] = [
   {
     axis: "Bias Evaluation",
-    axisClass: "text-indigo-400",
-    axisDot: "bg-indigo-400",
+    axisClass: "text-indigo-500",
+    axisDot: "bg-indigo-500",
+    detailBorder: "border-l-indigo-500/70",
+    detailBg: "bg-indigo-500/[0.045]",
     rows: [
       {
         label: "H(X)",
@@ -531,9 +535,9 @@ const METRIC_GROUPS: MetricGroup[] = [
         ),
         desc: "Shannon entropy over the 10 attack-family distribution. Higher = broader exploration.",
         definition:
-          "Shannon entropy H(X) computed over the per-session attack-family distribution P(x_i) = Sel_i. The maximum value log_2(10) ≈ 3.32 bits corresponds to a uniform spread across all 10 families; values near 0 indicate concentration on one family.",
+          "Shannon entropy H(X) is computed over the per-session attack-family distribution, P(xᵢ) = Selᵢ. The maximum value, log₂(10) ≈ 3.32 bits, corresponds to a uniform spread across all 10 families; values near 0 indicate concentration on one family.",
         example:
-          "If a session attempts 60% sqli, 30% xss, 10% info_disclosure, then H = −(0.6·log₂0.6 + 0.3·log₂0.3 + 0.1·log₂0.1) ≈ 1.30 bits — well below the 3.32-bit ceiling, confirming a narrow technique mix.",
+          "If a session attempts 60% SQLi, 30% XSS, and 10% information disclosure, then H ≈ 1.30 bits. That is well below the 3.32-bit ceiling, confirming a narrow technique mix.",
       },
       {
         label: "Selᵢ",
@@ -545,16 +549,18 @@ const METRIC_GROUPS: MetricGroup[] = [
         ),
         desc: "Allocation share for family i; sums to 1 across the 10 families.",
         definition:
-          "per-family attempt share. Sel_i is the preference primitive — it tells you what an agent chooses to do, independent of whether those attempts succeed. Pairs (Sel_i, ASR_i) are the building blocks for the bias-vs-capability decoupling claim.",
+          "Per-family attempt share. Selᵢ is the preference primitive: it tells you what an agent chooses to do, independent of whether those attempts succeed. Pairs of Selᵢ and ASRᵢ are the building blocks for the bias-vs-capability decoupling claim.",
         example:
-          "Codex on Juice Shop: 38 of 120 attempts target xss → Sel_xss = 38 / 120 ≈ 0.317 (31.7% of effort allocated to XSS).",
+          "For Codex on Juice Shop, 38 of 120 attempts target XSS. That yields a selection share of 38 / 120 ≈ 0.317, meaning 31.7% of effort is allocated to XSS.",
       },
     ],
   },
   {
     axis: "Attack Performance",
-    axisClass: "text-emerald-400",
-    axisDot: "bg-emerald-400",
+    axisClass: "text-emerald-500",
+    axisDot: "bg-emerald-500",
+    detailBorder: "border-l-emerald-500/70",
+    detailBg: "bg-emerald-500/[0.045]",
     rows: [
       {
         label: "ASR",
@@ -562,7 +568,7 @@ const METRIC_GROUPS: MetricGroup[] = [
         formula: <span>ASR = SuccessfulAttempts / TotalAttempts</span>,
         desc: "HTTP response-based success rate. Verified independently of agent self-reports.",
         definition:
-          "session-level Attack Success Rate. Success is determined from HTTP responses against ground truth (Juice Shop Challenge API, MLflow CVE checks, Vuln Shop oracle), never from the agent's own claim of success.",
+          "Session-level Attack Success Rate. Success is determined from HTTP responses against ground truth, including the Juice Shop Challenge API, MLflow CVE checks, and the Vuln Shop oracle. The agent's own claim of success is never used as ground truth.",
         example:
           "A Claude session on Juice Shop logs 84 attempts and 21 verified successes → ASR = 21 / 84 = 0.250 (25.0%).",
       },
@@ -576,16 +582,18 @@ const METRIC_GROUPS: MetricGroup[] = [
         ),
         desc: "Capability on family i. Paired with Selᵢ to expose preference–capability decoupling.",
         definition:
-          "per-family success rate. ASR_i isolates capability on family i from how often that family is attempted. The (Sel_i, ASR_i) pair is what shows that breadth ≠ outcome and that selection ≠ ASR_i primitive.",
+          "Per-family success rate. ASRᵢ isolates capability on family i from how often that family is attempted. The pair of Selᵢ and ASRᵢ shows why breadth is not the same as outcome, and why selection is not the same as capability.",
         example:
-          "Codex on info_disclosure: of 31.5% selection share with Σ attempts = 142, the agent achieves 22.1% per-family success → ASR_info ≈ 0.221.",
+          "For Codex on information disclosure, the family receives 31.5% of selection share across 142 attempts. The agent achieves 22.1% per-family success, so ASRᵢ ≈ 0.221.",
       },
     ],
   },
   {
     axis: "Efficiency & Robustness",
-    axisClass: "text-amber-400",
-    axisDot: "bg-amber-400",
+    axisClass: "text-amber-500",
+    axisDot: "bg-amber-500",
+    detailBorder: "border-l-amber-500/70",
+    detailBg: "bg-amber-500/[0.045]",
     rows: [
       {
         label: "TPS",
@@ -593,9 +601,9 @@ const METRIC_GROUPS: MetricGroup[] = [
         formula: <span>TPS = Total Tokens / Successes</span>,
         desc: "Compute efficiency. Lower = fewer tokens to produce one successful attack.",
         definition:
-          "efficiency metric tying token consumption to verified successes. Captured from LiteLLM's usage.jsonl. TPS is undefined when Successes = 0; we report it only for sessions with at least one verified success.",
+          "Efficiency metric tying token consumption to verified successes. Token usage is captured from LiteLLM's usage logs. TPS is undefined when Successes = 0, so it is reported only for sessions with at least one verified success.",
         example:
-          "Claude session: 412 000 total tokens, 11 successes → TPS ≈ 37 500 tokens / success.",
+          "A Claude session uses 412,000 total tokens and produces 11 verified successes. TPS is therefore about 37,500 tokens per success.",
       },
       {
         label: "JSD",
@@ -607,16 +615,18 @@ const METRIC_GROUPS: MetricGroup[] = [
         ),
         desc: "How far each condition-specific family distribution moves from the agent's overall centroid; bridges bias and performance axes.",
         definition:
-          "Jensen–Shannon divergence between the agent's family distribution under condition c and its overall centroid p̄_agent. Measured per condition (guided/unguided, structured/unstructured) and averaged. Values are reported with Bonferroni-adjusted CIs across the 4 prompt conditions.",
+          "Jensen–Shannon divergence between the agent's family distribution under a prompt condition and its overall centroid. The value is measured per prompt condition and then averaged. Confidence intervals are Bonferroni-adjusted across the four prompt conditions.",
         example:
-          "If Claude's centroid p̄ allocates 0.30 to sqli but its guided-condition p_c allocates 0.55, the resulting JSD across all 10 families is ≈ 0.07 — a small but non-zero centroid drift.",
+          "If Claude's centroid p̄ allocates 0.30 to SQLi but its guided-condition distribution allocates 0.55, the resulting JSD across all 10 families is ≈ 0.07: a small but non-zero centroid drift.",
       },
     ],
   },
   {
-    axis: "Bias Injection (§5)",
-    axisClass: "text-rose-400",
-    axisDot: "bg-rose-400",
+    axis: "Bias Injection",
+    axisClass: "text-rose-500",
+    axisDot: "bg-rose-500",
+    detailBorder: "border-l-rose-500/70",
+    detailBg: "bg-rose-500/[0.045]",
     rows: [
       {
         label: "C",
@@ -628,7 +638,7 @@ const METRIC_GROUPS: MetricGroup[] = [
         ),
         desc: "Fraction of attack attempts that fall on the injected target family — manipulation check for the injection phase.",
         definition:
-          "manipulation check. In a forced-injection session, C measures how much of the agent's attack effort actually lands on the requested family. C tracks preference (Sel_i), not capability (ASR_i).",
+          "Manipulation check. In a forced-injection session, C measures how much of the agent's attack effort actually lands on the requested family. C tracks preference (Selᵢ), not capability (ASRᵢ).",
         example:
           "If 18 of 30 attack attempts target the requested family → C = 18 / 30 = 0.60.",
       },
@@ -642,13 +652,86 @@ const METRIC_GROUPS: MetricGroup[] = [
         ),
         desc: "Outcome gap between forced-injection and free-choice sessions, per agent.",
         definition:
-          "per-agent gap between forced-injection and free-choice (observation) ASR. The headline finding is that ΔASR ≤ 0 for every agent: forcing a family never raises overall ASR, even when compliance is high.",
+          "Per-agent gap between forced-injection and free-choice observation ASR. The headline finding is that ΔASR ≤ 0 for every agent: forcing a family never raises overall ASR, even when compliance is high.",
         example:
-          "Claude observation ASR = 0.218, injection ASR = 0.176 → ΔASR = −0.042 (bias injection costs ~4.2 pts of overall success).",
+          "Claude observation ASR = 0.218 and injection ASR = 0.176, so ΔASR = −0.042. Bias injection costs about 4.2 points of overall success.",
       },
     ],
   },
 ];
+
+const METRIC_TEXT_PATTERN = /(H\(X\)|P\(xᵢ\)|Selᵢ|ASRᵢ|ΔASR|ASR|TPS|JSD|p̄|C\b)/g;
+const METRIC_TOKEN_PATTERN = /^(H\(X\)|P\(xᵢ\)|Selᵢ|ASRᵢ|ΔASR|ASR|TPS|JSD|p̄|C)$/;
+
+function MetricText({ text, group }: { text: string; group: MetricGroup }) {
+  return (
+    <>
+      {text.split(METRIC_TEXT_PATTERN).map((part, index) =>
+        METRIC_TOKEN_PATTERN.test(part) ? (
+          <span key={`${part}-${index}`} className={cn("font-mono font-medium", group.axisClass)}>
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
+
+function MetricDetailPanel({
+  metric,
+  group,
+  compact = false,
+}: {
+  metric: MetricRow;
+  group: MetricGroup;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "border-l-2 border-y border-r border-border/80",
+        group.detailBorder,
+        group.detailBg,
+        compact ? "px-3 py-3" : "mb-4",
+      )}
+    >
+      <div className={cn("border-b border-border/70", compact ? "pb-3" : "px-7 py-4")}>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className={`text-xs font-semibold ${group.axisClass}`}>Metric Formula</span>
+          <span className={cn("font-mono text-sm", group.axisClass)}>
+            {metric.formula}
+          </span>
+        </div>
+      </div>
+      <div className={cn("grid gap-0", compact ? "divide-y divide-border/70" : "md:grid-cols-[1.05fr_0.95fr] md:divide-x divide-border/70")}>
+        <div className={cn(compact ? "pb-3" : "p-7")}>
+          <div className="flex items-center gap-2">
+            <span className={`h-1.5 w-1.5 rounded-full ${group.axisDot}`} aria-hidden />
+            <p className={`text-xs font-semibold ${group.axisClass}`}>
+              Definition
+            </p>
+          </div>
+          <p className="mt-2 max-w-prose text-sm leading-7 text-foreground/90">
+            <MetricText text={metric.definition} group={group} />
+          </p>
+        </div>
+        <div className={cn(compact ? "pt-3" : "p-7 bg-background/20")}>
+          <div className="flex items-center gap-2">
+            <span className={`h-1.5 w-1.5 rounded-full ${group.axisDot}`} aria-hidden />
+            <p className={`text-xs font-semibold ${group.axisClass}`}>
+              Worked Example
+            </p>
+          </div>
+          <p className="mt-2 max-w-prose text-sm leading-7 text-foreground/90 tabular-nums">
+            <MetricText text={metric.example} group={group} />
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function MetricsTable() {
   const [openKey, setOpenKey] = useState<string | null>(null);
@@ -683,11 +766,14 @@ function MetricsTable() {
                               <MetricBadge label={m.label} />
                               <span className="text-xs text-muted-foreground">{m.name}</span>
                             </div>
-                            <div className="font-mono text-sm text-foreground">{m.formula}</div>
+                            <div className={cn("font-mono text-sm", g.axisClass)}>{m.formula}</div>
                             <p className="text-xs text-muted-foreground">{m.desc}</p>
                           </div>
                           <span
-                            className={`shrink-0 text-xs text-muted-foreground/70 transition-transform mt-1 ${isOpen ? "rotate-90" : ""}`}
+                            className={cn(
+                              "shrink-0 text-xs transition-transform mt-1",
+                              isOpen ? `rotate-90 ${g.axisClass}` : "text-muted-foreground/70",
+                            )}
                             aria-hidden="true"
                           >
                             ▶
@@ -695,22 +781,7 @@ function MetricsTable() {
                         </div>
                       </button>
                       {isOpen && (
-                        <div className="border-t border-border bg-muted/30 px-3 py-3 space-y-3">
-                          <div>
-                            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80">
-                              Definition
-                            </p>
-                            <p className="mt-1 text-sm text-foreground leading-relaxed">{m.definition}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80">
-                              Worked example
-                            </p>
-                            <p className="mt-1 text-sm text-foreground leading-relaxed font-mono tabular-nums">
-                              {m.example}
-                            </p>
-                          </div>
-                        </div>
+                        <MetricDetailPanel metric={m} group={g} compact />
                       )}
                     </div>
                   );
@@ -725,10 +796,10 @@ function MetricsTable() {
           <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-3 pr-5 text-muted-foreground font-medium">Axis</th>
+                <th className="text-left py-3 pl-4 pr-5 text-muted-foreground font-medium">Axis</th>
                 <th className="text-left py-3 pr-5 text-muted-foreground font-medium">Metric</th>
                 <th className="text-left py-3 pr-5 text-muted-foreground font-medium">Formula</th>
-                <th className="text-left py-3 text-muted-foreground font-medium">Description</th>
+                <th className="text-left py-3 pr-4 text-muted-foreground font-medium">Description</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -739,11 +810,14 @@ function MetricsTable() {
                   return (
                     <React.Fragment key={key}>
                       <tr
-                        className={`cursor-pointer transition-colors duration-300 ${isOpen ? "bg-muted/30" : "hover:bg-muted/30"}`}
+                        className={cn(
+                          "cursor-pointer transition-colors duration-300",
+                          isOpen ? g.detailBg : "hover:bg-muted/30",
+                        )}
                         onClick={() => setOpenKey(isOpen ? null : key)}
                         aria-expanded={isOpen}
                       >
-                        <td className="py-3 pr-5 align-top">
+                        <td className="py-3 pl-4 pr-5 align-top">
                           {idx === 0 && (
                             <span className={`text-xs font-mono uppercase tracking-wider ${g.axisClass}`}>
                               {g.axis}
@@ -754,12 +828,15 @@ function MetricsTable() {
                           <MetricBadge label={m.label} />
                           <p className="text-xs text-muted-foreground mt-1">{m.name}</p>
                         </td>
-                        <td className="py-3 pr-5 align-top font-mono text-sm text-foreground">{m.formula}</td>
-                        <td className="py-3 align-top text-sm text-muted-foreground">
-                          <div className="flex items-start justify-between gap-3">
+                        <td className={cn("py-3 pr-5 align-top font-mono text-sm", g.axisClass)}>{m.formula}</td>
+                        <td className="py-3 pr-4 align-top text-sm text-muted-foreground">
+                          <div className="flex items-start justify-between gap-5">
                             <span>{m.desc}</span>
                             <span
-                              className={`shrink-0 text-xs text-muted-foreground/70 transition-transform duration-300 ${isOpen ? "rotate-90" : ""}`}
+                              className={cn(
+                                "shrink-0 text-xs transition-transform duration-300",
+                                isOpen ? `rotate-90 ${g.axisClass}` : "text-muted-foreground/70",
+                              )}
                               aria-hidden="true"
                             >
                               ▶
@@ -775,26 +852,7 @@ function MetricsTable() {
                             }`}
                           >
                             <div className="overflow-hidden">
-                              <div className="mx-4 mb-4 mt-1 rounded-lg border border-border bg-muted/40">
-                                <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
-                                  <div className="p-5">
-                                    <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80">
-                                      Definition
-                                    </p>
-                                    <p className="mt-2 text-sm text-foreground leading-relaxed">
-                                      {m.definition}
-                                    </p>
-                                  </div>
-                                  <div className="p-5 bg-muted/30 md:bg-transparent">
-                                    <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80">
-                                      Worked example
-                                    </p>
-                                    <p className="mt-2 text-sm text-foreground leading-relaxed font-mono tabular-nums">
-                                      {m.example}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
+                              <MetricDetailPanel metric={m} group={g} />
                             </div>
                           </div>
                         </td>
@@ -1015,7 +1073,7 @@ function MethodologySection() {
         </div>
 
         <MetricsTable />
-        <p className="text-xs text-muted-foreground">Click any row for the §3.3 definition and a worked numeric example.</p>
+        <p className="text-xs text-muted-foreground">Click any row for the definition and a worked numeric example.</p>
       </section>
     </div>
   );
