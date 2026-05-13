@@ -269,7 +269,25 @@ function LeaderboardRow({
 
   return (
     <Fragment>
-      <TableRow className="border-border hover:bg-muted transition-colors">
+      <TableRow
+        className={cn(
+          "border-border transition-colors cursor-pointer",
+          expanded ? "bg-muted/40 hover:bg-muted/40" : "hover:bg-muted",
+        )}
+        onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
+        aria-label={`${expanded ? "Collapse" : "Expand"} ${
+          AGENT_LABELS[agent] ?? agent
+        } selection profile`}
+      >
         <TableCell className="px-5 py-4">
           <div className="flex items-center gap-3">
             <AgentBadge agent={agent} />
@@ -297,28 +315,15 @@ function LeaderboardRow({
             </TableCell>
           );
         })}
-        <TableCell className="px-3 py-4 text-center">
-          <button
-            type="button"
-            onClick={onToggle}
+        <TableCell className="px-3 py-4 text-center" aria-hidden="true">
+          <span
             className={cn(
-              "text-sm font-medium px-2 py-1 rounded-md border border-border transition-colors",
-              expanded ? "bg-muted text-foreground" : "hover:bg-muted",
+              "inline-block text-sm text-muted-foreground transition-transform",
+              expanded && "rotate-180 text-foreground",
             )}
-            aria-expanded={expanded}
-            aria-label={`${expanded ? "Collapse" : "Expand"} ${
-              AGENT_LABELS[agent] ?? agent
-            } selection profile`}
           >
-            <span
-              className={cn(
-                "inline-block transition-transform",
-                expanded && "rotate-180",
-              )}
-            >
-              ▾
-            </span>
-          </button>
+            ▾
+          </span>
         </TableCell>
       </TableRow>
       {expanded && sig && (
