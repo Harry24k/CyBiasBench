@@ -1,4 +1,8 @@
+"use client";
+
 import { RESEARCHERS, PAPER } from "@/lib/config";
+import { BASE_PATH } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 // Inline literals so Next.js' build-time NEXT_PUBLIC_* substitution turns
 // these into constant booleans, letting the bundler dead-code-eliminate the
@@ -10,6 +14,7 @@ const IS_ANON_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 const VENUE_VISIBLE_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 
 export function HeroSection() {
+  const t = useT();
   return (
     <section className="pt-10 sm:pt-24 pb-8 sm:pb-16 max-w-[1500px] mx-auto px-4 sm:px-6 text-center">
       {VENUE_VISIBLE_INLINE && (
@@ -21,45 +26,44 @@ export function HeroSection() {
         CyBiasBench
       </h1>
       <p className="mt-3 sm:mt-4 text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-        Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios
+        {t(
+          "Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios",
+          "사이버 공격 시나리오에서 LLM 에이전트의 편향을 측정하는 벤치마크"
+        )}
       </p>
 
       <p className="mt-6 sm:mt-8 text-base sm:text-lg text-foreground/90 max-w-2xl mx-auto leading-snug text-balance">
-        <strong className="text-foreground">Same target, same task — but each agent reaches for a different attack.</strong>{" "}
-        And forcing an agent off its preference{" "}
-        <strong className="text-foreground">drops</strong> attack success, not raises it.
+        {t(
+          <>
+            <strong className="text-foreground">Same target, same task — but each agent reaches for a different attack.</strong>{" "}
+            And forcing an agent off its preference{" "}
+            <strong className="text-foreground">drops</strong> attack success, not raises it.
+          </>,
+          <>
+            <strong className="text-foreground">같은 표적, 같은 과제인데도 에이전트마다 집어 드는 공격이 다름.</strong>{" "}
+            게다가 선호를 억지로 바꾸면 공격 성공률은 오르지 않고{" "}
+            <strong className="text-foreground">오히려 떨어짐</strong>.
+          </>
+        )}
       </p>
 
-      {/* Headline stat strip — four numbers, paper-grounded */}
-      <div className="mt-7 sm:mt-9 mx-auto max-w-3xl grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        <Stat
-          eyebrow="η²(H)"
-          value="0.43"
-          caption="agent identity on attack-family entropy"
-          tone="bias"
-        />
-        <Stat
-          eyebrow="η²(ASR)"
-          value="0.05"
-          caption="agent identity on session ASR"
-          tone="performance"
-        />
-        <Stat
-          eyebrow="ρ transfer"
-          value="+0.70"
-          caption="per-family ASR carries across settings"
-          tone="performance"
-        />
-        <Stat
-          eyebrow="ΔASR"
-          value="≤ 0"
-          caption="bias injection · all 5 agents"
-          tone="injection"
+      <div className="mt-7 sm:mt-9 mx-auto max-w-4xl rounded-lg border border-border overflow-hidden bg-card p-4 flex justify-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`${BASE_PATH}/images/main.png`}
+          alt={t(
+            "Attack-family selection distributions differ sharply across the five evaluated agents",
+            "다섯 개 평가 대상 에이전트의 공격 계열 선택 분포가 뚜렷하게 다름"
+          )}
+          className="w-full h-auto"
         />
       </div>
 
       <p className="mt-6 text-[11px] sm:text-xs font-mono text-muted-foreground/80">
-        5 agents &middot; 3 targets &middot; 4 prompt conditions &middot; 630 sessions
+        {t(
+          "5 agents · 3 targets · 4 prompt conditions · 630 sessions",
+          "에이전트 5개 · 표적 3개 · 프롬프트 조건 4개 · 세션 630회"
+        )}
       </p>
 
       {PAPER.href && (
@@ -78,7 +82,9 @@ export function HeroSection() {
 
       <div className="mt-10 sm:mt-12">
         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">
-          {IS_ANON_INLINE ? "Authors (anonymized for review)" : "Authors"}
+          {IS_ANON_INLINE
+            ? t("Authors (anonymized for review)", "저자 (심사를 위해 익명 처리됨)")
+            : t("Authors", "저자")}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-4 sm:gap-x-8">
           {RESEARCHERS.map((r) => (
@@ -93,43 +99,16 @@ export function HeroSection() {
           ))}
         </div>
         <p className="text-xs text-muted-foreground/70 mt-3">
-          <sup>*</sup> Equal contribution &nbsp;·&nbsp; <sup>†</sup> Corresponding authors
+          {t(
+            <>
+              <sup>*</sup> Equal contribution &nbsp;·&nbsp; <sup>†</sup> Corresponding authors
+            </>,
+            <>
+              <sup>*</sup> 동등 기여 &nbsp;·&nbsp; <sup>†</sup> 교신저자
+            </>
+          )}
         </p>
       </div>
     </section>
-  );
-}
-
-function Stat({
-  eyebrow,
-  value,
-  caption,
-  tone,
-}: {
-  eyebrow: string;
-  value: string;
-  caption: string;
-  tone: "bias" | "performance" | "efficiency" | "injection";
-}) {
-  const accent =
-    tone === "bias"
-      ? "text-indigo-400"
-      : tone === "performance"
-      ? "text-emerald-400"
-      : tone === "efficiency"
-      ? "text-amber-400"
-      : "text-rose-400";
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-3 sm:py-4 text-left">
-      <div className={`text-[10px] sm:text-[11px] font-mono uppercase tracking-wider ${accent}`}>
-        {eyebrow}
-      </div>
-      <div className="mt-0.5 font-mono tabular-nums text-2xl sm:text-3xl font-semibold text-foreground leading-none">
-        {value}
-      </div>
-      <div className="mt-1.5 text-[10px] sm:text-[11px] text-muted-foreground leading-tight">
-        {caption}
-      </div>
-    </div>
   );
 }

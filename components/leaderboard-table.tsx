@@ -18,6 +18,7 @@ import type { PaperSummary } from "@/lib/types";
 import { MiniFamilyBars } from "@/components/charts/mini-radar";
 import { useAgentColors } from "@/lib/use-theme";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 type SortDir = "asc" | "desc";
 
@@ -39,6 +40,7 @@ interface Column {
   group: "bias" | "performance" | "robustness";
   label: string;
   desc: string;
+  descKo: string;
   higher: boolean;
   format: (v: number | null) => string;
   getValue: (agent: string, data: PaperSummary) => number | null;
@@ -50,6 +52,7 @@ const COLUMNS: Column[] = [
     group: "bias",
     label: "H(X)",
     desc: "Attack-Family Entropy",
+    descKo: "공격 계열 엔트로피",
     higher: true,
     format: (v) => v != null ? v.toFixed(2) : "—",
     getValue: (a, d) => d.table1_agent_signatures[a]?.entropy ?? null,
@@ -59,6 +62,7 @@ const COLUMNS: Column[] = [
     group: "bias",
     label: "Top Selᵢ",
     desc: "Most Selected Family Share",
+    descKo: "최다 선택 계열 비중",
     higher: false,
     format: (v) => v != null ? `${v.toFixed(1)}%` : "—",
     getValue: (a, d) => d.table1_agent_signatures[a]?.top_share ?? null,
@@ -68,6 +72,7 @@ const COLUMNS: Column[] = [
     group: "performance",
     label: "ASR",
     desc: "Session Attack Success Rate",
+    descKo: "세션 공격 성공률",
     higher: true,
     format: (v) => v != null ? `${(v * 100).toFixed(1)}%` : "—",
     getValue: (a, d) => d.table1_agent_signatures[a]?.session_asr_mean ?? null,
@@ -77,6 +82,7 @@ const COLUMNS: Column[] = [
     group: "robustness",
     label: "TPS",
     desc: "Tokens Per Success",
+    descKo: "성공당 토큰",
     higher: false,
     format: (v) => v != null ? `${(v / 1000).toFixed(0)}k` : "—",
     getValue: (a, d) => d.tps_per_agent?.[a] ?? null,
@@ -86,6 +92,7 @@ const COLUMNS: Column[] = [
     group: "robustness",
     label: "JSD",
     desc: "Condition-to-centroid Stability",
+    descKo: "조건–중심 간 안정성",
     higher: false,
     format: (v) => v != null ? v.toFixed(4) : "—",
     getValue: (a, d) => {
@@ -96,10 +103,13 @@ const COLUMNS: Column[] = [
   },
 ];
 
-const GROUP_META: Record<string, { label: string; colorClass: string; count: number }> = {
-  bias: { label: "Bias Evaluation", colorClass: "text-indigo-500", count: 2 },
-  performance: { label: "Attack Performance", colorClass: "text-emerald-500", count: 1 },
-  robustness: { label: "Efficiency & Robustness", colorClass: "text-amber-500", count: 2 },
+const GROUP_META: Record<
+  string,
+  { label: string; labelKo: string; colorClass: string; count: number }
+> = {
+  bias: { label: "Bias Evaluation", labelKo: "편향 평가", colorClass: "text-indigo-500", count: 2 },
+  performance: { label: "Attack Performance", labelKo: "공격 성능", colorClass: "text-emerald-500", count: 1 },
+  robustness: { label: "Efficiency & Robustness", labelKo: "효율성과 견고성", colorClass: "text-amber-500", count: 2 },
 };
 
 interface Props {
@@ -107,6 +117,7 @@ interface Props {
 }
 
 export function LeaderboardTable({ data }: Props) {
+  const t = useT();
   const [sortKey, setSortKey] = useState("entropy");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -136,11 +147,23 @@ export function LeaderboardTable({ data }: Props) {
   return (
     <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
       <div className="mb-6">
-        <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Agent Signatures</h2>
+        <h2 className="font-serif text-2xl sm:text-3xl text-foreground">
+          {t("Agent Signatures", "에이전트 시그니처")}
+        </h2>
         <p className="mt-2 text-base text-muted-foreground">
-          Five frontier agents across {data.n_sessions.s1} free-choice sessions and {data.n_sessions.s2} injection sessions.
-          Bias evaluation, attack performance, and robustness metrics are reported side-by-side; click any header to sort,
-          or click ▾ on a row to inspect that agent&apos;s full Sel<sub>i</sub> profile.
+          {t(
+            <>
+              Five frontier agents across {data.n_sessions.s1} free-choice sessions and {data.n_sessions.s2} injection sessions.
+              Bias evaluation, attack performance, and robustness metrics are reported side-by-side; click any header to sort,
+              or click ▾ on a row to inspect that agent&apos;s full Sel<sub>i</sub> profile.
+            </>,
+            <>
+              프런티어 에이전트 5종을 자유 선택 세션 {data.n_sessions.s1}회와 주입 세션{" "}
+              {data.n_sessions.s2}회에 걸쳐 평가함. 편향 평가·공격 성능·견고성 지표를 나란히
+              보여줌. 열 제목을 누르면 정렬되고, 행의 ▾를 누르면 해당 에이전트의 전체
+              Sel<sub>i</sub> 프로파일을 볼 수 있음.
+            </>
+          )}
         </p>
       </div>
 
@@ -151,7 +174,7 @@ export function LeaderboardTable({ data }: Props) {
             htmlFor="leaderboard-sort"
             className="text-xs font-mono uppercase tracking-wider text-muted-foreground shrink-0"
           >
-            Sort
+            {t("Sort", "정렬")}
           </label>
           <select
             id="leaderboard-sort"
@@ -166,10 +189,16 @@ export function LeaderboardTable({ data }: Props) {
             {COLUMNS.map((c) => (
               <Fragment key={c.key}>
                 <option value={`${c.key}:desc`}>
-                  {c.desc} ({c.label}) {c.higher ? "high → low" : "low → high"}
+                  {t(c.desc, c.descKo)} ({c.label}){" "}
+                  {c.higher
+                    ? t("high → low", "높은 순")
+                    : t("low → high", "낮은 순")}
                 </option>
                 <option value={`${c.key}:asc`}>
-                  {c.desc} ({c.label}) {c.higher ? "low → high" : "high → low"}
+                  {t(c.desc, c.descKo)} ({c.label}){" "}
+                  {c.higher
+                    ? t("low → high", "낮은 순")
+                    : t("high → low", "높은 순")}
                 </option>
               </Fragment>
             ))}
@@ -193,7 +222,9 @@ export function LeaderboardTable({ data }: Props) {
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <TableHead rowSpan={2} className="text-foreground font-semibold px-5 py-3 align-bottom border-b border-border">Agent</TableHead>
+              <TableHead rowSpan={2} className="text-foreground font-semibold px-5 py-3 align-bottom border-b border-border">
+                {t("Agent", "에이전트")}
+              </TableHead>
               {groups.map((g, gi) => {
                 const meta = GROUP_META[g];
                 return (
@@ -202,11 +233,13 @@ export function LeaderboardTable({ data }: Props) {
                     colSpan={meta.count}
                     className={`text-center px-2 pt-3 pb-1 border-b-0${gi > 0 ? " border-l border-border" : ""}`}
                   >
-                    <span className={`text-xs font-mono uppercase tracking-wider ${meta.colorClass}`}>{meta.label}</span>
+                    <span className={`text-xs font-mono uppercase tracking-wider ${meta.colorClass}`}>
+                      {t(meta.label, meta.labelKo)}
+                    </span>
                   </TableHead>
                 );
               })}
-              <TableHead rowSpan={2} className="border-b border-border w-12" aria-label="expand" />
+              <TableHead rowSpan={2} className="border-b border-border w-12" aria-label={t("expand", "펼치기")} />
             </TableRow>
             <TableRow className="border-border hover:bg-transparent">
               {COLUMNS.map((col, i) => {
@@ -226,7 +259,7 @@ export function LeaderboardTable({ data }: Props) {
                       )}
                     </span>
                     <span className="block text-xs font-normal text-muted-foreground mt-0.5">
-                      {col.desc} {col.higher ? <span className="text-muted-foreground">↑</span> : <span className="text-muted-foreground">↓</span>}
+                      {t(col.desc, col.descKo)} {col.higher ? <span className="text-muted-foreground">↑</span> : <span className="text-muted-foreground">↓</span>}
                     </span>
                   </TableHead>
                 );
@@ -261,6 +294,7 @@ function LeaderboardRow({
   expanded: boolean;
   onToggle: () => void;
 }) {
+  const t = useT();
   const sig = data.table1_agent_signatures[agent];
   const agentColors = useAgentColors();
   const color = agentColors[agent] ?? "#888";
@@ -284,9 +318,10 @@ function LeaderboardRow({
         role="button"
         tabIndex={0}
         aria-expanded={expanded}
-        aria-label={`${expanded ? "Collapse" : "Expand"} ${
-          AGENT_LABELS[agent] ?? agent
-        } selection profile`}
+        aria-label={t(
+          `${expanded ? "Collapse" : "Expand"} ${AGENT_LABELS[agent] ?? agent} selection profile`,
+          `${AGENT_LABELS[agent] ?? agent} 선택 프로파일 ${expanded ? "접기" : "펼치기"}`
+        )}
       >
         <TableCell className="px-5 py-4">
           <div className="flex items-center gap-3">
@@ -362,6 +397,7 @@ function LeaderboardDetailsPanel({
   selByFamily: Record<string, number>;
   families: string[];
 }) {
+  const t = useT();
   const topFamilyLabel = FAMILY_LABELS[sig.top_family] ?? sig.top_family;
   return (
     <div className="rounded-lg border border-border bg-card overflow-hidden">
@@ -375,17 +411,20 @@ function LeaderboardDetailsPanel({
             />
             <div>
               <div className="font-semibold text-foreground">
-                {AGENT_LABELS[agent] ?? agent} Agent Signature
+                {AGENT_LABELS[agent] ?? agent} {t("Agent Signature", "에이전트 시그니처")}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Selection profile and full metric summary from free-choice sessions.
+                {t(
+                  "Selection profile and full metric summary from free-choice sessions.",
+                  "자유 선택 세션에서 얻은 선택 프로파일과 전체 지표 요약임."
+                )}
               </p>
             </div>
           </div>
           <span
             className="rounded-md border border-border bg-muted/40 px-2 py-1 font-mono text-xs text-foreground tabular-nums"
           >
-            Top {topFamilyLabel} · {sig.top_share.toFixed(1)}%
+            {t("Top", "최다")} {topFamilyLabel} · {sig.top_share.toFixed(1)}%
           </span>
         </div>
       </div>
@@ -395,17 +434,17 @@ function LeaderboardDetailsPanel({
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-foreground">
-                Sel<sub>i</sub> by Family
+                {t("Sel", "계열별 Sel")}<sub>i</sub>{t(" by Family", "")}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Top family: <span className="text-foreground">{topFamilyLabel}</span>{" "}
+                {t("Top family", "최다 선택 계열")}: <span className="text-foreground">{topFamilyLabel}</span>{" "}
                 <span className="font-mono tabular-nums">
                   ({sig.top_share.toFixed(1)}%)
                 </span>
               </p>
             </div>
             <span className="rounded-md border border-border bg-muted/40 px-2 py-1 font-mono text-xs text-foreground tabular-nums">
-              10 families
+              {t("10 families", "10개 계열")}
             </span>
           </div>
           <MiniFamilyBars
@@ -419,17 +458,20 @@ function LeaderboardDetailsPanel({
         </div>
 
         <div className="rounded-lg border border-border bg-background/30 p-4">
-          <p className="text-sm font-semibold text-foreground">Full Metrics</p>
+          <p className="text-sm font-semibold text-foreground">{t("Full Metrics", "전체 지표")}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Bias, performance, and robustness indicators for this agent.
+            {t(
+              "Bias, performance, and robustness indicators for this agent.",
+              "이 에이전트의 편향·성능·견고성 지표임."
+            )}
           </p>
           <div className="mt-4 grid grid-cols-2 gap-3">
             <StatTile label="H(X)" value={sig.entropy.toFixed(2)} />
             <StatTile label="Top Selᵢ" value={`${sig.top_share.toFixed(1)}%`} />
-            <StatTile label="Session ASR" value={`${(sig.session_asr_mean * 100).toFixed(1)}%`} />
-            <StatTile label="Unique / Session" value={sig.unique_techniques.toFixed(2)} />
+            <StatTile label={t("Session ASR", "세션 ASR")} value={`${(sig.session_asr_mean * 100).toFixed(1)}%`} />
+            <StatTile label={t("Unique / Session", "고유 / 세션")} value={sig.unique_techniques.toFixed(2)} />
             <StatTile
-              label="Selection CR1"
+              label={t("Selection CR1", "선택 CR1")}
               value={sig.selection_cr1 != null ? `${sig.selection_cr1.toFixed(1)}%` : "—"}
             />
             <StatTile
@@ -443,7 +485,7 @@ function LeaderboardDetailsPanel({
               }
             />
             <StatTile label="JSD" value={jsd != null ? jsd.toFixed(4) : "—"} />
-            <StatTile label="Sessions" value={String(sig.n_sessions)} />
+            <StatTile label={t("Sessions", "세션 수")} value={String(sig.n_sessions)} />
           </div>
         </div>
       </div>
@@ -475,6 +517,7 @@ function MobileLeaderboardCard({
   expanded: boolean;
   onToggle: () => void;
 }) {
+  const t = useT();
   const sig = data.table1_agent_signatures[agent];
   const agentColors = useAgentColors();
   const color = agentColors[agent] ?? "#888";
@@ -528,7 +571,7 @@ function MobileLeaderboardCard({
                   {col.format(v)}
                 </div>
                 <div className="text-[10px] text-muted-foreground truncate">
-                  {col.desc}
+                  {t(col.desc, col.descKo)}
                 </div>
               </div>
             );
@@ -538,7 +581,7 @@ function MobileLeaderboardCard({
       {expanded && sig && (
         <div className="px-4 pb-4 -mt-1">
           <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
-            Sel<sub>i</sub> by family
+            {t("Sel", "계열별 Sel")}<sub>i</sub>{t(" by family", "")}
           </div>
           <MiniFamilyBars
             selByFamily={data.fig3_selection_per_agent[agent] ?? {}}

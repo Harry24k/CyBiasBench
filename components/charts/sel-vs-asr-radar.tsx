@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { useChartColors, useTheme, useAgentColors } from "@/lib/use-theme";
 import { AGENT_LABELS } from "@/lib/types";
+import { useT, type Lang } from "@/lib/i18n";
 
 interface Props {
   agent: string;
@@ -31,27 +32,40 @@ interface RadarDatum {
   asrRaw: number;
 }
 
-function classifyCell(selRaw: number, asrRaw: number): {
+function classifyCell(selRaw: number, asrRaw: number, lang: Lang): {
   label: string;
   tone: string;
 } {
+  const ko = lang === "ko";
   // High selection, low ASR -> mis-spent effort
   if (selRaw >= 0.15 && asrRaw < 0.25) {
-    return { label: "focus, low payoff", tone: "text-amber-600 dark:text-amber-400" };
+    return {
+      label: ko ? "집중했지만 성과 낮음" : "focus, low payoff",
+      tone: "text-amber-600 dark:text-amber-400",
+    };
   }
   // Low selection, high ASR -> capability ignored
   if (selRaw < 0.08 && asrRaw >= 0.4) {
-    return { label: "underused capability", tone: "text-emerald-600 dark:text-emerald-400" };
+    return {
+      label: ko ? "활용되지 않은 실력" : "underused capability",
+      tone: "text-emerald-600 dark:text-emerald-400",
+    };
   }
   // Low selection AND low ASR -> blind spot
   if (selRaw < 0.05 && asrRaw < 0.15) {
-    return { label: "blind spot", tone: "text-rose-600 dark:text-rose-400" };
+    return {
+      label: ko ? "사각지대" : "blind spot",
+      tone: "text-rose-600 dark:text-rose-400",
+    };
   }
   // High selection AND high ASR -> aligned focus
   if (selRaw >= 0.15 && asrRaw >= 0.4) {
-    return { label: "aligned focus", tone: "text-sky-600 dark:text-sky-400" };
+    return {
+      label: ko ? "선택과 실력이 일치" : "aligned focus",
+      tone: "text-sky-600 dark:text-sky-400",
+    };
   }
-  return { label: "moderate", tone: "text-muted-foreground" };
+  return { label: ko ? "중간" : "moderate", tone: "text-muted-foreground" };
 }
 
 export function SelVsAsrRadar({
@@ -64,6 +78,8 @@ export function SelVsAsrRadar({
   maxAsr,
   height = 260,
 }: Props) {
+  const t = useT();
+  const lang = t<Lang>("en", "ko");
   const colors = useChartColors();
   const isLight = useTheme();
   const agentColors = useAgentColors();
@@ -104,7 +120,7 @@ export function SelVsAsrRadar({
     if (!active || !payload || payload.length === 0) return null;
     const d = payload[0]?.payload;
     if (!d) return null;
-    const cls = classifyCell(d.selRaw, d.asrRaw);
+    const cls = classifyCell(d.selRaw, d.asrRaw, lang);
     return (
       <div
         className="rounded-md text-sm leading-snug"
@@ -146,12 +162,12 @@ export function SelVsAsrRadar({
         </div>
         <div className="text-xs font-mono tabular-nums text-muted-foreground text-right leading-snug">
           <div>
-            <span style={{ color }}>Sel peak</span>{" "}
+            <span style={{ color }}>{t("Sel peak", "Sel 최고")}</span>{" "}
             {(topSel.v * 100).toFixed(1)}% ·{" "}
             {familyLabels?.[topSel.f] ?? topSel.f}
           </div>
           <div>
-            ASR peak {(topAsr.v * 100).toFixed(1)}% ·{" "}
+            {t("ASR peak", "ASR 최고")} {(topAsr.v * 100).toFixed(1)}% ·{" "}
             {familyLabels?.[topAsr.f] ?? topAsr.f}
           </div>
         </div>

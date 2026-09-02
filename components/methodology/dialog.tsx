@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 interface DialogProps {
   open: boolean;
@@ -13,6 +14,7 @@ interface DialogProps {
 }
 
 export function Dialog({ open, onClose, title, children, className }: DialogProps) {
+  const t = useT();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -59,7 +61,7 @@ export function Dialog({ open, onClose, title, children, className }: DialogProp
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close dialog"
+            aria-label={t("Close dialog", "대화상자 닫기")}
             className="text-muted-foreground hover:text-foreground transition-colors text-xl leading-none"
           >
             ×

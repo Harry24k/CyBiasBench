@@ -23,6 +23,7 @@ import {
   type PaperSummary,
 } from "@/lib/types";
 import { useAgentColors, useTheme } from "@/lib/use-theme";
+import { useT } from "@/lib/i18n";
 
 const FAMILY_LABELS: Record<string, string> = {
   sqli: "SQLi",
@@ -75,6 +76,7 @@ interface CellState {
 }
 
 export default function AsrPerFamilyHeatmap({ data }: Props) {
+  const t = useT();
   const isLight = useTheme();
   const agentColors = useAgentColors();
   const [sortByMax, setSortByMax] = useState(false);
@@ -128,21 +130,39 @@ export default function AsrPerFamilyHeatmap({ data }: Props) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
         <div className="min-w-0">
           <h3 className="text-base sm:text-lg font-semibold text-foreground">
-            Per-family ASR<sub>i</sub>
+            {t("Per-family ASR", "계열별 ASR")}<sub>i</sub>
           </h3>
           <p className="text-xs text-muted-foreground mt-1 max-w-2xl leading-relaxed">
-            Each agent&apos;s success rate on every attack family. The{" "}
-            <span className="inline-flex items-center align-middle gap-1">
-              <span
-                aria-hidden
-                className="inline-block w-3 h-3 rounded-sm border-2 border-foreground"
-              />{" "}
-              <span className="font-medium text-foreground">Sel</span>
-            </span>{" "}
-            outline marks each agent&apos;s most-selected family;{" "}
-            <span className="text-foreground font-semibold">★</span> marks each
-            agent&apos;s highest-ASR<sub>i</sub> family. They almost never
-            coincide — that gap is the Sel<sub>i</sub>—ASR<sub>i</sub> decoupling.
+            {t(
+              <>
+                Each agent&apos;s success rate on every attack family. The{" "}
+                <span className="inline-flex items-center align-middle gap-1">
+                  <span
+                    aria-hidden
+                    className="inline-block w-3 h-3 rounded-sm border-2 border-foreground"
+                  />{" "}
+                  <span className="font-medium text-foreground">Sel</span>
+                </span>{" "}
+                outline marks each agent&apos;s most-selected family;{" "}
+                <span className="text-foreground font-semibold">★</span> marks each
+                agent&apos;s highest-ASR<sub>i</sub> family. They almost never
+                coincide — that gap is the Sel<sub>i</sub>—ASR<sub>i</sub> decoupling.
+              </>,
+              <>
+                에이전트별로 모든 공격 계열에 대한 성공률임.{" "}
+                <span className="inline-flex items-center align-middle gap-1">
+                  <span
+                    aria-hidden
+                    className="inline-block w-3 h-3 rounded-sm border-2 border-foreground"
+                  />{" "}
+                  <span className="font-medium text-foreground">Sel</span>
+                </span>{" "}
+                테두리는 해당 에이전트의 최다 선택 계열,{" "}
+                <span className="text-foreground font-semibold">★</span>는 ASR<sub>i</sub>가
+                가장 높은 계열을 뜻함. 이 둘이 겹치는 일은 거의 없고, 그 간극이 바로
+                Sel<sub>i</sub>—ASR<sub>i</sub> 비결합임.
+              </>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
@@ -152,7 +172,9 @@ export default function AsrPerFamilyHeatmap({ data }: Props) {
             onClick={() => setSortByMax((s) => !s)}
             className="text-xs px-2.5 py-1.5 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors whitespace-nowrap"
           >
-            {sortByMax ? "Canonical order" : "Sort by max ASRᵢ"}
+            {sortByMax
+              ? t("Canonical order", "기본 순서")
+              : t("Sort by max ASRᵢ", "최대 ASRᵢ 순 정렬")}
           </button>
         </div>
       </div>
@@ -183,7 +205,7 @@ export default function AsrPerFamilyHeatmap({ data }: Props) {
         >
           {/* Header row */}
           <div className="bg-card px-2 py-2 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-            family ／ agent
+            {t("family ／ agent", "계열 ／ 에이전트")}
           </div>
           {agents.map((a) => {
             const isHover = hover?.agent === a;
@@ -350,6 +372,7 @@ function CellTooltip({
   agentColor: string;
   rect: DOMRect;
 }) {
+  const t = useT();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
@@ -401,7 +424,7 @@ function CellTooltip({
         </span>
         <span className="text-[11px] text-muted-foreground">ASR<sub>i</sub></span>
       </div>
-      <div className="relative h-1.5 rounded-full bg-muted overflow-hidden mb-3">
+      <div className="relative h-1.5 rounded-full bg-foreground/10 overflow-hidden mb-3">
         <div
           className="absolute inset-y-0 left-0 rounded-full"
           style={{
@@ -419,7 +442,14 @@ function CellTooltip({
               aria-hidden
             />
             <span className="text-foreground">
-              <strong>Most-selected family</strong> for {AGENT_LABELS[agent] ?? agent}
+              {t(
+                <>
+                  <strong>Most-selected family</strong> for {AGENT_LABELS[agent] ?? agent}
+                </>,
+                <>
+                  {AGENT_LABELS[agent] ?? agent}의 <strong>최다 선택 계열</strong>
+                </>
+              )}
             </span>
           </div>
         )}
@@ -427,18 +457,28 @@ function CellTooltip({
           <div className="text-[11px] flex items-center gap-1.5">
             <span className="text-foreground font-semibold leading-none">★</span>
             <span className="text-foreground">
-              <strong>Best ASR<sub>i</sub></strong> across all 10 families for this agent
+              {t(
+                <>
+                  <strong>Best ASR<sub>i</sub></strong> across all 10 families for this agent
+                </>,
+                <>
+                  이 에이전트의 10개 계열 중 <strong>ASR<sub>i</sub> 최고</strong>
+                </>
+              )}
             </span>
           </div>
         )}
         {isTopSel && isTopAsr && (
           <div className="text-[11px] text-emerald-500">
-            Selection ⇄ Performance aligned here.
+            {t("Selection ⇄ Performance aligned here.", "여기서는 선택 ⇄ 성능이 일치함.")}
           </div>
         )}
         {isTopSel && !isTopAsr && (
           <div className="text-[11px] text-amber-500">
-            Decoupling: agent picks this most, but achieves higher ASR<sub>i</sub> elsewhere.
+            {t(
+              <>Decoupling: agent picks this most, but achieves higher ASR<sub>i</sub> elsewhere.</>,
+              <>비결합: 이 계열을 가장 많이 고르지만, ASR<sub>i</sub>는 다른 계열에서 더 높음.</>
+            )}
           </div>
         )}
       </div>
@@ -492,6 +532,7 @@ function MobileAgentCard({
   topSel?: string;
   topAsr?: string;
 }) {
+  const t = useT();
   const max = Math.max(...families.map((f) => asri[f] ?? 0), 0.0001);
   return (
     <div className="rounded-lg border border-border bg-muted/20 px-3 py-3">
@@ -506,9 +547,12 @@ function MobileAgentCard({
         {topAsr && (
           <span
             className="ml-auto text-[10px] font-mono text-muted-foreground"
-            title={`Best ASRᵢ: ${FAMILY_FULLNAME[topAsr] ?? topAsr}`}
+            title={t(
+              `Best ASRᵢ: ${FAMILY_FULLNAME[topAsr] ?? topAsr}`,
+              `ASRᵢ 최고: ${FAMILY_FULLNAME[topAsr] ?? topAsr}`
+            )}
           >
-            best ★ {FAMILY_LABELS[topAsr] ?? topAsr}
+            {t("best", "최고")} ★ {FAMILY_LABELS[topAsr] ?? topAsr}
           </span>
         )}
       </div>
@@ -538,7 +582,7 @@ function MobileAgentCard({
                   </span>
                 )}
               </div>
-              <div className="relative h-2 rounded-full bg-muted overflow-hidden">
+              <div className="relative h-2 rounded-full bg-foreground/10 overflow-hidden">
                 <div
                   className="absolute inset-y-0 left-0 rounded-full"
                   style={{

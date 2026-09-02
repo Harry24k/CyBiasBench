@@ -3,6 +3,7 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { SITE, RESEARCHERS, REPO, IS_ANONYMOUS } from "@/lib/config";
+import { LanguageProvider } from "@/lib/i18n";
 
 // Inline literal so Next.js' build-time NEXT_PUBLIC_* substitution lets the
 // bundler dead-code-eliminate venue keywords on the GitHub Pages build.
@@ -144,14 +145,24 @@ export default function RootLayout({
             } catch(e) {
               document.documentElement.className = 'light';
             }
+            try {
+              // Mirror the stored locale onto <html lang> before paint so
+              // assistive tech and the browser's own language heuristics see
+              // the right value on the first frame. LanguageProvider adopts
+              // the same preference during hydration.
+              var l = localStorage.getItem('cybiasbench:lang');
+              if (l === 'ko' || l === 'en') document.documentElement.lang = l;
+            } catch(e) {}
           })();
         `}} />
         <StructuredData />
       </head>
       <body className="antialiased min-h-screen bg-background text-foreground flex flex-col">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <LanguageProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   );

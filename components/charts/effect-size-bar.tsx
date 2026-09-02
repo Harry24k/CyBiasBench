@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "@/lib/use-theme";
+import { useT } from "@/lib/i18n";
 import type { KruskalStat } from "@/lib/types";
 
 const SUPER_MAP: Record<string, string> = {
@@ -47,15 +48,16 @@ export function EffectSizeBar({
   kTop: KruskalStat;
   kAsr: KruskalStat;
 }) {
+  const t = useT();
   const isLight = useTheme();
   const biasColor = isLight ? "#4f46e5" : "#6366f1";
   const perfColor = isLight ? "#059669" : "#10b981";
 
   const rows: Row[] = [
-    { label: "Technique entropy", metric: "H(X)", axis: "bias", stat: kH, cohen: cohenTag(kH.eta2) },
-    { label: "Unique families", metric: "|families|", axis: "bias", stat: kUniq, cohen: cohenTag(kUniq.eta2) },
-    { label: "Selection CR1", metric: "max within-session Selᵢ", axis: "bias", stat: kTop, cohen: cohenTag(kTop.eta2) },
-    { label: "Session ASR", metric: "outcome", axis: "performance", stat: kAsr, cohen: cohenTag(kAsr.eta2) },
+    { label: t("Technique entropy", "기법 엔트로피"), metric: "H(X)", axis: "bias", stat: kH, cohen: cohenTag(kH.eta2) },
+    { label: t("Unique families", "고유 계열 수"), metric: "|families|", axis: "bias", stat: kUniq, cohen: cohenTag(kUniq.eta2) },
+    { label: t("Selection CR1", "선택 CR1"), metric: t("max within-session Selᵢ", "세션 내 최대 Selᵢ"), axis: "bias", stat: kTop, cohen: cohenTag(kTop.eta2) },
+    { label: t("Session ASR", "세션 ASR"), metric: t("outcome", "결과"), axis: "performance", stat: kAsr, cohen: cohenTag(kAsr.eta2) },
   ];
 
   const maxEta = Math.max(...rows.map((r) => r.stat.eta2), 0.6);
@@ -65,24 +67,34 @@ export function EffectSizeBar({
       <div className="flex items-baseline justify-between gap-3 mb-4 flex-wrap">
         <div>
           <h4 className="text-base font-semibold text-foreground">
-            Agent identity effect size (η²)
+            {t("Agent identity effect size (η²)", "에이전트 정체성의 효과크기 (η²)")}
           </h4>
           <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-            Rank-based Kruskal–Wallis across 5 agents (n = 180 observation sessions).
-            Bias-axis structural metrics show <em>large</em> effect sizes; the
-            performance-axis outcome metric collapses to <em>small</em>.
-            Structure ≫ outcome — agents differ in <em>how</em> they attack, far
-            more than in <em>whether</em> they succeed.
+            {t(
+              <>
+                Rank-based Kruskal–Wallis across 5 agents (n = 180 observation sessions).
+                Bias-axis structural metrics show <em>large</em> effect sizes; the
+                performance-axis outcome metric collapses to <em>small</em>.
+                Structure ≫ outcome — agents differ in <em>how</em> they attack, far
+                more than in <em>whether</em> they succeed.
+              </>,
+              <>
+                5개 에이전트에 대한 순위 기반 Kruskal–Wallis 검정임 (n = 관찰 세션 180회).
+                편향 축의 구조적 지표는 <em>큰</em> 효과크기를 보이지만, 성능 축의 결과 지표는{" "}
+                <em>작은</em> 수준으로 떨어짐. 구조 ≫ 결과 — 에이전트는 성공 <em>여부</em>보다
+                공격 <em>방식</em>에서 훨씬 크게 갈림.
+              </>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-4 text-xs text-muted-foreground shrink-0">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: biasColor }} />
-            Bias axis
+            {t("Bias axis", "편향 축")}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: perfColor }} />
-            Performance axis
+            {t("Performance axis", "성능 축")}
           </span>
         </div>
       </div>
@@ -90,16 +102,16 @@ export function EffectSizeBar({
       {/* Desktop: 4-column grid */}
       <div className="hidden sm:grid grid-cols-[160px_1fr_120px_140px] gap-x-3 gap-y-3 items-center text-sm">
         <div className="text-xs text-muted-foreground font-mono uppercase tracking-wide">
-          Metric
+          {t("Metric", "지표")}
         </div>
         <div className="text-xs text-muted-foreground font-mono uppercase tracking-wide">
-          η² (rank-based)
+          {t("η² (rank-based)", "η² (순위 기반)")}
         </div>
         <div className="text-xs text-muted-foreground font-mono uppercase tracking-wide text-right">
-          Cohen
+          {t("Cohen", "Cohen 기준")}
         </div>
         <div className="text-xs text-muted-foreground font-mono uppercase tracking-wide text-right">
-          p-value
+          {t("p-value", "p값")}
         </div>
 
         {rows.map((r) => {
@@ -145,11 +157,11 @@ export function EffectSizeBar({
                 <span
                   className={`shrink-0 inline-block px-2 py-0.5 rounded-md text-[10px] font-mono uppercase border ${cohenStyle}`}
                 >
-                  {r.cohen}
+                  {t<string>(r.cohen, { small: "작음", medium: "보통", large: "큼" }[r.cohen])}
                 </span>
               </div>
               <div className="mt-2 flex items-center gap-2">
-                <div className="relative h-2 flex-1 rounded-full bg-muted overflow-hidden">
+                <div className="relative h-2 flex-1 rounded-full bg-foreground/10 overflow-hidden">
                   <div
                     className="absolute inset-y-0 left-0 rounded-full"
                     style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.85 }}
@@ -168,7 +180,10 @@ export function EffectSizeBar({
       </div>
 
       <p className="mt-5 pt-4 border-t border-border text-xs text-muted-foreground font-mono">
-        η² thresholds: small &lt; 0.06 ≤ medium &lt; 0.14 ≤ large
+        {t(
+          <>η² thresholds: small &lt; 0.06 ≤ medium &lt; 0.14 ≤ large</>,
+          <>η² 기준: 작음 &lt; 0.06 ≤ 보통 &lt; 0.14 ≤ 큼</>
+        )}
       </p>
     </div>
   );
@@ -185,6 +200,7 @@ function RowView({
   pct: number;
   formatP: (p: number) => string;
 }) {
+  const t = useT();
   const cohenStyle =
     row.cohen === "large"
       ? "bg-foreground/10 text-foreground border-foreground/20"
@@ -199,7 +215,7 @@ function RowView({
         <span className="text-xs text-muted-foreground font-mono">{row.metric}</span>
       </div>
       <div className="flex items-center gap-3">
-        <div className="relative h-2.5 w-full rounded-full bg-muted overflow-hidden">
+        <div className="relative h-2.5 w-full rounded-full bg-foreground/10 overflow-hidden">
           <div
             className="absolute inset-y-0 left-0 rounded-full"
             style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.85 }}
@@ -213,7 +229,7 @@ function RowView({
         <span
           className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-mono uppercase border ${cohenStyle}`}
         >
-          {row.cohen}
+          {t<string>(row.cohen, { small: "작음", medium: "보통", large: "큼" }[row.cohen])}
         </span>
       </div>
       <div className="text-right font-mono tabular-nums text-xs text-muted-foreground">

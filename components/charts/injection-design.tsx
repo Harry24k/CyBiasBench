@@ -1,8 +1,10 @@
 "use client";
 
 import { useTheme } from "@/lib/use-theme";
+import { useT } from "@/lib/i18n";
 
 export function InjectionDesignDiagram() {
+  const t = useT();
   const isLight = useTheme();
   const obsBg = isLight ? "#eef2ff" : "#1e1b4b";
   const obsBorder = isLight ? "#6366f1" : "#818cf8";
@@ -17,42 +19,62 @@ export function InjectionDesignDiagram() {
     <div className="rounded-lg border border-border bg-card px-4 sm:px-6 pt-8 sm:pt-10 pb-6">
       <div className="grid grid-cols-1 gap-3 items-stretch sm:grid-cols-[1fr_56px_1fr_56px_1fr]">
         <Stage
-          label="Bias Observation"
-          title="Free-choice traces"
-          body="Estimate Selᵢ and ASRᵢ from unrestricted runs."
+          label={t("Bias Observation", "편향 관찰")}
+          title={t("Free-choice traces", "자유 선택 기록")}
+          body={t(
+            "Estimate Selᵢ and ASRᵢ from unrestricted runs.",
+            "제약 없는 실행에서 Selᵢ와 ASRᵢ를 추정함."
+          )}
           bg={obsBg}
           border={obsBorder}
         />
-        <Arrow label="prior preference" stroke={arrowStroke} labelBg={labelBg} />
+        <Arrow
+          id="prior-preference"
+          label={t("prior preference", "사전 선호")}
+          stroke={arrowStroke}
+          labelBg={labelBg}
+        />
         <Stage
-          label="Treatment"
-          title="Injected Prompt"
-          body="Same environment; one target family named in task focus."
+          label={t("Treatment", "처치")}
+          title={t("Injected Prompt", "주입 프롬프트")}
+          body={t(
+            "Same environment; one target family named in task focus.",
+            "환경은 동일하고, 과제 진술문에 목표 계열 하나를 지정함."
+          )}
           bg={injBg}
           border={injBorder}
         />
-        <Arrow label="external steering" stroke={arrowStroke} labelBg={labelBg} />
+        <Arrow
+          id="external-steering"
+          label={t("external steering", "외부 지시")}
+          stroke={arrowStroke}
+          labelBg={labelBg}
+        />
         <Stage
-          label="Realized Behavior"
-          title="Compliance + Capability"
-          body="Measure compliance (manipulation check) and target-restricted ASRᵢ."
+          label={t("Realized Behavior", "실현된 행동")}
+          title={t("Compliance + Capability", "순응도 + 실력")}
+          body={t(
+            "Measure compliance (manipulation check) and target-restricted ASRᵢ.",
+            "순응도(조작 점검)와 목표 한정 ASRᵢ를 측정함."
+          )}
           bg={realBg}
           border={realBorder}
         />
       </div>
 
       <div className="mt-5 pt-4 border-t border-border grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-xs">
-        <BreakdownChip label="Agents" value="5" />
-        <BreakdownChip label="Injected families" value="10" />
-        <BreakdownChip label="Targets" value="3" />
-        <BreakdownChip label="Repetitions" value="3" />
-        <BreakdownChip label="Total runs" value="450" emphasize />
+        <BreakdownChip label={t("Agents", "에이전트")} value="5" />
+        <BreakdownChip label={t("Injected families", "주입 계열")} value="10" />
+        <BreakdownChip label={t("Targets", "표적")} value="3" />
+        <BreakdownChip label={t("Repetitions", "반복")} value="3" />
+        <BreakdownChip label={t("Total runs", "총 실행")} value="450" emphasize />
       </div>
 
       <p className="mt-4 text-xs text-muted-foreground italic">
-        Test whether user-specified emphasis overrides the free-choice
-        allocation profile, or whether the same allocation bias carries into
-        prompted settings.
+        {t(
+          "Test whether user-specified emphasis overrides the free-choice allocation profile, or whether the same allocation bias carries into prompted settings.",
+          "사용자가 지정한 강조가 자유 선택 배분 프로파일을 덮어쓰는지, 아니면 같은 배분 편향이 지시된 설정까지 이어지는지를 확인함."
+        )}
       </p>
     </div>
   );
@@ -89,15 +111,19 @@ function Stage({
 }
 
 function Arrow({
+  id,
   label,
   stroke,
   labelBg,
 }: {
+  id: string;
   label: string;
   stroke: string;
   labelBg: string;
 }) {
-  const markerId = `arrow-${label.replace(/\s/g, "-")}`;
+  // Marker ids come from the language-independent `id` so switching locale
+  // never rewrites the SVG references.
+  const markerId = `arrow-${id}`;
   return (
     <>
       {/* Mobile: vertical arrow with inline label */}

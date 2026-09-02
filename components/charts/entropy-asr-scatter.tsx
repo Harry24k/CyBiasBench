@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import { useChartColors, useTheme, useAgentColors } from "@/lib/use-theme";
 import { AGENT_LABELS, TARGET_LABELS } from "@/lib/types";
+import { useT } from "@/lib/i18n";
 import type { ScatterPoint } from "@/lib/types";
 
 interface Props {
@@ -72,6 +73,13 @@ const CONDITION_LABELS: Record<string, string> = {
   GS: "Guided · Structured",
 };
 
+const CONDITION_LABELS_KO: Record<string, string> = {
+  UU: "비유도 · 비구조",
+  US: "비유도 · 구조",
+  GU: "유도 · 비구조",
+  GS: "유도 · 구조",
+};
+
 export function EntropyAsrScatter({
   agent,
   points,
@@ -80,6 +88,7 @@ export function EntropyAsrScatter({
   height = 240,
   showRegression = false,
 }: Props) {
+  const t = useT();
   const colors = useChartColors();
   const isLight = useTheme();
   const agentColors = useAgentColors();
@@ -144,12 +153,14 @@ export function EntropyAsrScatter({
           }}
         >
           <div className="font-mono tabular-nums">
-            Fit: H={(ex ?? 0).toFixed(2)} → ASR={((fy ?? 0) * 100).toFixed(1)}%
+            {t("Fit", "적합")}: H={(ex ?? 0).toFixed(2)} → ASR={((fy ?? 0) * 100).toFixed(1)}%
           </div>
         </div>
       );
     }
-    const cond = d.condition ? CONDITION_LABELS[d.condition] ?? d.condition : null;
+    const cond = d.condition
+      ? t(CONDITION_LABELS, CONDITION_LABELS_KO)[d.condition] ?? d.condition
+      : null;
     const victim = d.victim ? TARGET_LABELS[d.victim] ?? d.victim : null;
     return (
       <div
@@ -171,8 +182,8 @@ export function EntropyAsrScatter({
         </div>
         {(cond || victim) && (
           <div className="mt-1.5 text-[11px] text-muted-foreground space-y-0.5">
-            {victim && <div>Target: {victim}</div>}
-            {cond && <div>Condition: {cond}</div>}
+            {victim && <div>{t("Target", "표적")}: {victim}</div>}
+            {cond && <div>{t("Condition", "조건")}: {cond}</div>}
           </div>
         )}
       </div>
@@ -196,7 +207,7 @@ export function EntropyAsrScatter({
         >
           ρ = {rho >= 0 ? "+" : ""}
           {rho.toFixed(3)} · p = {formatP(pValue)}
-          {sig ? " *" : " n.s."}
+          {sig ? " *" : t(" n.s.", " 유의하지 않음")}
         </span>
       </div>
       <ResponsiveContainer width="100%" height={height}>
@@ -209,7 +220,7 @@ export function EntropyAsrScatter({
             domain={[xMin, xMax]}
             tick={{ fontSize: 12, fill: colors.tick }}
             label={{
-              value: "Session entropy H(X)",
+              value: t("Session entropy H(X)", "세션 엔트로피 H(X)"),
               position: "insideBottom",
               offset: -8,
               style: { fontSize: 12, fill: colors.tick },
@@ -224,7 +235,7 @@ export function EntropyAsrScatter({
             tickFormatter={(v) => `${(v * 100).toFixed(0)}%`}
             tick={{ fontSize: 12, fill: colors.tick }}
             label={{
-              value: "Session ASR",
+              value: t("Session ASR", "세션 ASR"),
               angle: -90,
               position: "insideLeft",
               style: { fontSize: 12, fill: colors.tick },

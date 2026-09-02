@@ -4,15 +4,16 @@ import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "@/lib/use-theme";
 import { AGENT_LABELS } from "@/lib/types";
+import { useT } from "@/lib/i18n";
 
 const COND_ORDER = ["UU", "US", "GU", "GS"] as const;
 type Cond = (typeof COND_ORDER)[number];
 
-const COND_LABELS: Record<Cond, { short: string; long: string }> = {
-  UU: { short: "UU", long: "Unguided · Unstructured" },
-  US: { short: "US", long: "Unguided · Structured" },
-  GU: { short: "GU", long: "Guided · Unstructured" },
-  GS: { short: "GS", long: "Guided · Structured" },
+const COND_LABELS: Record<Cond, { short: string; long: string; longKo: string }> = {
+  UU: { short: "UU", long: "Unguided · Unstructured", longKo: "비유도 · 비구조" },
+  US: { short: "US", long: "Unguided · Structured", longKo: "비유도 · 구조" },
+  GU: { short: "GU", long: "Guided · Unstructured", longKo: "유도 · 비구조" },
+  GS: { short: "GS", long: "Guided · Structured", longKo: "유도 · 구조" },
 };
 
 function cellStyleFromRank(rank01: number, isLight: boolean) {
@@ -66,6 +67,7 @@ export function ConditionHeatmapGrid({
   /** Pooled (across-condition) Sel_i fraction (0..1) per agent×family. */
   pooledByAgent?: Record<string, Record<string, number>>;
 }) {
+  const t = useT();
   const isLight = useTheme();
   const [active, setActive] = useState<CellSelection | null>(null);
 
@@ -89,13 +91,26 @@ export function ConditionHeatmapGrid({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-6 flex-wrap">
         <p className="text-xs text-muted-foreground max-w-3xl">
-          Selection share Sel<sub>i</sub> split by the four prompt conditions of the 2×2
-          design (Guidance × Format). Color intensity uses{" "}
-          <strong className="text-foreground">average-rank normalization within each panel</strong>
-          {" "}(matches paper Fig. heatmap_sel) — strong contrast highlights each
-          panel&apos;s hot cells; absolute magnitude is in the printed cell value.
-          Hover any cell for the comparison to that agent&apos;s pooled Sel<sub>i</sub>;
-          click to compare all four prompt conditions side-by-side.
+          {t(
+            <>
+              Selection share Sel<sub>i</sub> split by the four prompt conditions of the 2×2
+              design (Guidance × Format). Color intensity uses{" "}
+              <strong className="text-foreground">average-rank normalization within each panel</strong>
+              {" "}(matches paper Fig. heatmap_sel) — strong contrast highlights each
+              panel&apos;s hot cells; absolute magnitude is in the printed cell value.
+              Hover any cell for the comparison to that agent&apos;s pooled Sel<sub>i</sub>;
+              click to compare all four prompt conditions side-by-side.
+            </>,
+            <>
+              2×2 설계(유도 × 형식)의 네 가지 프롬프트 조건별로 나눈 선택 비중 Sel<sub>i</sub>임.
+              색 농도는{" "}
+              <strong className="text-foreground">패널 내부 평균 순위 정규화</strong>
+              {" "}(논문 heatmap_sel 그림과 동일)를 씀. 대비를 강하게 줘서 각 패널에서
+              두드러지는 칸이 눈에 띄게 했고, 절대 크기는 칸에 찍힌 값으로 확인하면 됨.
+              칸에 마우스를 올리면 해당 에이전트의 통합 Sel<sub>i</sub>와 비교되고,
+              누르면 네 조건을 나란히 볼 수 있음.
+            </>
+          )}
         </p>
         <RankLegend isLight={isLight} />
       </div>
@@ -132,12 +147,13 @@ export function ConditionHeatmapGrid({
 }
 
 function RankLegend({ isLight }: { isLight: boolean }) {
+  const t = useT();
   const stops = [0, 0.25, 0.5, 0.75, 1].map((r) => cellStyleFromRank(r, isLight).bg);
   const gradient = `linear-gradient(to right, ${stops.join(", ")})`;
   return (
     <div className="flex flex-col items-end gap-1 shrink-0">
       <span className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground">
-        Within-panel rank
+        {t("Within-panel rank", "패널 내 순위")}
       </span>
       <div
         className="h-2.5 w-44 rounded-sm border border-border"
@@ -145,9 +161,9 @@ function RankLegend({ isLight }: { isLight: boolean }) {
         aria-hidden="true"
       />
       <div className="flex justify-between w-44 text-[10px] font-mono text-muted-foreground tabular-nums">
-        <span>low (0%)</span>
-        <span>median</span>
-        <span>high (100%)</span>
+        <span>{t("low (0%)", "낮음 (0%)")}</span>
+        <span>{t("median", "중앙값")}</span>
+        <span>{t("high (100%)", "높음 (100%)")}</span>
       </div>
     </div>
   );
@@ -174,6 +190,7 @@ function CondPanel({
   pooledByAgent?: Record<string, Record<string, number>>;
   onSelect: (agent: string, family: string) => void;
 }) {
+  const t = useT();
   const meta = COND_LABELS[cond];
   return (
     <div className="rounded-lg border border-border bg-card overflow-hidden">
@@ -182,7 +199,7 @@ function CondPanel({
           <span className="font-mono text-sm font-bold text-foreground tabular-nums">
             {meta.short}
           </span>
-          <span className="text-xs text-muted-foreground">{meta.long}</span>
+          <span className="text-xs text-muted-foreground">{t(meta.long, meta.longKo)}</span>
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -190,7 +207,7 @@ function CondPanel({
           <thead>
             <tr>
               <th className="text-left px-3 py-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wide w-20">
-                Agent
+                {t("Agent", "에이전트")}
               </th>
               {families.map((f) => (
                 <th
@@ -252,6 +269,7 @@ function HeatmapCell({
   condLabel: string;
   onClick: () => void;
 }) {
+  const t = useT();
   const [hover, setHover] = useState(false);
   const cellRef = useRef<HTMLTableCellElement | null>(null);
   const [coords, setCoords] = useState<{ top: number; left: number; placeAbove: boolean; width: number }>({ top: 0, left: 0, placeAbove: true, width: 280 });
@@ -307,7 +325,10 @@ function HeatmapCell({
         onClick={onClick}
         className="block w-full px-1 py-1.5 text-center font-mono text-[11px] font-semibold tabular-nums cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-colors duration-300"
         style={{ backgroundColor: style.bg, color: style.text }}
-        aria-label={`${agentLabel} ${familyLabel} ${v.toFixed(2)} percent under ${condLabel}`}
+        aria-label={t(
+          `${agentLabel} ${familyLabel} ${v.toFixed(2)} percent under ${condLabel}`,
+          `${agentLabel} ${familyLabel}, ${condLabel} 조건에서 ${v.toFixed(2)} 퍼센트`
+        )}
       >
         {v >= 0.05 ? v.toFixed(1) : "-"}
       </button>
@@ -324,7 +345,7 @@ function HeatmapCell({
             {condLabel}: <span className="font-semibold">{v.toFixed(2)}%</span>
           </div>
           <div className="font-mono text-muted-foreground tabular-nums">
-            Pooled Sel<sub>i</sub>: {pooledPct.toFixed(2)}%
+            {t("Pooled Sel", "통합 Sel")}<sub>i</sub>: {pooledPct.toFixed(2)}%
           </div>
           <div
             className="font-mono tabular-nums mt-0.5"
@@ -338,10 +359,10 @@ function HeatmapCell({
             }}
           >
             Δ {sign}
-            {delta.toFixed(2)} pp vs pooled
+            {delta.toFixed(2)} {t("pp vs pooled", "pp (통합 대비)")}
           </div>
           <div className="text-muted-foreground mt-1 text-[10px]">
-            Click to compare all four conditions
+            {t("Click to compare all four conditions", "누르면 네 조건을 비교할 수 있음")}
           </div>
         </div>,
         document.body,
@@ -365,6 +386,7 @@ function CellDialog({
   pooledByAgent?: Record<string, Record<string, number>>;
   onClose: () => void;
 }) {
+  const t = useT();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -404,31 +426,45 @@ function CellDialog({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={`${agentLabel} ${familyLabel} four-condition comparison`}
+        aria-label={t(
+          `${agentLabel} ${familyLabel} four-condition comparison`,
+          `${agentLabel} ${familyLabel} 네 조건 비교`
+        )}
       >
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <div className="text-xs font-mono uppercase tracking-wider text-indigo-500 mb-1">
-              Condition comparison
+              {t("Condition comparison", "조건 비교")}
             </div>
             <h3 className="font-serif text-xl text-foreground">
               {agentLabel} · {familyLabel}
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Sel<sub>i</sub> across the four prompt conditions of the 2×2 design.
-              Pooled Sel<sub>i</sub>:{" "}
-              <span className="font-mono tabular-nums text-foreground">
-                {pooledPct.toFixed(2)}%
-              </span>
+              {t(
+                <>
+                  Sel<sub>i</sub> across the four prompt conditions of the 2×2 design.
+                  Pooled Sel<sub>i</sub>:{" "}
+                  <span className="font-mono tabular-nums text-foreground">
+                    {pooledPct.toFixed(2)}%
+                  </span>
+                </>,
+                <>
+                  2×2 설계의 네 가지 프롬프트 조건별 Sel<sub>i</sub>임.
+                  통합 Sel<sub>i</sub>:{" "}
+                  <span className="font-mono tabular-nums text-foreground">
+                    {pooledPct.toFixed(2)}%
+                  </span>
+                </>
+              )}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="text-sm font-medium px-3 py-1.5 rounded-md border border-border hover:bg-muted transition-colors"
-            aria-label="Close dialog"
+            aria-label={t("Close dialog", "대화상자 닫기")}
           >
-            Close
+            {t("Close", "닫기")}
           </button>
         </div>
 
@@ -442,9 +478,9 @@ function CellDialog({
                 </div>
                 <div className="flex-1">
                   <div className="text-[10px] text-muted-foreground mb-0.5">
-                    {row.label.long}
+                    {t(row.label.long, row.label.longKo)}
                   </div>
-                  <div className="relative h-3 rounded-full bg-muted overflow-hidden">
+                  <div className="relative h-3 rounded-full bg-foreground/10 overflow-hidden">
                     <div
                       className="absolute inset-y-0 left-0 rounded-full bg-indigo-500"
                       style={{ width: `${pct}%`, opacity: 0.85 }}
@@ -460,7 +496,10 @@ function CellDialog({
         </div>
 
         <p className="text-[11px] text-muted-foreground mt-4">
-          Press <span className="font-mono">Esc</span> or click outside to close.
+          {t(
+            <>Press <span className="font-mono">Esc</span> or click outside to close.</>,
+            <><span className="font-mono">Esc</span>를 누르거나 바깥을 클릭하면 닫힘.</>
+          )}
         </p>
       </div>
     </div>,

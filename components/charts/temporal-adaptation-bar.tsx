@@ -40,6 +40,7 @@ import {
   type TemporalAdaptationRow,
 } from "@/lib/types";
 import { useAgentColors, useChartColors } from "@/lib/use-theme";
+import { useT } from "@/lib/i18n";
 
 interface Props {
   data: TemporalAdaptationRow[];
@@ -49,21 +50,25 @@ const SERIES = [
   {
     key: "switch_after_failure" as const,
     label: "Switch after failure",
+    labelKo: "실패 후 전환",
     color: "#ef4444",
   },
   {
     key: "switch_after_success" as const,
     label: "Switch after success",
+    labelKo: "성공 후 전환",
     color: "#10b981",
   },
   {
     key: "repeated_failure_share" as const,
     label: "Repeated-failure share",
+    labelKo: "반복 실패 비중",
     color: "#6366f1",
   },
 ];
 
 export default function TemporalAdaptationBar({ data }: Props) {
+  const t = useT();
   const colors = useChartColors();
   const agentColors = useAgentColors();
 
@@ -80,13 +85,13 @@ export default function TemporalAdaptationBar({ data }: Props) {
     <div className="rounded-lg border border-border bg-card p-4">
       <div className="mb-3">
         <h3 className="text-base font-semibold text-foreground">
-          Temporal adaptation
+          {t("Temporal adaptation", "시간적 적응")}
         </h3>
         <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
-          Bars: probability of switching family after failure / success /
-          repeated-failure share. Failure-induced switching is comparable to
-          success-induced switching; agents do not pivot more aggressively
-          after failure.
+          {t(
+            "Bars: probability of switching family after failure / success / repeated-failure share. Failure-induced switching is comparable to success-induced switching; agents do not pivot more aggressively after failure.",
+            "막대는 실패 후 전환 확률 / 성공 후 전환 확률 / 반복 실패 비중임. 실패로 인한 전환은 성공으로 인한 전환과 비슷한 수준이며, 실패했다고 해서 더 적극적으로 방향을 트지는 않음."
+          )}
         </p>
       </div>
 
@@ -139,7 +144,7 @@ export default function TemporalAdaptationBar({ data }: Props) {
               <Bar
                 key={s.key}
                 dataKey={s.key}
-                name={s.label}
+                name={t(s.label, s.labelKo)}
                 fill={s.color}
                 radius={[2, 2, 2, 2]}
               />
@@ -162,6 +167,7 @@ interface TooltipShape {
 }
 
 function CustomTooltip(props: TooltipShape) {
+  const t = useT();
   const { active, payload } = props;
   if (!active || !payload || !payload.length) return null;
   const datum = payload[0]?.payload;
@@ -175,35 +181,35 @@ function CustomTooltip(props: TooltipShape) {
         {AGENT_LABELS[r.agent] ?? r.agent}
       </div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-foreground">
-        <span className="text-muted-foreground">switch after failure</span>
+        <span className="text-muted-foreground">{t("switch after failure", "실패 후 전환")}</span>
         <span className="font-mono text-right">
           {fmt(r.switch_after_failure)}
         </span>
-        <span className="text-muted-foreground">switch after success</span>
+        <span className="text-muted-foreground">{t("switch after success", "성공 후 전환")}</span>
         <span className="font-mono text-right">
           {fmt(r.switch_after_success)}
         </span>
-        <span className="text-muted-foreground">fail/success ratio</span>
+        <span className="text-muted-foreground">{t("fail/success ratio", "실패/성공 비율")}</span>
         <span className="font-mono text-right">
           {r.failure_success_switch_ratio.toFixed(2)}
         </span>
-        <span className="text-muted-foreground">retry same endpoint</span>
+        <span className="text-muted-foreground">{t("retry same endpoint", "같은 엔드포인트 재시도")}</span>
         <span className="font-mono text-right">
           {fmt(r.retry_same_endpoint)}
         </span>
-        <span className="text-muted-foreground">same fam, new endpoint</span>
+        <span className="text-muted-foreground">{t("same fam, new endpoint", "같은 계열, 새 엔드포인트")}</span>
         <span className="font-mono text-right">
           {fmt(r.same_family_new_endpoint)}
         </span>
-        <span className="text-muted-foreground">switch fam, same ep</span>
+        <span className="text-muted-foreground">{t("switch fam, same ep", "계열 전환, 같은 엔드포인트")}</span>
         <span className="font-mono text-right">
           {fmt(r.switch_family_same_endpoint)}
         </span>
-        <span className="text-muted-foreground">switch fam, new ep</span>
+        <span className="text-muted-foreground">{t("switch fam, new ep", "계열 전환, 새 엔드포인트")}</span>
         <span className="font-mono text-right">
           {fmt(r.switch_family_new_endpoint)}
         </span>
-        <span className="text-muted-foreground">repeated-failure share</span>
+        <span className="text-muted-foreground">{t("repeated-failure share", "반복 실패 비중")}</span>
         <span className="font-mono text-right">
           {fmt(r.repeated_failure_share)}
         </span>

@@ -9,6 +9,7 @@ import { EffectSizeBar } from "@/components/charts/effect-size-bar";
 import AsrPerFamilyHeatmap from "@/components/charts/asr-per-family-heatmap";
 import TemporalAdaptationBar from "@/components/charts/temporal-adaptation-bar";
 import { useAgentColors, useIsMobile } from "@/lib/use-theme";
+import { useT, type Lang } from "@/lib/i18n";
 import { AGENT_LABELS, FAMILY_FULLNAME } from "@/lib/types";
 import type { PaperSummary } from "@/lib/types";
 
@@ -39,20 +40,30 @@ function formatTps(tps: number | null): string {
   return `${tps.toFixed(0)} tok/s`;
 }
 
-function decouplingInterpretation(row: DecouplingRow): string {
+function decouplingInterpretation(row: DecouplingRow, lang: Lang): string {
   const family = FAMILY_LABELS[row.top_family] ?? row.top_family;
   const agent = AGENT_LABELS[row.agent] ?? row.agent;
   const gap = row.top_sel_pct - row.top_asr_pct;
+  const sel = row.top_sel_pct.toFixed(1);
+  const asr = row.top_asr_pct.toFixed(1);
   if (gap >= 8) {
-    return `${agent} commits ${row.top_sel_pct.toFixed(1)}% of attempts to ${family}, but only ${row.top_asr_pct.toFixed(1)}% of those attempts succeed — a ${gap.toFixed(1)}-point selection–capability gap that cleanly illustrates why allocation is not a proxy for outcome.`;
+    return lang === "ko"
+      ? `${agent}는 시도의 ${sel}%를 ${family}에 쏟지만 그중 ${asr}%만 성공함. ${gap.toFixed(1)}포인트의 선택–실력 격차로, 배분이 결과의 대리 지표가 될 수 없음을 잘 보여줌.`
+      : `${agent} commits ${sel}% of attempts to ${family}, but only ${asr}% of those attempts succeed — a ${gap.toFixed(1)}-point selection–capability gap that cleanly illustrates why allocation is not a proxy for outcome.`;
   }
   if (gap <= -8) {
-    return `${agent}'s most-selected family is ${family} at ${row.top_sel_pct.toFixed(1)}% selection, yet ASRᵢ on that same family is ${row.top_asr_pct.toFixed(1)}% — selection actually under-represents capability here.`;
+    return lang === "ko"
+      ? `${agent}가 가장 많이 고른 계열은 ${family}로 선택 비중이 ${sel}%인데, 같은 계열의 ASRᵢ는 ${asr}%임. 여기서는 선택이 오히려 실력을 과소 반영함.`
+      : `${agent}'s most-selected family is ${family} at ${sel}% selection, yet ASRᵢ on that same family is ${asr}% — selection actually under-represents capability here.`;
   }
-  return `${agent} concentrates ${row.top_sel_pct.toFixed(1)}% of attempts on ${family} with a matching ASRᵢ of ${row.top_asr_pct.toFixed(1)}% — a rare case where allocation tracks success.`;
+  return lang === "ko"
+    ? `${agent}는 시도의 ${sel}%를 ${family}에 집중하고 해당 계열 ASRᵢ도 ${asr}%로 비슷함. 배분이 성공과 맞아떨어지는 드문 사례임.`
+    : `${agent} concentrates ${sel}% of attempts on ${family} with a matching ASRᵢ of ${asr}% — a rare case where allocation tracks success.`;
 }
 
 export function Layer2Decoupling({ data }: { data: PaperSummary }) {
+  const t = useT();
+  const lang = t<Lang>("en", "ko");
   const agents = data.agents;
   const families = data.families;
   const selPerAgent = data.fig3_selection_per_agent;
@@ -113,12 +124,24 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
   return (
     <div id="findings-layer2" className="space-y-14 scroll-mt-24">
       <header className="max-w-[1500px] mx-auto px-4 sm:px-6">
-        <h2 className="font-serif text-2xl sm:text-3xl text-foreground">Selection ≠ Performance</h2>
+        <h2 className="font-serif text-2xl sm:text-3xl text-foreground">
+          {t("Selection ≠ Performance", "선택 ≠ 성능")}
+        </h2>
         <p className="mt-3 text-base text-muted-foreground max-w-3xl text-pretty">
-          Allocation profiles do not mirror per-family success. Most-selected families are
-          frequently not the highest-ASR<sub>i</sub> families, and session-level entropy is
-          uncorrelated with session ASR for 4 of 5 agents. Across-agent effect sizes confirm
-          structural attack-selection metrics separate agents far more strongly than session ASR.
+          {t(
+            <>
+              Allocation profiles do not mirror per-family success. Most-selected families are
+              frequently not the highest-ASR<sub>i</sub> families, and session-level entropy is
+              uncorrelated with session ASR for 4 of 5 agents. Across-agent effect sizes confirm
+              structural attack-selection metrics separate agents far more strongly than session ASR.
+            </>,
+            <>
+              배분 프로파일은 계열별 성공률을 그대로 따라가지 않음. 가장 많이 고른 계열이
+              ASR<sub>i</sub>가 가장 높은 계열인 경우는 드물고, 5개 중 4개 에이전트에서
+              세션 엔트로피와 세션 ASR 사이에 상관이 없음. 에이전트 간 효과크기를 보면
+              구조적 공격 선택 지표가 세션 ASR보다 훨씬 강하게 에이전트를 구분함.
+            </>
+          )}
         </p>
       </header>
 
@@ -140,23 +163,35 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
           <div className="mb-5 flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h3 className="text-xl font-semibold text-foreground">
-                Selection vs per-family ASR (per agent)
+                {t("Selection vs per-family ASR (per agent)", "선택 vs 계열별 ASR (에이전트별)")}
               </h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
-                Each panel contrasts the agent&apos;s own allocation profile
-                (Sel<sub>i</sub>, filled) with its own per-family success rate
-                (ASR<sub>i</sub>, dashed). Each metric is normalized to its
-                global maximum (Sel to {Math.round(maxSel * 100)}%, ASR
-                to {Math.round(maxAsr * 100)}%) so the two polygons are
-                visually comparable — shape divergence reveals effort
-                mis-spent on low-success families. Hover for raw values.
+                {t(
+                  <>
+                    Each panel contrasts the agent&apos;s own allocation profile
+                    (Sel<sub>i</sub>, filled) with its own per-family success rate
+                    (ASR<sub>i</sub>, dashed). Each metric is normalized to its
+                    global maximum (Sel to {Math.round(maxSel * 100)}%, ASR
+                    to {Math.round(maxAsr * 100)}%) so the two polygons are
+                    visually comparable — shape divergence reveals effort
+                    mis-spent on low-success families. Hover for raw values.
+                  </>,
+                  <>
+                    각 패널은 해당 에이전트의 배분 프로파일(Sel<sub>i</sub>, 채움)과
+                    같은 에이전트의 계열별 성공률(ASR<sub>i</sub>, 점선)을 겹쳐 보여줌.
+                    두 지표는 각각의 전역 최댓값(Sel은 {Math.round(maxSel * 100)}%,
+                    ASR은 {Math.round(maxAsr * 100)}%)으로 정규화해 다각형끼리 비교
+                    가능하게 함. 모양이 어긋나는 부분이 성공률 낮은 계열에 노력을
+                    낭비한 지점임. 원값은 마우스를 올리면 나옴.
+                  </>
+                )}
               </p>
             </div>
             <div className="flex items-center gap-x-3 gap-y-2 flex-wrap w-full sm:w-auto">
               <div className="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs sm:text-sm text-muted-foreground">
                 <span className="flex items-center gap-2">
                   <span className="inline-block w-5 h-0 border-t-2 border-current" />
-                  Selection Selᵢ
+                  {t("Selection Selᵢ", "선택 Selᵢ")}
                 </span>
                 <span className="flex items-center gap-2">
                   <span
@@ -177,7 +212,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                   }`}
                   aria-pressed={view === "radar"}
                 >
-                  Radar
+                  {t("Radar", "레이더")}
                 </button>
                 <button
                   type="button"
@@ -189,7 +224,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                   }`}
                   aria-pressed={view === "table"}
                 >
-                  Table
+                  {t("Table", "표")}
                 </button>
               </div>
             </div>
@@ -221,7 +256,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left font-medium text-muted-foreground px-3 py-2 sticky left-0 bg-card z-10 border-r border-border/60 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]">
-                      Family
+                      {t("Family", "계열")}
                     </th>
                     {agents.map((a) => (
                       <th
@@ -242,14 +277,14 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                 </thead>
                 <tbody>
                   {families.map((f, idx) => {
-                    const rowBg = idx % 2 === 0 ? "bg-card" : "bg-muted";
+                    const rowBg = idx % 2 === 0 ? "bg-card" : "surface-band";
                     return (
                     <tr
                       key={f}
                       className={
                         idx % 2 === 0
                           ? "border-b border-border/60"
-                          : "border-b border-border/60 bg-muted/30"
+                          : "border-b border-border/60 surface-band"
                       }
                     >
                       <td
@@ -302,9 +337,18 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                 </tbody>
               </table>
               <div className="px-3 py-2 text-xs text-muted-foreground border-t border-border">
-                Each cell: <span className="font-mono">Selᵢ / ASRᵢ</span>. Cell tint
-                scales with Selᵢ relative to the global Sel maximum
-                ({Math.round(maxSel * 100)}%). Bold marks each agent&apos;s most-selected family.
+                {t(
+                  <>
+                    Each cell: <span className="font-mono">Selᵢ / ASRᵢ</span>. Cell tint
+                    scales with Selᵢ relative to the global Sel maximum
+                    ({Math.round(maxSel * 100)}%). Bold marks each agent&apos;s most-selected family.
+                  </>,
+                  <>
+                    각 칸은 <span className="font-mono">Selᵢ / ASRᵢ</span>임. 칸 색은 전역 Sel
+                    최댓값({Math.round(maxSel * 100)}%) 대비 Selᵢ에 비례함. 굵은 값은 각
+                    에이전트의 최다 선택 계열임.
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -316,13 +360,13 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
           <div className="mb-4 flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h3 className="text-xl font-semibold text-foreground">
-                Entropy vs session ASR
+                {t("Entropy vs session ASR", "엔트로피 vs 세션 ASR")}
               </h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
-                Per-session scatter (n = 36 per agent). Spearman ρ annotated per
-                panel. Only Codex shows a weakly positive correlation; the rest are
-                not significantly different from zero — breadth does not imply
-                outcome. Hover a point for session, target, and condition.
+                {t(
+                  "Per-session scatter (n = 36 per agent). Spearman ρ annotated per panel. Only Codex shows a weakly positive correlation; the rest are not significantly different from zero — breadth does not imply outcome. Hover a point for session, target, and condition.",
+                  "세션 단위 산점도임 (에이전트당 n = 36). 패널마다 Spearman ρ를 표기함. Codex만 약한 양의 상관을 보이고 나머지는 0과 유의하게 다르지 않음. 넓게 시도한다고 결과가 좋아지지는 않음. 점에 마우스를 올리면 세션·표적·조건이 나옴."
+                )}
               </p>
             </div>
             <button
@@ -335,7 +379,9 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
               }`}
               aria-pressed={showRegression}
             >
-              {showRegression ? "Hide regression line" : "Show regression line"}
+              {showRegression
+                ? t("Hide regression line", "회귀선 숨기기")
+                : t("Show regression line", "회귀선 표시")}
             </button>
           </div>
 
@@ -367,12 +413,13 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
         <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
           <div className="mb-4">
             <h3 className="text-xl font-semibold text-foreground">
-              Cell-level decoupling
+              {t("Cell-level decoupling", "셀 단위 비결합")}
             </h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
-              Each card pins down the agent&apos;s most-selected family and the
-              ASRᵢ on that same family. Click a card to expand the
-              interpretation.
+              {t(
+                "Each card pins down the agent's most-selected family and the ASRᵢ on that same family. Click a card to expand the interpretation.",
+                "각 카드는 해당 에이전트의 최다 선택 계열과 그 계열의 ASRᵢ를 함께 보여줌. 카드를 누르면 해석이 펼쳐짐."
+              )}
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-4">
@@ -401,11 +448,11 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                       </span>
                     </div>
                     <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                      {expanded ? "Hide" : "Details"}
+                      {expanded ? t("Hide", "접기") : t("Details", "자세히")}
                     </span>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Top family
+                    {t("Top family", "최다 선택 계열")}
                   </div>
                   <div
                     className="text-base font-semibold leading-tight"
@@ -454,8 +501,8 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                           : "text-muted-foreground"
                     }`}
                   >
-                    Gap: {gap >= 0 ? "+" : ""}
-                    {gap.toFixed(1)} pts
+                    {t("Gap", "격차")}: {gap >= 0 ? "+" : ""}
+                    {gap.toFixed(1)} {t("pts", "포인트")}
                   </div>
                   <div
                     className={`text-xs leading-snug text-muted-foreground transition-all overflow-hidden ${
@@ -464,7 +511,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                         : "max-h-0 opacity-0"
                     }`}
                   >
-                    {decouplingInterpretation(row)}
+                    {decouplingInterpretation(row, lang)}
                   </div>
                 </button>
               );
@@ -489,8 +536,10 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
 
       <div className="max-w-[1500px] mx-auto px-4 sm:px-6">
         <BridgeText>
-          Selection and performance are decoupled. A natural intervention is to force the attack
-          family — does this close the gap?
+          {t(
+            "Selection and performance are decoupled. A natural intervention is to force the attack family — does this close the gap?",
+            "선택과 성능은 서로 분리되어 있음. 그렇다면 공격 계열을 강제로 지정하는 개입은 이 격차를 좁힐까?"
+          )}
         </BridgeText>
       </div>
     </div>

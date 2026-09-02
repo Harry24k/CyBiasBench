@@ -23,6 +23,7 @@ import { FadeIn } from "@/components/fade-in";
 import { BridgeText } from "@/components/bridge-text";
 import { InjectionDesignDiagram } from "@/components/charts/injection-design";
 import { useChartColors, useAgentColors, useIsMobile } from "@/lib/use-theme";
+import { useT } from "@/lib/i18n";
 import { AGENT_LABELS } from "@/lib/types";
 import type { PaperSummary, CompliancePredictor } from "@/lib/types";
 import {
@@ -65,6 +66,7 @@ function formatP(p: number): string {
 }
 
 export function Layer3Injection({ data }: { data: PaperSummary }) {
+  const t = useT();
   const agents = data.agents;
   const families = data.families;
   const t4 = data.table4_compliance;
@@ -91,17 +93,31 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
     <div id="findings-layer3" className="space-y-14 scroll-mt-24">
       <header className="max-w-[1500px] mx-auto px-4 sm:px-6">
         <h2 className="font-serif text-2xl sm:text-3xl text-foreground">
-          Bias Injection
+          {t("Bias Injection", "편향 주입")}
         </h2>
         <p className="mt-3 text-base text-muted-foreground max-w-3xl text-pretty">
-          Explicitly steering an agent toward a requested attack family redirects allocation but
-          does not reshape preference. Compliance tracks what agents already liked to pick
-          (ρ = +{h.compliance_sel.rho.toFixed(3)}, p = {formatP(h.compliance_sel.p)}), not what
-          they were capable of (ρ = {h.compliance_asri.rho.toFixed(3)},
-          p = {formatP(h.compliance_asri.p)}). Per-family ASR transfers cleanly across settings
-          (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)}) — capability is
-          stable; allocation is what shifts. We call this decoupling{" "}
-          <strong className="text-foreground">bias momentum</strong>.
+          {t(
+            <>
+              Explicitly steering an agent toward a requested attack family redirects allocation but
+              does not reshape preference. Compliance tracks what agents already liked to pick
+              (ρ = +{h.compliance_sel.rho.toFixed(3)}, p = {formatP(h.compliance_sel.p)}), not what
+              they were capable of (ρ = {h.compliance_asri.rho.toFixed(3)},
+              p = {formatP(h.compliance_asri.p)}). Per-family ASR transfers cleanly across settings
+              (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)}) — capability is
+              stable; allocation is what shifts. We call this decoupling{" "}
+              <strong className="text-foreground">bias momentum</strong>.
+            </>,
+            <>
+              특정 공격 계열을 명시적으로 지시하면 배분은 바뀌지만 선호 자체는 바뀌지 않음.
+              순응도는 에이전트가 원래 즐겨 고르던 것을 따라가고
+              (ρ = +{h.compliance_sel.rho.toFixed(3)}, p = {formatP(h.compliance_sel.p)}),
+              잘하는 것을 따라가지는 않음 (ρ = {h.compliance_asri.rho.toFixed(3)},
+              p = {formatP(h.compliance_asri.p)}). 계열별 ASR은 설정이 달라져도 그대로 전이됨
+              (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)}).
+              실력은 안정적이고, 움직이는 것은 배분임. 이 비결합을{" "}
+              <strong className="text-foreground">편향 관성(bias momentum)</strong>이라 부름.
+            </>
+          )}
         </p>
       </header>
 
@@ -109,12 +125,13 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
         <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
           <div className="mb-4">
             <h3 className="text-xl font-semibold text-foreground">
-              Bias Injection design
+              {t("Bias Injection design", "편향 주입 설계")}
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Requested-family condition. The environment, tool access, and verification pipeline
-              remain identical to Bias Observation; only the task focus statement names a
-              target family.
+              {t(
+                "Requested-family condition. The environment, tool access, and verification pipeline remain identical to Bias Observation; only the task focus statement names a target family.",
+                "계열 지정 조건임. 환경, 도구 접근, 검증 파이프라인은 편향 관찰과 완전히 동일하고, 과제 진술문에서 목표 계열을 지정하는 부분만 다름."
+              )}
             </p>
           </div>
           <InjectionDesignDiagram />
@@ -126,23 +143,25 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
           <div className="mb-4 flex items-baseline justify-between flex-wrap gap-2">
             <div>
               <h3 className="text-xl font-semibold text-foreground">
-                Observation vs Injection session ASR per agent
+                {t("Observation vs Injection session ASR per agent", "에이전트별 관찰 vs 주입 세션 ASR")}
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Side-by-side observation and forced-injection session ASR for each agent.
-                Hover for raw obs/inj, ΔASR, compliance, and per-agent injection session count.
+                {t(
+                  "Side-by-side observation and forced-injection session ASR for each agent. Hover for raw obs/inj, ΔASR, compliance, and per-agent injection session count.",
+                  "에이전트별로 관찰 세션 ASR과 강제 주입 세션 ASR을 나란히 비교함. 마우스를 올리면 원값(obs/inj), ΔASR, 순응도, 에이전트별 주입 세션 수가 나옴."
+                )}
               </p>
             </div>
             {h.all_negative_delta_asr && (
               <span className="text-xs font-mono uppercase tracking-widest text-foreground px-2 py-1 rounded border border-foreground/30 bg-muted">
-                All 5 agents · ΔASR ≤ 0
+                {t("All 5 agents · ΔASR ≤ 0", "5개 에이전트 전부 · ΔASR ≤ 0")}
               </span>
             )}
           </div>
           <ObsInjBars bars={obsInjBars} />
           <div className="mt-6">
             <h4 className="text-sm font-semibold text-foreground mb-2">
-              ΔASR per agent
+              {t("ΔASR per agent", "에이전트별 ΔASR")}
             </h4>
             <DeltaAsrBars
               bars={obsInjBars.map((b) => ({
@@ -172,13 +191,23 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
         <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
           <div className="mb-4">
             <h3 className="text-xl font-semibold text-foreground">
-              Per-family ASR transfer (observation → injection)
+              {t("Per-family ASR transfer (observation → injection)", "계열별 ASR 전이 (관찰 → 주입)")}
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Observation per-family ASR<sub>i</sub> vs injection per-family ASR<sub>i</sub> under forced
-              injection. The strong positive correlation
-              (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)})
-              confirms capability persists across prompt conditions and forcing.
+              {t(
+                <>
+                  Observation per-family ASR<sub>i</sub> vs injection per-family ASR<sub>i</sub> under forced
+                  injection. The strong positive correlation
+                  (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)})
+                  confirms capability persists across prompt conditions and forcing.
+                </>,
+                <>
+                  관찰 설정의 계열별 ASR<sub>i</sub>와 강제 주입 설정의 계열별 ASR<sub>i</sub>를
+                  비교함. 강한 양의 상관
+                  (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)})은
+                  프롬프트 조건과 강제 지시가 달라져도 실력이 유지됨을 보여줌.
+                </>
+              )}
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
@@ -202,11 +231,13 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
         <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
           <div className="mb-4">
             <h3 className="text-xl font-semibold text-foreground">
-              Per-agent injection summary
+              {t("Per-agent injection summary", "에이전트별 주입 요약")}
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Compliance, observed/injected session ASR, and ΔASR by agent. Sorted by ΔASR ascending
-              (most damaged first).
+              {t(
+                "Compliance, observed/injected session ASR, and ΔASR by agent. Sorted by ΔASR ascending (most damaged first).",
+                "에이전트별 순응도, 관찰/주입 세션 ASR, ΔASR임. ΔASR 오름차순으로 정렬해 손해가 가장 큰 쪽이 위에 옴."
+              )}
             </p>
           </div>
           <PerAgentSummaryTable rows={obsInjBars} />
@@ -222,45 +253,77 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
             />
             <div className="flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-border text-[11px] font-mono uppercase tracking-widest text-foreground">
-                Synthesis · §5–7
+                {t("Synthesis · §5–7", "종합 · §5–7")}
               </span>
               <span className="text-xs font-mono text-muted-foreground">
-                Three separable axes
+                {t("Three separable axes", "분리 가능한 세 가지 축")}
               </span>
             </div>
             <h3 className="font-serif text-2xl sm:text-3xl text-foreground leading-tight">
-              Allocation, attack performance, and bias momentum are distinct axes.
+              {t(
+                "Allocation, attack performance, and bias momentum are distinct axes.",
+                "배분, 공격 성능, 편향 관성은 서로 다른 축임."
+              )}
             </h3>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              Across five frontier agents, three target environments, and 630
-              total sessions, attack-selection bias is{" "}
-              <strong className="text-foreground">stable, agent-specific, and prompt-invariant</strong>:
-              behavioral heterogeneity (
-              <Stat>η²<sub>H(X)</sub> = {h.kruskal_H.eta2.toFixed(3)}</Stat>,{" "}
-              <Stat>{formatP(h.kruskal_H.p)}</Stat>) outpaces outcome heterogeneity (
-              <Stat>η²<sub>ASR</sub> = {h.kruskal_session_asr.eta2.toFixed(3)}</Stat>) by an order of magnitude.
-              Under bias injection, compliance follows free-choice selection
-              (<Stat>ρ = +{h.compliance_sel.rho.toFixed(3)}</Stat>,{" "}
-              <Stat>{formatP(h.compliance_sel.p)}</Stat>), <em>not</em> per-family capability
-              (<Stat>ρ = {h.compliance_asri.rho.toFixed(3)}</Stat>, n.s.) — preferences
-              carry over even when overridden, a phenomenon we term{" "}
-              <strong className="text-foreground">bias momentum</strong>. Per-family ASR itself transfers
-              cleanly across settings (<Stat>ρ = +{h.asr_transfer.rho.toFixed(3)}</Stat>,{" "}
-              <Stat>{formatP(h.asr_transfer.p)}</Stat>), confirming that the bias lives in
-              allocation, not capability.
+              {t(
+                <>
+                  Across five frontier agents, three target environments, and 630
+                  total sessions, attack-selection bias is{" "}
+                  <strong className="text-foreground">stable, agent-specific, and prompt-invariant</strong>:
+                  behavioral heterogeneity (
+                  <Stat>η²<sub>H(X)</sub> = {h.kruskal_H.eta2.toFixed(3)}</Stat>,{" "}
+                  <Stat>{formatP(h.kruskal_H.p)}</Stat>) outpaces outcome heterogeneity (
+                  <Stat>η²<sub>ASR</sub> = {h.kruskal_session_asr.eta2.toFixed(3)}</Stat>) by an order of magnitude.
+                  Under bias injection, compliance follows free-choice selection
+                  (<Stat>ρ = +{h.compliance_sel.rho.toFixed(3)}</Stat>,{" "}
+                  <Stat>{formatP(h.compliance_sel.p)}</Stat>), <em>not</em> per-family capability
+                  (<Stat>ρ = {h.compliance_asri.rho.toFixed(3)}</Stat>, n.s.) — preferences
+                  carry over even when overridden, a phenomenon we term{" "}
+                  <strong className="text-foreground">bias momentum</strong>. Per-family ASR itself transfers
+                  cleanly across settings (<Stat>ρ = +{h.asr_transfer.rho.toFixed(3)}</Stat>,{" "}
+                  <Stat>{formatP(h.asr_transfer.p)}</Stat>), confirming that the bias lives in
+                  allocation, not capability.
+                </>,
+                <>
+                  프런티어 에이전트 5종, 표적 환경 3종, 총 630회 세션에 걸쳐 공격 선택 편향은{" "}
+                  <strong className="text-foreground">안정적이고, 에이전트마다 고유하며, 프롬프트에 둔감함</strong>.
+                  행동의 이질성(
+                  <Stat>η²<sub>H(X)</sub> = {h.kruskal_H.eta2.toFixed(3)}</Stat>,{" "}
+                  <Stat>{formatP(h.kruskal_H.p)}</Stat>)이 결과의 이질성(
+                  <Stat>η²<sub>ASR</sub> = {h.kruskal_session_asr.eta2.toFixed(3)}</Stat>)을 한 자릿수 차이로 앞섬.
+                  편향 주입 하에서 순응도는 자유 선택 시의 선택
+                  (<Stat>ρ = +{h.compliance_sel.rho.toFixed(3)}</Stat>,{" "}
+                  <Stat>{formatP(h.compliance_sel.p)}</Stat>)을 따르고, 계열별 실력
+                  (<Stat>ρ = {h.compliance_asri.rho.toFixed(3)}</Stat>, 유의하지 않음)은 <em>따르지 않음</em>.
+                  지시로 덮어써도 선호가 그대로 남는 이 현상을{" "}
+                  <strong className="text-foreground">편향 관성</strong>이라 부름. 계열별 ASR 자체는
+                  설정이 달라져도 깔끔하게 전이되므로(<Stat>ρ = +{h.asr_transfer.rho.toFixed(3)}</Stat>,{" "}
+                  <Stat>{formatP(h.asr_transfer.p)}</Stat>), 편향은 실력이 아니라 배분에 있음이 확인됨.
+                </>
+              )}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-border">
               <Takeaway
-                tag="What stays"
-                body="Per-family capability transfers; what an agent does well, it keeps doing well across regimes."
+                tag={t("What stays", "유지되는 것")}
+                body={t(
+                  "Per-family capability transfers; what an agent does well, it keeps doing well across regimes.",
+                  "계열별 실력은 전이됨. 잘하던 계열은 설정이 바뀌어도 계속 잘함."
+                )}
               />
               <Takeaway
-                tag="What doesn't"
-                body="Allocation does not adapt to capability — agents keep routing attempts to families they already prefer, regardless of outcome."
+                tag={t("What doesn't", "유지되지 않는 것")}
+                body={t(
+                  "Allocation does not adapt to capability — agents keep routing attempts to families they already prefer, regardless of outcome.",
+                  "배분은 실력에 맞춰 조정되지 않음. 결과와 무관하게 원래 선호하던 계열로 계속 시도를 보냄."
+                )}
               />
               <Takeaway
-                tag="What that means for evaluation"
-                body="Outcome-only benchmarks compress distinct strategies into one number. Allocation, attack performance, and bias momentum must be measured as separable axes."
+                tag={t("What that means for evaluation", "평가에 주는 함의")}
+                body={t(
+                  "Outcome-only benchmarks compress distinct strategies into one number. Allocation, attack performance, and bias momentum must be measured as separable axes.",
+                  "결과만 보는 벤치마크는 서로 다른 전략을 하나의 숫자로 뭉갬. 배분, 공격 성능, 편향 관성은 분리된 축으로 측정해야 함."
+                )}
               />
             </div>
           </div>
@@ -269,7 +332,10 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
 
       <div className="max-w-[1500px] mx-auto px-4 sm:px-6">
         <BridgeText>
-          Forcing redistributes actions but not preferences. Bias persists as momentum.
+          {t(
+            "Forcing redistributes actions but not preferences. Bias persists as momentum.",
+            "강제 지시는 행동만 재배분할 뿐 선호는 바꾸지 못함. 편향은 관성으로 남음."
+          )}
         </BridgeText>
       </div>
     </div>
@@ -310,6 +376,7 @@ type ObsInjBar = {
 };
 
 function ObsInjBars({ bars }: { bars: ObsInjBar[] }) {
+  const t = useT();
   const colors = useChartColors();
   const isMobile = useIsMobile();
   return (
@@ -327,7 +394,7 @@ function ObsInjBars({ bars }: { bars: ObsInjBar[] }) {
             tickFormatter={(v) => `${Number(v).toFixed(0)}%`}
             domain={[0, "dataMax+5"]}
             label={{
-              value: "Session ASR (%)",
+              value: t("Session ASR (%)", "세션 ASR (%)"),
               angle: -90,
               position: "insideLeft",
               style: { fontSize: 12, fill: colors.tick },
@@ -357,32 +424,32 @@ function ObsInjBars({ bars }: { bars: ObsInjBar[] }) {
                 >
                   <div className="font-semibold">{row.label}</div>
                   <div className="font-mono tabular-nums">
-                    obs ASR: {row.obs.toFixed(2)}%
+                    {t("obs ASR", "관찰 ASR")}: {row.obs.toFixed(2)}%
                   </div>
                   <div className="font-mono tabular-nums">
-                    inj ASR: {row.inj.toFixed(2)}%
+                    {t("inj ASR", "주입 ASR")}: {row.inj.toFixed(2)}%
                   </div>
                   <div className="font-mono tabular-nums">
                     ΔASR: {row.delta >= 0 ? "+" : ""}
                     {row.delta.toFixed(2)} pp
                   </div>
                   <div className="font-mono tabular-nums">
-                    compliance: {row.compliance.toFixed(1)}%
+                    {t("compliance", "순응도")}: {row.compliance.toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums text-muted-foreground">
-                    Injection sessions: {row.sessions}
+                    {t("Injection sessions", "주입 세션 수")}: {row.sessions}
                   </div>
                 </div>
               );
             }}
           />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Bar dataKey="obs" name="Observation ASR" radius={[4, 4, 0, 0]} fill="#94a3b8">
+          <Bar dataKey="obs" name={t("Observation ASR", "관찰 ASR")} radius={[4, 4, 0, 0]} fill="#94a3b8">
             {bars.map((b) => (
               <Cell key={`obs-${b.agent}`} fill={b.color} fillOpacity={0.45} />
             ))}
           </Bar>
-          <Bar dataKey="inj" name="Injection ASR" radius={[4, 4, 0, 0]} fill="#0f172a">
+          <Bar dataKey="inj" name={t("Injection ASR", "주입 ASR")} radius={[4, 4, 0, 0]} fill="#0f172a">
             {bars.map((b) => (
               <Cell key={`inj-${b.agent}`} fill={b.color} fillOpacity={0.95} />
             ))}
@@ -398,6 +465,7 @@ function DeltaAsrBars({
 }: {
   bars: { agent: string; label: string; delta: number; color: string }[];
 }) {
+  const t = useT();
   const colors = useChartColors();
   return (
     <div className="rounded-lg border border-border bg-card p-4">
@@ -416,7 +484,7 @@ function DeltaAsrBars({
             tickFormatter={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}pp`}
             domain={[-20, 5]}
             label={{
-              value: "Δ session ASR (pp)",
+              value: t("Δ session ASR (pp)", "Δ 세션 ASR (pp)"),
               angle: -90,
               position: "insideLeft",
               style: { fontSize: 12, fill: colors.tick },
@@ -471,6 +539,7 @@ function CompliancePredictorsSection({
   rhoAsri: number;
   pAsri: number;
 }) {
+  const t = useT();
   const [selectedAgents, setSelectedAgents] = useState<Set<string>>(
     () => new Set(agents),
   );
@@ -514,17 +583,18 @@ function CompliancePredictorsSection({
     <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
       <div className="mb-4">
         <h3 className="text-xl font-semibold text-foreground">
-          Compliance predictors
+          {t("Compliance predictors", "순응도 예측 요인")}
         </h3>
         <p className="text-sm text-muted-foreground mt-1">
-          Each point is one (agent, family) cell under bias injection. Compliance follows
-          Selᵢ (free-choice preference) but is decoupled from ASRᵢ (free-choice capability).
-          Use the chips to filter agents and families.
+          {t(
+            "Each point is one (agent, family) cell under bias injection. Compliance follows Selᵢ (free-choice preference) but is decoupled from ASRᵢ (free-choice capability). Use the chips to filter agents and families.",
+            "각 점은 편향 주입 하의 (에이전트, 계열) 셀 하나임. 순응도는 Selᵢ(자유 선택 시 선호)를 따라가지만 ASRᵢ(자유 선택 시 실력)와는 분리되어 있음. 칩으로 에이전트와 계열을 걸러볼 수 있음."
+          )}
         </p>
       </div>
 
       <FilterChips
-        title="Agents"
+        title={t("Agents", "에이전트")}
         items={agents}
         labelMap={AGENT_LABELS}
         selected={selectedAgents}
@@ -532,7 +602,7 @@ function CompliancePredictorsSection({
         onAll={selectAllAgents}
       />
       <FilterChips
-        title="Families"
+        title={t("Families", "계열")}
         items={families}
         labelMap={FAMILY_LABELS}
         selected={selectedFamilies}
@@ -548,7 +618,10 @@ function CompliancePredictorsSection({
             onChange={(e) => setShowRegression(e.target.checked)}
             className="accent-foreground"
           />
-          Show regression line (linear fit on filtered points)
+          {t(
+            "Show regression line (linear fit on filtered points)",
+            "회귀선 표시 (필터링된 점에 대한 선형 적합)"
+          )}
         </label>
         <span className="text-xs font-mono text-muted-foreground tabular-nums">
           n = {filtered.length} / {predictors.length}
@@ -557,9 +630,9 @@ function CompliancePredictorsSection({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PredictorPanel
-          title="Selᵢ (observation) vs Compliance"
+          title={t("Selᵢ (observation) vs Compliance", "Selᵢ (관찰) vs 순응도")}
           xKey="sel_i"
-          xLabel="Selection rate Selᵢ"
+          xLabel={t("Selection rate Selᵢ", "선택률 Selᵢ")}
           data={filtered}
           rho={rhoSel}
           pValue={pSel}
@@ -567,9 +640,9 @@ function CompliancePredictorsSection({
           showRegression={showRegression}
         />
         <PredictorPanel
-          title="ASRᵢ (observation) vs Compliance"
+          title={t("ASRᵢ (observation) vs Compliance", "ASRᵢ (관찰) vs 순응도")}
           xKey="asr_i"
-          xLabel="Per-family ASRᵢ"
+          xLabel={t("Per-family ASRᵢ", "계열별 ASRᵢ")}
           data={filtered}
           rho={rhoAsri}
           pValue={pAsri}
@@ -596,6 +669,7 @@ function FilterChips({
   onToggle: (k: string) => void;
   onAll: () => void;
 }) {
+  const t = useT();
   return (
     <div className="flex flex-col items-start gap-1.5 mb-2 sm:flex-row sm:items-center sm:gap-2 sm:flex-wrap">
       <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground sm:w-20">
@@ -625,7 +699,7 @@ function FilterChips({
           onClick={onAll}
           className="text-[11px] px-2 py-1 rounded-full border border-border text-muted-foreground hover:bg-muted/50"
         >
-          Reset
+          {t("Reset", "초기화")}
         </button>
       </div>
     </div>
@@ -665,6 +739,7 @@ function PredictorPanel({
   xFormat: (v: number) => string;
   showRegression: boolean;
 }) {
+  const t = useT();
   const colors = useChartColors();
   const agentColors = useAgentColors();
   const isMobile = useIsMobile();
@@ -729,7 +804,7 @@ function PredictorPanel({
             tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
             tick={{ fontSize: 12, fill: colors.tick }}
             label={{
-              value: "Compliance (injection)",
+              value: t("Compliance (injection)", "순응도 (주입)"),
               angle: -90,
               position: "insideLeft",
               style: { fontSize: 12, fill: colors.tick },
@@ -768,13 +843,13 @@ function PredictorPanel({
                     Selᵢ: {(row.sel_i * 100).toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums">
-                    ASRᵢ (obs): {(row.asr_i * 100).toFixed(1)}%
+                    {t("ASRᵢ (obs)", "ASRᵢ (관찰)")}: {(row.asr_i * 100).toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums">
-                    target ASR (inj): {(row.asr_i_s2 * 100).toFixed(1)}%
+                    {t("target ASR (inj)", "목표 ASR (주입)")}: {(row.asr_i_s2 * 100).toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums">
-                    compliance: {(row.compliance * 100).toFixed(1)}%
+                    {t("compliance", "순응도")}: {(row.compliance * 100).toFixed(1)}%
                   </div>
                 </div>
               );
@@ -813,33 +888,59 @@ function PredictorPanel({
 }
 
 function GeminiExceptionCallout() {
+  const t = useT();
   return (
     <div className="rounded-lg border border-blue-500/40 bg-blue-500/5 p-5 space-y-3 self-start">
       <div className="flex items-baseline gap-2">
         <span className="text-[11px] font-mono uppercase tracking-widest text-blue-400">
-          Gemini exception
+          {t("Gemini exception", "Gemini 예외")}
         </span>
       </div>
       <p className="text-sm text-foreground font-semibold leading-snug">
-        Cross-setting transfer is significant for 4 of 5 agents — Gemini is the lone outlier.
+        {t(
+          "Cross-setting transfer is significant for 4 of 5 agents — Gemini is the lone outlier.",
+          "설정 간 전이는 5개 중 4개 에이전트에서 유의함. Gemini만 예외임."
+        )}
       </p>
       <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
-        <p>
-          Aggregate: <span className="font-mono text-foreground">ρ = +0.696</span>{" "}
-          <span className="font-mono">(p = 1.96×10⁻⁸, n = 50)</span>.{" "}
-          Per-agent (n=10):
-        </p>
-        <ul className="space-y-1 font-mono">
-          <li>· Claude / Codex / GLM / Kimi: significant at p &lt; 0.05</li>
-          <li>· Gemini: <span className="text-foreground">ρ = +0.122, n.s.</span></li>
-        </ul>
-        <p className="pt-2 border-t border-border/60">
-          Yet within Gemini, compliance correlates with target-restricted ASR
-          (<span className="font-mono text-foreground">ρ = +0.696, p = 0.025</span>).
-          Its highly concentrated free-choice profile means steering happens to
-          align with where it's already capable — preference and ability are
-          partially fused only for the most peaked allocator.
-        </p>
+        {t(
+          <>
+            <p>
+              Aggregate: <span className="font-mono text-foreground">ρ = +0.696</span>{" "}
+              <span className="font-mono">(p = 1.96×10⁻⁸, n = 50)</span>.{" "}
+              Per-agent (n=10):
+            </p>
+            <ul className="space-y-1 font-mono">
+              <li>· Claude / Codex / GLM / Kimi: significant at p &lt; 0.05</li>
+              <li>· Gemini: <span className="text-foreground">ρ = +0.122, n.s.</span></li>
+            </ul>
+            <p className="pt-2 border-t border-border/60">
+              Yet within Gemini, compliance correlates with target-restricted ASR
+              (<span className="font-mono text-foreground">ρ = +0.696, p = 0.025</span>).
+              Its highly concentrated free-choice profile means steering happens to
+              align with where it&apos;s already capable — preference and ability are
+              partially fused only for the most peaked allocator.
+            </p>
+          </>,
+          <>
+            <p>
+              전체: <span className="font-mono text-foreground">ρ = +0.696</span>{" "}
+              <span className="font-mono">(p = 1.96×10⁻⁸, n = 50)</span>.{" "}
+              에이전트별 (n=10):
+            </p>
+            <ul className="space-y-1 font-mono">
+              <li>· Claude / Codex / GLM / Kimi: p &lt; 0.05에서 유의</li>
+              <li>· Gemini: <span className="text-foreground">ρ = +0.122, 유의하지 않음</span></li>
+            </ul>
+            <p className="pt-2 border-t border-border/60">
+              다만 Gemini 내부에서는 순응도가 목표 한정 ASR과 상관을 보임
+              (<span className="font-mono text-foreground">ρ = +0.696, p = 0.025</span>).
+              자유 선택 프로파일이 워낙 한쪽에 쏠려 있어서, 지시받은 방향이 이미
+              잘하는 영역과 우연히 겹치는 것임. 가장 뾰족한 배분을 하는 에이전트에서만
+              선호와 실력이 부분적으로 붙어 있음.
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
@@ -854,6 +955,7 @@ function AsrTransferPanel({
   rho: number;
   pValue: number;
 }) {
+  const t = useT();
   const colors = useChartColors();
   const agentColors = useAgentColors();
   const isMobile = useIsMobile();
@@ -868,7 +970,7 @@ function AsrTransferPanel({
     <div className="rounded-lg border border-border bg-card p-3 sm:p-4">
       <div className="flex items-start justify-between mb-2 gap-2 flex-wrap">
         <p className="text-sm font-semibold text-foreground">
-          Per-family ASR transfer (observation → injection)
+          {t("Per-family ASR transfer (observation → injection)", "계열별 ASR 전이 (관찰 → 주입)")}
         </p>
         <span className="text-xs font-mono tabular-nums text-foreground">
           ρ = +{rho.toFixed(3)} · p = {formatP(pValue)}
@@ -884,7 +986,7 @@ function AsrTransferPanel({
             tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
             tick={{ fontSize: 12, fill: colors.tick }}
             label={{
-              value: "Observation per-family ASRᵢ",
+              value: t("Observation per-family ASRᵢ", "관찰 계열별 ASRᵢ"),
               position: "insideBottom",
               offset: -15,
               style: { fontSize: 12, fill: colors.tick },
@@ -897,7 +999,7 @@ function AsrTransferPanel({
             tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
             tick={{ fontSize: 12, fill: colors.tick }}
             label={{
-              value: "Injection per-family ASRᵢ (forced)",
+              value: t("Injection per-family ASRᵢ (forced)", "주입 계열별 ASRᵢ (강제)"),
               angle: -90,
               position: "insideLeft",
               style: { fontSize: 12, fill: colors.tick },
@@ -940,16 +1042,16 @@ function AsrTransferPanel({
                     {FAMILY_LABELS[row.family] ?? row.family}
                   </div>
                   <div className="font-mono tabular-nums">
-                    Obs ASRᵢ: {(row.asr_i * 100).toFixed(1)}%
+                    {t("Obs ASRᵢ", "관찰 ASRᵢ")}: {(row.asr_i * 100).toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums">
-                    Inj ASRᵢ: {(row.asr_i_s2 * 100).toFixed(1)}%
+                    {t("Inj ASRᵢ", "주입 ASRᵢ")}: {(row.asr_i_s2 * 100).toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums">
                     Selᵢ: {(row.sel_i * 100).toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums">
-                    compliance: {(row.compliance * 100).toFixed(1)}%
+                    {t("compliance", "순응도")}: {(row.compliance * 100).toFixed(1)}%
                   </div>
                 </div>
               );
@@ -992,31 +1094,32 @@ function CorrelationTableToggle({
 }: {
   h: PaperSummary["headline_stats"];
 }) {
+  const t = useT();
   // Compliance → session ASR is reported in the paper Table but is not exposed
   // in headline_stats; values are taken from the published Table.
   const COMPLIANCE_SESSION_ASR = { rho: -0.082, p: 0.573, n: 50 };
 
   const rows: { label: string; rho: number; p: number; n: number }[] = [
     {
-      label: "Sel → compliance",
+      label: t("Sel → compliance", "Sel → 순응도"),
       rho: h.compliance_sel.rho,
       p: h.compliance_sel.p,
       n: h.compliance_sel.n,
     },
     {
-      label: "ASRᵢ → compliance",
+      label: t("ASRᵢ → compliance", "ASRᵢ → 순응도"),
       rho: h.compliance_asri.rho,
       p: h.compliance_asri.p,
       n: h.compliance_asri.n,
     },
     {
-      label: "ASRᵢ → target ASR",
+      label: t("ASRᵢ → target ASR", "ASRᵢ → 목표 ASR"),
       rho: h.asr_transfer.rho,
       p: h.asr_transfer.p,
       n: h.asr_transfer.n,
     },
     {
-      label: "Compliance → session ASR",
+      label: t("Compliance → session ASR", "순응도 → 세션 ASR"),
       rho: COMPLIANCE_SESSION_ASR.rho,
       p: COMPLIANCE_SESSION_ASR.p,
       n: COMPLIANCE_SESSION_ASR.n,
@@ -1027,17 +1130,20 @@ function CorrelationTableToggle({
     <div className="rounded-lg border border-border bg-card p-4">
       <div>
         <h3 className="text-base font-semibold text-foreground">
-          Bias-injection correlations
+          {t("Bias-injection correlations", "편향 주입 상관관계")}
         </h3>
         <p className="text-xs text-muted-foreground mt-1">
-          Spearman ρ across the 50 (agent × family) cells under bias injection.
+          {t(
+            "Spearman ρ across the 50 (agent × family) cells under bias injection.",
+            "편향 주입 하의 50개 (에이전트 × 계열) 셀에 대한 Spearman ρ임."
+          )}
         </p>
       </div>
       <div className="mt-4 hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-foreground">Relationship</TableHead>
+              <TableHead className="text-foreground">{t("Relationship", "관계")}</TableHead>
               <TableHead className="text-foreground text-right">ρ</TableHead>
               <TableHead className="text-foreground text-right">p</TableHead>
               <TableHead className="text-foreground text-right">n</TableHead>
@@ -1096,6 +1202,7 @@ function CorrelationTableToggle({
 // ---- Per-agent summary table ----
 
 function PerAgentSummaryTable({ rows }: { rows: ObsInjBar[] }) {
+  const t = useT();
   const sorted = [...rows].sort((a, b) => a.delta - b.delta);
   return (
     <div className="rounded-lg border border-border bg-card p-3 sm:p-4">
@@ -1104,12 +1211,12 @@ function PerAgentSummaryTable({ rows }: { rows: ObsInjBar[] }) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-foreground">Agent</TableHead>
-              <TableHead className="text-foreground text-right">obs ASR</TableHead>
-              <TableHead className="text-foreground text-right">inj ASR</TableHead>
+              <TableHead className="text-foreground">{t("Agent", "에이전트")}</TableHead>
+              <TableHead className="text-foreground text-right">{t("obs ASR", "관찰 ASR")}</TableHead>
+              <TableHead className="text-foreground text-right">{t("inj ASR", "주입 ASR")}</TableHead>
               <TableHead className="text-foreground text-right">ΔASR</TableHead>
-              <TableHead className="text-foreground text-right">compliance</TableHead>
-              <TableHead className="text-foreground text-right">sessions</TableHead>
+              <TableHead className="text-foreground text-right">{t("compliance", "순응도")}</TableHead>
+              <TableHead className="text-foreground text-right">{t("sessions", "세션 수")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1160,17 +1267,17 @@ function PerAgentSummaryTable({ rows }: { rows: ObsInjBar[] }) {
               />
               <span className="text-sm font-medium text-foreground">{r.label}</span>
               <span className="ml-auto text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                {r.sessions} sessions
+                {t(`${r.sessions} sessions`, `세션 ${r.sessions}회`)}
               </span>
             </div>
             <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs font-mono tabular-nums">
-              <PerAgentStat label="obs ASR" value={`${r.obs.toFixed(2)}%`} />
-              <PerAgentStat label="inj ASR" value={`${r.inj.toFixed(2)}%`} />
+              <PerAgentStat label={t("obs ASR", "관찰 ASR")} value={`${r.obs.toFixed(2)}%`} />
+              <PerAgentStat label={t("inj ASR", "주입 ASR")} value={`${r.inj.toFixed(2)}%`} />
               <PerAgentStat
                 label="ΔASR"
                 value={`${r.delta >= 0 ? "+" : ""}${r.delta.toFixed(2)} pp`}
               />
-              <PerAgentStat label="compliance" value={`${r.compliance.toFixed(1)}%`} />
+              <PerAgentStat label={t("compliance", "순응도")} value={`${r.compliance.toFixed(1)}%`} />
             </div>
           </div>
         ))}

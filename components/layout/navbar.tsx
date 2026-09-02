@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { REPO } from "@/lib/config";
+import { useLang, useT } from "@/lib/i18n";
 
 // Inline literal so the bundler can dead-code-eliminate the
 // "Anonymous review build" branch on the GitHub Pages build.
@@ -13,34 +14,38 @@ const IS_ANON_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 interface SubItem {
   id: string;
   label: string;
+  labelKo: string;
 }
 interface NavItem {
   id: string;
   label: string;
+  labelKo: string;
   sub?: SubItem[];
 }
 
 const NAV: NavItem[] = [
-  { id: "overview", label: "Overview" },
+  { id: "overview", label: "Overview", labelKo: "개요" },
   {
     id: "methodology",
     label: "Methodology",
+    labelKo: "방법론",
     sub: [
-      { id: "m-design", label: "Design" },
-      { id: "m-infra", label: "Infrastructure" },
-      { id: "m-prompts", label: "Prompts" },
-      { id: "m-classify", label: "Classification" },
-      { id: "m-metrics", label: "Metrics" },
+      { id: "m-design", label: "Design", labelKo: "실험 설계" },
+      { id: "m-infra", label: "Infrastructure", labelKo: "인프라" },
+      { id: "m-prompts", label: "Prompts", labelKo: "프롬프트" },
+      { id: "m-classify", label: "Classification", labelKo: "분류" },
+      { id: "m-metrics", label: "Metrics", labelKo: "지표" },
     ],
   },
   {
     id: "findings",
     label: "Findings",
+    labelKo: "주요 결과",
     sub: [
-      { id: "findings-layer1", label: "Bias Observation" },
-      { id: "findings-layer2", label: "Selection ≠ Performance" },
-      { id: "findings-layer3", label: "Bias Injection" },
-      { id: "findings-synthesis", label: "Synthesis" },
+      { id: "findings-layer1", label: "Bias Observation", labelKo: "편향 관찰" },
+      { id: "findings-layer2", label: "Selection ≠ Performance", labelKo: "선택 ≠ 성능" },
+      { id: "findings-layer3", label: "Bias Injection", labelKo: "편향 주입" },
+      { id: "findings-synthesis", label: "Synthesis", labelKo: "종합" },
     ],
   },
 ];
@@ -49,6 +54,34 @@ const ALL_TRACKED_IDS: string[] = NAV.flatMap((s) => [
   s.id,
   ...(s.sub?.map((x) => x.id) ?? []),
 ]);
+
+function LangToggle() {
+  const { lang, setLang } = useLang();
+  return (
+    <div
+      className="ml-2 inline-flex items-center rounded-md border border-border overflow-hidden"
+      role="group"
+      aria-label="Language / 언어"
+    >
+      {(["en", "ko"] as const).map((code) => (
+        <button
+          key={code}
+          type="button"
+          onClick={() => setLang(code)}
+          aria-pressed={lang === code}
+          className={cn(
+            "px-2 py-1 text-[11px] font-mono uppercase tracking-wide transition-colors cursor-pointer",
+            lang === code
+              ? "text-foreground bg-foreground/[0.07]"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          )}
+        >
+          {code === "en" ? "EN" : "한"}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function ThemeToggle() {
   const [theme, setTheme] = useState<"dark" | "light">("light");
@@ -62,6 +95,8 @@ function ThemeToggle() {
       );
   }, []);
 
+  const t = useT();
+
   const toggle = useCallback(() => {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
@@ -73,7 +108,7 @@ function ThemeToggle() {
     <button
       onClick={toggle}
       className="ml-2 p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-      aria-label="Toggle theme"
+      aria-label={t("Toggle theme", "테마 전환")}
     >
       {theme === "dark" ? (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -109,6 +144,7 @@ function NavDropdown({
   onClickMain: (id: string) => void;
   onClickSub: (id: string) => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -161,13 +197,13 @@ function NavDropdown({
         className={cn(
           "px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer inline-flex items-center gap-1",
           parentActive
-            ? "text-foreground bg-muted"
+            ? "text-foreground bg-foreground/[0.07]"
             : "text-muted-foreground hover:text-foreground hover:bg-muted"
         )}
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        {item.label}
+        {t(item.label, item.labelKo)}
         <svg
           width="10"
           height="10"
@@ -207,13 +243,13 @@ function NavDropdown({
                   className={cn(
                     "w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer",
                     isActive
-                      ? "text-foreground bg-muted font-medium"
+                      ? "text-foreground bg-foreground/[0.07] font-medium"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   )}
                   role="menuitem"
                   aria-current={isActive ? "true" : undefined}
                 >
-                  {s.label}
+                  {t(s.label, s.labelKo)}
                 </button>
               );
             })}
@@ -231,6 +267,7 @@ function MobileMenu({
   active: string;
   onNavigate: (id: string) => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -264,7 +301,7 @@ function MobileMenu({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="md:hidden ml-1 p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-        aria-label={open ? "Close menu" : "Open menu"}
+        aria-label={open ? t("Close menu", "메뉴 닫기") : t("Open menu", "메뉴 열기")}
         aria-expanded={open}
       >
         {open ? <X size={18} /> : <Menu size={18} />}
@@ -296,11 +333,11 @@ function MobileMenu({
                         className={cn(
                           "w-full text-left px-3 py-2.5 rounded-md text-base font-medium transition-colors cursor-pointer",
                           parentActive
-                            ? "text-foreground bg-muted"
+                            ? "text-foreground bg-foreground/[0.07]"
                             : "text-foreground hover:bg-muted",
                         )}
                       >
-                        {item.label}
+                        {t(item.label, item.labelKo)}
                       </button>
                       {item.sub && (
                         <div className="mt-1 ml-3 border-l border-border pl-2 flex flex-col">
@@ -314,11 +351,11 @@ function MobileMenu({
                                 className={cn(
                                   "w-full text-left px-3 py-2 rounded-md text-sm transition-colors cursor-pointer",
                                   isActive
-                                    ? "text-foreground bg-muted font-medium"
+                                    ? "text-foreground bg-foreground/[0.07] font-medium"
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted",
                                 )}
                               >
-                                {s.label}
+                                {t(s.label, s.labelKo)}
                               </button>
                             );
                           })}
@@ -332,7 +369,7 @@ function MobileMenu({
                   {IS_ANON_INLINE ? (
                     <span
                       className="block w-full px-3 py-2.5 text-base text-muted-foreground/50 rounded-md cursor-not-allowed"
-                      title="Anonymous review build"
+                      title={t("Anonymous review build", "익명 심사용 배포본")}
                     >
                       {REPO.label}
                     </span>
@@ -360,6 +397,7 @@ function MobileMenu({
 export function Navbar() {
   // Track every section + subsection separately so the active state can
   // reflect the deepest visible region (e.g. findings-layer2).
+  const t = useT();
   const [active, setActive] = useState<string>("overview");
 
   useEffect(() => {
@@ -467,18 +505,18 @@ export function Navbar() {
                 className={cn(
                   "hidden md:inline-flex px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer",
                   active === item.id
-                    ? "text-foreground bg-muted"
+                    ? "text-foreground bg-foreground/[0.07]"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
               >
-                {item.label}
+                {t(item.label, item.labelKo)}
               </button>
             )
           )}
           {IS_ANON_INLINE ? (
             <span
               className="hidden md:inline-flex ml-2 px-3 py-1.5 text-sm text-muted-foreground/50 rounded-md cursor-not-allowed"
-              title="Anonymous review build"
+              title={t("Anonymous review build", "익명 심사용 배포본")}
             >
               {REPO.label}
             </span>
@@ -492,6 +530,7 @@ export function Navbar() {
               {REPO.label}
             </a>
           )}
+          <LangToggle />
           <ThemeToggle />
           <MobileMenu active={active} onNavigate={scrollTo} />
         </div>

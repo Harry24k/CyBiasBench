@@ -78,11 +78,16 @@
   --popover-foreground: #18181b;
   --primary: #18181b;
   --primary-foreground: #fafafa;
-  --secondary: #f4f4f5;
+  /* Elevated surfaces — tables, figure frames, buttons, chips — are pure
+     white in light mode so every component reads as one white plane above
+     the #fafafa page. Interaction feedback is restored by the
+     `.light [class*="hover:bg-..."]` rules further down, which would
+     otherwise be invisible once these tokens go white. */
+  --secondary: #ffffff;
   --secondary-foreground: #27272a;
-  --muted: #e8e8ec;
+  --muted: #ffffff;
   --muted-foreground: #71717a;
-  --accent: #f4f4f5;
+  --accent: #ffffff;
   --accent-foreground: #18181b;
   --destructive: #dc2626;
   --border: #e4e4e7;
@@ -187,6 +192,35 @@
   background: rgba(24, 24, 27, 0.15);
   color: var(--foreground);
 }
+
+/* Opaque zebra band for dense tables. Declared explicitly rather than via
+   --muted because that token is white in light mode, which would erase row
+   banding; the band must stay opaque so a sticky first column hides the
+   cells scrolling underneath it. */
+.surface-band { background-color: #f7f7f8; }
+html:not(.light) .surface-band { background-color: #1a1a1e; }
+
+/* Light-mode interaction feedback.
+   --muted / --accent are white in light mode, so `hover:bg-muted`,
+   `hover:bg-muted/40`, `data-[state=selected]:bg-muted` and friends would
+   paint white-on-white. The attribute selectors match every opacity variant
+   of those utilities at once and restore a faint tint, keeping rows,
+   buttons and tabs responsive without reintroducing a grey resting state. */
+.light [class*="hover:bg-muted"]:hover,
+.light [class*="hover:bg-accent"]:hover,
+.light [class*="hover:bg-secondary"]:hover {
+  background-color: #f1f1f4 !important;
+}
+.light [data-state="selected"] {
+  background-color: #f1f1f4 !important;
+}
+
+/* Tabs: --muted is white in light mode, which would flip the control inside
+   out (white track, grey active pill). Tint the track instead and keep the
+   active tab white, so the tab itself reads as the same white surface as
+   every other component. */
+.light [data-slot="tabs-list"] { background-color: #f1f1f4; }
+.light [data-slot="tabs-trigger"][data-state="active"] { background-color: #ffffff; }
 
 /* Light mode specific overrides */
 .agent-icon-circle {
