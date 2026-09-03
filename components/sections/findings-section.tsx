@@ -39,7 +39,7 @@ export function FindingsSection({ data }: { data: PaperSummary }) {
       label: t("Attack-selection bias is agent-specific", "공격 선택 편향은 에이전트마다 고유함"),
       desc: t(
         `Each agent has a distinct allocation profile across the 10 attack families that persists across all four prompt conditions (Kruskal–Wallis on H(X), p = ${formatP(h.kruskal_H.p)}). A random forest identifies the producing agent at ${((h.rf_accuracy ?? 0.65) * 100).toFixed(0)}% accuracy from the selection vector alone.`,
-        `에이전트마다 10개 공격 계열에 대한 배분 프로파일이 다르며, 네 가지 프롬프트 조건 전체에서 그 차이가 유지됨 (H(X)에 대한 Kruskal–Wallis, p = ${formatP(h.kruskal_H.p)}). 랜덤 포레스트는 선택 벡터만으로 어느 에이전트인지를 ${((h.rf_accuracy ?? 0.65) * 100).toFixed(0)}% 정확도로 맞힘.`
+        `에이전트마다 10개 공격 계열에 대한 배분 프로파일이 다르며, 네 가지 프롬프트 조건 전체에서 그 차이가 그대로 유지됨 (H(X)에 대한 Kruskal–Wallis, p = ${formatP(h.kruskal_H.p)}). 랜덤 포레스트는 선택 벡터만 보고도 어느 에이전트인지를 ${((h.rf_accuracy ?? 0.65) * 100).toFixed(0)}% 정확도로 맞힘.`
       ),
       sample: t("180 free-choice sessions", "자유 선택 세션 180회"),
       tone: "bias" as const,
@@ -51,7 +51,7 @@ export function FindingsSection({ data }: { data: PaperSummary }) {
       label: t("Selection ≠ Performance", "선택 ≠ 성능"),
       desc: t(
         `What an agent picks does not track what works. Codex allocates 31.5% to info_disclosure but achieves only 22.1% ASRᵢ on it. Across-agent effect sizes confirm structural metrics (η²(H)=${h.kruskal_H.eta2.toFixed(2)}) separate agents far more strongly than session ASR (η²=${h.kruskal_session_asr.eta2.toFixed(2)}).`,
-        `에이전트가 고르는 것과 실제로 통하는 것은 따로 움직임. Codex는 info_disclosure에 31.5%를 배분하지만 그 계열의 ASRᵢ는 22.1%에 그침. 에이전트 간 효과크기를 보면 구조적 지표(η²(H)=${h.kruskal_H.eta2.toFixed(2)})가 세션 ASR(η²=${h.kruskal_session_asr.eta2.toFixed(2)})보다 훨씬 강하게 에이전트를 구분함.`
+        `에이전트가 고르는 것과 실제로 통하는 것은 따로 움직임. Codex는 info_disclosure에 31.5%를 쏟지만 그 계열 ASRᵢ는 22.1%에 그침. 에이전트 간 효과크기를 보면 구조적 지표(η²(H)=${h.kruskal_H.eta2.toFixed(2)})가 세션 ASR(η²=${h.kruskal_session_asr.eta2.toFixed(2)})보다 훨씬 강하게 에이전트를 구분함.`
       ),
       sample: t("structural ≫ outcome", "구조 지표 ≫ 결과 지표"),
       tone: "performance" as const,
@@ -85,7 +85,7 @@ export function FindingsSection({ data }: { data: PaperSummary }) {
                 tone="bias"
                 title={t("Bias Evaluation", "편향 평가")}
                 metrics="H(X) · Selᵢ"
-                question={t("How does the agent allocate effort?", "에이전트가 노력을 어떻게 배분하는가?")}
+                question={t("How does the agent allocate effort?", "에이전트가 어디에 힘을 쏟는가?")}
                 layer={t("Bias Observation", "편향 관찰")}
               />
               <AxisLegend
@@ -99,7 +99,7 @@ export function FindingsSection({ data }: { data: PaperSummary }) {
                 tone="efficiency"
                 title={t("Efficiency & Robustness", "효율성과 견고성")}
                 metrics="TPS · JSD"
-                question={t("At what cost, and how stably across prompts?", "어느 정도 비용으로, 프롬프트가 바뀌어도 얼마나 안정적인가?")}
+                question={t("At what cost, and how stably across prompts?", "비용은 얼마나 들고, 프롬프트가 바뀌어도 얼마나 안정적인가?")}
                 layer={t("Prompt-stability JSD · Tokens per Success", "프롬프트 안정성 JSD · 성공당 토큰")}
               />
               <AxisLegend
@@ -162,7 +162,7 @@ function SynthesisCard() {
       title: t("Strategy selection", "전략 선택"),
       metrics: "H(X) · Selᵢ",
       ref: t("Bias Observation", "편향 관찰"),
-      blurb: t("What an agent chooses to attack.", "에이전트가 무엇을 공격할지 고르는 부분임."),
+      blurb: t("What an agent chooses to attack.", "무엇을 공격할지 고르는 문제임."),
       detail: t(
         "Each agent's allocation profile across the 10 attack families is agent-specific and largely prompt-stable. Single-condition ASR underdescribes agent behavior because the structural attack-selection metrics separate agents an order of magnitude more strongly than session ASR (η²(H)=0.43 vs η²(ASR)=0.05).",
         "10개 공격 계열에 대한 배분 프로파일은 에이전트마다 고유하고 프롬프트가 바뀌어도 대체로 유지됨. 구조적 공격 선택 지표가 세션 ASR보다 한 자릿수 강하게 에이전트를 구분하므로(η²(H)=0.43 vs η²(ASR)=0.05), 단일 조건 ASR만으로는 행동을 제대로 설명할 수 없음."
@@ -174,10 +174,10 @@ function SynthesisCard() {
       title: t("Attack performance", "공격 성능"),
       metrics: "ASR · ASRᵢ",
       ref: t("Selection ≠ Performance", "선택 ≠ 성능"),
-      blurb: t("Whether those attacks actually succeed.", "그 공격이 실제로 성공하는지의 문제임."),
+      blurb: t("Whether those attacks actually succeed.", "그 공격이 실제로 통하는지의 문제임."),
       detail: t(
         "Per-family attack performance ASRᵢ is a stable property of each agent: it transfers cleanly from free-choice to bias-injection settings (ρ = +0.702, p = 1.38×10⁻⁸). Capability and selection vary independently — the agent that selects a family most often is rarely the one that succeeds on it most often.",
-        "계열별 공격 성능 ASRᵢ는 에이전트의 안정적인 특성임. 자유 선택 설정에서 편향 주입 설정으로 그대로 전이됨 (ρ = +0.702, p = 1.38×10⁻⁸). 실력과 선택은 따로 움직이며, 가장 자주 고르는 계열이 가장 잘하는 계열인 경우는 드뭈."
+        "계열별 공격 성능 ASRᵢ는 에이전트의 안정적인 특성임. 자유 선택 설정에서 편향 주입 설정으로 그대로 전이됨 (ρ = +0.702, p = 1.38×10⁻⁸). 실력과 선택은 따로 움직이며, 가장 자주 고르는 계열이 가장 잘하는 계열인 경우는 드묾."
       ),
     },
     {
@@ -186,7 +186,7 @@ function SynthesisCard() {
       title: t("Bias momentum", "편향 관성"),
       metrics: t("Compliance · ΔASR", "순응도 · ΔASR"),
       ref: t("Bias Injection", "편향 주입"),
-      blurb: t("How preferences resist explicit steering.", "선호가 명시적 지시에 얼마나 버티는지의 문제임."),
+      blurb: t("How preferences resist explicit steering.", "선호가 지시에 얼마나 버티는지의 문제임."),
       detail: t(
         "Under explicit family-level steering, compliance follows free-choice preference (ρ = +0.529) rather than per-family capability (ρ = −0.248, n.s.). All five agents show ΔASR ≤ 0; performance declines under steering reflect an allocation-level failure, not a capability gap.",
         "계열을 명시적으로 지시하면 순응도는 계열별 실력(ρ = −0.248, 유의하지 않음)이 아니라 자유 선택 시의 선호(ρ = +0.529)를 따름. 다섯 에이전트 모두 ΔASR ≤ 0이며, 지시 하에서의 성능 하락은 실력 부족이 아니라 배분 수준의 실패임."

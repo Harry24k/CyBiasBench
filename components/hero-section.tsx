@@ -40,9 +40,9 @@ export function HeroSection() {
             <strong className="text-foreground">drops</strong> attack success, not raises it.
           </>,
           <>
-            <strong className="text-foreground">같은 표적, 같은 과제인데도 에이전트마다 집어 드는 공격이 다름.</strong>{" "}
-            게다가 선호를 억지로 바꾸면 공격 성공률은 오르지 않고{" "}
-            <strong className="text-foreground">오히려 떨어짐</strong>.
+            <strong className="text-foreground">표적도 과제도 같은데, 에이전트마다 손이 가는 공격이 다름.</strong>{" "}
+            게다가 선호와 다른 쪽으로 몰아붙이면 공격 성공률은{" "}
+            <strong className="text-foreground">오르기는커녕 떨어짐</strong>.
           </>
         )}
       </p>
@@ -53,7 +53,7 @@ export function HeroSection() {
           src={`${BASE_PATH}/images/main.png`}
           alt={t(
             "Attack-family selection distributions differ sharply across the five evaluated agents",
-            "다섯 개 평가 대상 에이전트의 공격 계열 선택 분포가 뚜렷하게 다름"
+            "다섯 에이전트의 공격 계열 선택 분포가 서로 확연히 다름을 보여주는 그림"
           )}
           className="w-full h-auto"
         />

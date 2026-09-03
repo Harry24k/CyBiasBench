@@ -218,7 +218,7 @@ export function LeaderboardTable({ data }: Props) {
       </div>
 
       {/* Desktop: full sortable table */}
-      <div className="hidden md:block rounded-lg border border-border">
+      <div className="hidden md:block rounded-lg border border-border bg-card overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">

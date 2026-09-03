@@ -109,9 +109,9 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
             </>,
             <>
               특정 공격 계열을 명시적으로 지시하면 배분은 바뀌지만 선호 자체는 바뀌지 않음.
-              순응도는 에이전트가 원래 즐겨 고르던 것을 따라가고
+              순응도는 에이전트가 원래 즐겨 고르던 쪽을 따라가지
               (ρ = +{h.compliance_sel.rho.toFixed(3)}, p = {formatP(h.compliance_sel.p)}),
-              잘하는 것을 따라가지는 않음 (ρ = {h.compliance_asri.rho.toFixed(3)},
+              잘하는 쪽을 따라가지는 않음 (ρ = {h.compliance_asri.rho.toFixed(3)},
               p = {formatP(h.compliance_asri.p)}). 계열별 ASR은 설정이 달라져도 그대로 전이됨
               (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)}).
               실력은 안정적이고, 움직이는 것은 배분임. 이 비결합을{" "}
@@ -315,7 +315,7 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
                 tag={t("What doesn't", "유지되지 않는 것")}
                 body={t(
                   "Allocation does not adapt to capability — agents keep routing attempts to families they already prefer, regardless of outcome.",
-                  "배분은 실력에 맞춰 조정되지 않음. 결과와 무관하게 원래 선호하던 계열로 계속 시도를 보냄."
+                  "배분은 실력에 맞춰 조정되지 않음. 결과와 상관없이 원래 선호하던 계열로 계속 시도를 몰아감."
                 )}
               />
               <Takeaway
@@ -935,7 +935,7 @@ function GeminiExceptionCallout() {
             <p className="pt-2 border-t border-border/60">
               다만 Gemini 내부에서는 순응도가 목표 한정 ASR과 상관을 보임
               (<span className="font-mono text-foreground">ρ = +0.696, p = 0.025</span>).
-              자유 선택 프로파일이 워낙 한쪽에 쏠려 있어서, 지시받은 방향이 이미
+              자유 선택 프로파일이 워낙 한쪽에 쏠려 있다 보니, 지시받은 방향이 이미
               잘하는 영역과 우연히 겹치는 것임. 가장 뾰족한 배분을 하는 에이전트에서만
               선호와 실력이 부분적으로 붙어 있음.
             </p>

@@ -90,7 +90,7 @@ export default function TemporalAdaptationBar({ data }: Props) {
         <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
           {t(
             "Bars: probability of switching family after failure / success / repeated-failure share. Failure-induced switching is comparable to success-induced switching; agents do not pivot more aggressively after failure.",
-            "막대는 실패 후 전환 확률 / 성공 후 전환 확률 / 반복 실패 비중임. 실패로 인한 전환은 성공으로 인한 전환과 비슷한 수준이며, 실패했다고 해서 더 적극적으로 방향을 트지는 않음."
+            "막대는 실패 후 전환 확률 / 성공 후 전환 확률 / 반복 실패 비중임. 실패해서 계열을 바꾸는 비율은 성공했을 때와 비슷함. 실패했다고 더 과감하게 방향을 틀지는 않음."
           )}
         </p>
       </div>

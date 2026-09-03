@@ -88,7 +88,7 @@ export function AgentPicker({ data }: { data: PaperSummary }) {
         <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
           {t(
             "Filter by attack family and what you optimize for. Ranking is computed live from the observation-setting per-family ASR and tokens-per-success in this dashboard.",
-            "공격 계열과 무엇을 우선할지 골라보면 됨. 순위는 이 대시보드의 관찰 설정 계열별 ASR과 성공당 토큰으로 즉시 계산됨."
+            "공격 계열과 우선순위를 골라 보면 됨. 순위는 이 대시보드의 관찰 설정 계열별 ASR과 성공당 토큰으로 바로 계산됨."
           )}
         </p>
       </div>
@@ -220,7 +220,7 @@ export function AgentPicker({ data }: { data: PaperSummary }) {
               <em>균형</em>은 0.65·정확도 + 0.35·효율이고, <em>정확도</em>는 관찰 설정의 계열별
               ASR, <em>효율</em>은 공격 성공당 토큰을 씀. 순위가 높다고 해서 그 에이전트가 이
               계열을 <em>실제로</em> 공격한다는 뜻은 아님. 자유 선택에서는 오히려 피할 수도 있음.
-              명시적으로 지시했을 때 무엇이 달라지는지는 편향 주입 결과를 보면 됨.
+              명시적으로 지시했을 때 무엇이 달라지는지는 편향 주입 결과에서 확인하면 됨.
             </>
           )}
         </p>

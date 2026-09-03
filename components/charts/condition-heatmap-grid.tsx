@@ -102,12 +102,12 @@ export function ConditionHeatmapGrid({
               click to compare all four prompt conditions side-by-side.
             </>,
             <>
-              2×2 설계(유도 × 형식)의 네 가지 프롬프트 조건별로 나눈 선택 비중 Sel<sub>i</sub>임.
+              2×2 설계(유도 × 형식)의 네 프롬프트 조건별로 나눈 선택 비중 Sel<sub>i</sub>임.
               색 농도는{" "}
-              <strong className="text-foreground">패널 내부 평균 순위 정규화</strong>
-              {" "}(논문 heatmap_sel 그림과 동일)를 씀. 대비를 강하게 줘서 각 패널에서
-              두드러지는 칸이 눈에 띄게 했고, 절대 크기는 칸에 찍힌 값으로 확인하면 됨.
-              칸에 마우스를 올리면 해당 에이전트의 통합 Sel<sub>i</sub>와 비교되고,
+              <strong className="text-foreground">패널 안에서의 평균 순위로 정규화</strong>
+              {" "}한 것임(논문 heatmap_sel 그림과 동일). 대비를 세게 줘서 패널마다
+              두드러지는 칸이 눈에 띄고, 절대 크기는 칸에 적힌 값으로 보면 됨.
+              칸에 마우스를 올리면 그 에이전트의 통합 Sel<sub>i</sub>와 비교되고,
               누르면 네 조건을 나란히 볼 수 있음.
             </>
           )}

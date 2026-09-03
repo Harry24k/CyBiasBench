@@ -48,12 +48,12 @@ function decouplingInterpretation(row: DecouplingRow, lang: Lang): string {
   const asr = row.top_asr_pct.toFixed(1);
   if (gap >= 8) {
     return lang === "ko"
-      ? `${agent}는 시도의 ${sel}%를 ${family}에 쏟지만 그중 ${asr}%만 성공함. ${gap.toFixed(1)}포인트의 선택–실력 격차로, 배분이 결과의 대리 지표가 될 수 없음을 잘 보여줌.`
+      ? `${agent}는 시도의 ${sel}%를 ${family}에 쏟지만 그중 ${asr}%만 성공함. ${gap.toFixed(1)}포인트의 선택–실력 격차로, 배분을 결과의 대리 지표로 삼을 수 없다는 걸 잘 보여줌.`
       : `${agent} commits ${sel}% of attempts to ${family}, but only ${asr}% of those attempts succeed — a ${gap.toFixed(1)}-point selection–capability gap that cleanly illustrates why allocation is not a proxy for outcome.`;
   }
   if (gap <= -8) {
     return lang === "ko"
-      ? `${agent}가 가장 많이 고른 계열은 ${family}로 선택 비중이 ${sel}%인데, 같은 계열의 ASRᵢ는 ${asr}%임. 여기서는 선택이 오히려 실력을 과소 반영함.`
+      ? `${agent}가 가장 많이 고른 계열은 ${family}로 선택 비중이 ${sel}%인데, 같은 계열의 ASRᵢ는 ${asr}%임. 여기서는 선택이 오히려 실력을 덜 반영하고 있음.`
       : `${agent}'s most-selected family is ${family} at ${sel}% selection, yet ASRᵢ on that same family is ${asr}% — selection actually under-represents capability here.`;
   }
   return lang === "ko"
@@ -181,7 +181,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                     같은 에이전트의 계열별 성공률(ASR<sub>i</sub>, 점선)을 겹쳐 보여줌.
                     두 지표는 각각의 전역 최댓값(Sel은 {Math.round(maxSel * 100)}%,
                     ASR은 {Math.round(maxAsr * 100)}%)으로 정규화해 다각형끼리 비교
-                    가능하게 함. 모양이 어긋나는 부분이 성공률 낮은 계열에 노력을
+                    가능하게 함. 모양이 어긋나는 부분이 성공률 낮은 계열에 힘을
                     낭비한 지점임. 원값은 마우스를 올리면 나옴.
                   </>
                 )}

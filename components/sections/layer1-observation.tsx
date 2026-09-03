@@ -108,7 +108,7 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
             </p>
           </div>
 
-          <div className="rounded-lg border border-border overflow-hidden">
+          <div className="rounded-lg border border-border overflow-hidden bg-card">
             {/* Desktop: dense per-agent grid */}
             <div className="hidden md:grid grid-cols-[150px_1.5fr_0.9fr_0.9fr_0.9fr_0.9fr] text-sm">
               <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground">

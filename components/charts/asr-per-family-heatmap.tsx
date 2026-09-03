@@ -149,7 +149,7 @@ export default function AsrPerFamilyHeatmap({ data }: Props) {
                 coincide — that gap is the Sel<sub>i</sub>—ASR<sub>i</sub> decoupling.
               </>,
               <>
-                에이전트별로 모든 공격 계열에 대한 성공률임.{" "}
+                에이전트마다 모든 공격 계열에서의 성공률임.{" "}
                 <span className="inline-flex items-center align-middle gap-1">
                   <span
                     aria-hidden
@@ -157,9 +157,9 @@ export default function AsrPerFamilyHeatmap({ data }: Props) {
                   />{" "}
                   <span className="font-medium text-foreground">Sel</span>
                 </span>{" "}
-                테두리는 해당 에이전트의 최다 선택 계열,{" "}
+                테두리는 그 에이전트가 가장 많이 고른 계열,{" "}
                 <span className="text-foreground font-semibold">★</span>는 ASR<sub>i</sub>가
-                가장 높은 계열을 뜻함. 이 둘이 겹치는 일은 거의 없고, 그 간극이 바로
+                가장 높은 계열을 뜻함. 이 둘이 겹치는 일은 거의 없는데, 그 간극이 바로
                 Sel<sub>i</sub>—ASR<sub>i</sub> 비결합임.
               </>
             )}

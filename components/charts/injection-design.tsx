@@ -73,7 +73,7 @@ export function InjectionDesignDiagram() {
       <p className="mt-4 text-xs text-muted-foreground italic">
         {t(
           "Test whether user-specified emphasis overrides the free-choice allocation profile, or whether the same allocation bias carries into prompted settings.",
-          "사용자가 지정한 강조가 자유 선택 배분 프로파일을 덮어쓰는지, 아니면 같은 배분 편향이 지시된 설정까지 이어지는지를 확인함."
+          "사용자가 준 강조가 자유 선택 배분 프로파일을 덮어쓰는지, 아니면 같은 배분 편향이 지시받은 상황까지 그대로 이어지는지를 봄."
         )}
       </p>
     </div>

@@ -58,7 +58,7 @@ export function Footer() {
             {IS_ANON_INLINE
               ? t(
                   "Anonymous review build — author and repository identifiers are masked. Submitted to ",
-                  "익명 심사용 배포본임 — 저자와 저장소 정보는 가려짐. 투고처: "
+                  "심사용 익명 배포본임 — 저자와 저장소 정보를 가림. 투고처: "
                 )
               : t("Submitted to ", "투고처: ")}
             {SITE.venue}.
