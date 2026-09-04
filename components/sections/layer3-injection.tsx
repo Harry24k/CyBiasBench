@@ -108,14 +108,14 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
               <strong className="text-foreground">bias momentum</strong>.
             </>,
             <>
-              특정 공격 계열을 명시적으로 지시하면 배분은 바뀌지만 선호 자체는 바뀌지 않음.
-              순응도는 에이전트가 원래 즐겨 고르던 쪽을 따라가지
+              특정 공격 계열을 명시적으로 지시할 경우 배분은 변경되나 선호 자체는 변화하지 않음.
+              순응도는 에이전트가 기존에 선호하던 계열을 따르며
               (ρ = +{h.compliance_sel.rho.toFixed(3)}, p = {formatP(h.compliance_sel.p)}),
-              잘하는 쪽을 따라가지는 않음 (ρ = {h.compliance_asri.rho.toFixed(3)},
-              p = {formatP(h.compliance_asri.p)}). 계열별 ASR은 설정이 달라져도 그대로 전이됨
+              성과가 우수한 계열을 따르지는 않음 (ρ = {h.compliance_asri.rho.toFixed(3)},
+              p = {formatP(h.compliance_asri.p)}). 계열별 ASR은 설정이 변경되어도 그대로 전이됨
               (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)}).
-              실력은 안정적이고, 움직이는 것은 배분임. 이 비결합을{" "}
-              <strong className="text-foreground">편향 관성(bias momentum)</strong>이라 부름.
+              실력은 안정적이며, 변화하는 것은 배분임. 본 연구는 이 비결합을{" "}
+              <strong className="text-foreground">편향 관성(bias momentum)</strong>으로 명명함.
             </>
           )}
         </p>
@@ -130,7 +130,7 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
             <p className="text-sm text-muted-foreground mt-1">
               {t(
                 "Requested-family condition. The environment, tool access, and verification pipeline remain identical to Bias Observation; only the task focus statement names a target family.",
-                "계열 지정 조건임. 환경, 도구 접근, 검증 파이프라인은 편향 관찰과 완전히 동일하고, 과제 진술문에서 목표 계열을 지정하는 부분만 다름."
+                "계열 지정 조건임. 환경, 도구 접근, 검증 파이프라인은 편향 관찰과 완전히 동일하며, 과제 진술문에서 목표 계열을 지정하는 부분만 상이함."
               )}
             </p>
           </div>
@@ -148,13 +148,13 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
               <p className="text-sm text-muted-foreground mt-1">
                 {t(
                   "Side-by-side observation and forced-injection session ASR for each agent. Hover for raw obs/inj, ΔASR, compliance, and per-agent injection session count.",
-                  "에이전트별로 관찰 세션 ASR과 강제 주입 세션 ASR을 나란히 비교함. 마우스를 올리면 원값(obs/inj), ΔASR, 순응도, 에이전트별 주입 세션 수가 나옴."
+                  "에이전트별 관찰 세션 ASR과 강제 주입 세션 ASR을 병렬 비교함. 마우스를 올리면 원값(obs/inj), ΔASR, 순응도, 에이전트별 주입 세션 수가 표시됨."
                 )}
               </p>
             </div>
             {h.all_negative_delta_asr && (
               <span className="text-xs font-mono uppercase tracking-widest text-foreground px-2 py-1 rounded border border-foreground/30 bg-muted">
-                {t("All 5 agents · ΔASR ≤ 0", "5개 에이전트 전부 · ΔASR ≤ 0")}
+                {t("All 5 agents · ΔASR ≤ 0", "에이전트 5종 전체 · ΔASR ≤ 0")}
               </span>
             )}
           </div>
@@ -205,7 +205,7 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
                   관찰 설정의 계열별 ASR<sub>i</sub>와 강제 주입 설정의 계열별 ASR<sub>i</sub>를
                   비교함. 강한 양의 상관
                   (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)})은
-                  프롬프트 조건과 강제 지시가 달라져도 실력이 유지됨을 보여줌.
+                  프롬프트 조건 및 강제 지시가 변경되어도 실력이 유지됨을 나타냄.
                 </>
               )}
             </p>
@@ -236,7 +236,7 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
             <p className="text-sm text-muted-foreground mt-1">
               {t(
                 "Compliance, observed/injected session ASR, and ΔASR by agent. Sorted by ΔASR ascending (most damaged first).",
-                "에이전트별 순응도, 관찰/주입 세션 ASR, ΔASR임. ΔASR 오름차순으로 정렬해 손해가 가장 큰 쪽이 위에 옴."
+                "에이전트별 순응도, 관찰/주입 세션 ASR, ΔASR임. ΔASR 오름차순으로 정렬하여 손실이 가장 큰 항목이 상단에 배치됨."
               )}
             </p>
           </div>
@@ -287,19 +287,19 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
                 </>,
                 <>
                   프런티어 에이전트 5종, 표적 환경 3종, 총 630회 세션에 걸쳐 공격 선택 편향은{" "}
-                  <strong className="text-foreground">안정적이고, 에이전트마다 고유하며, 프롬프트에 둔감함</strong>.
+                  <strong className="text-foreground">안정적이고, 에이전트별로 고유하며, 프롬프트에 둔감함</strong>.
                   행동의 이질성(
                   <Stat>η²<sub>H(X)</sub> = {h.kruskal_H.eta2.toFixed(3)}</Stat>,{" "}
                   <Stat>{formatP(h.kruskal_H.p)}</Stat>)이 결과의 이질성(
-                  <Stat>η²<sub>ASR</sub> = {h.kruskal_session_asr.eta2.toFixed(3)}</Stat>)을 한 자릿수 차이로 앞섬.
+                  <Stat>η²<sub>ASR</sub> = {h.kruskal_session_asr.eta2.toFixed(3)}</Stat>)을 한 자릿수 차이로 상회함.
                   편향 주입 하에서 순응도는 자유 선택 시의 선택
                   (<Stat>ρ = +{h.compliance_sel.rho.toFixed(3)}</Stat>,{" "}
-                  <Stat>{formatP(h.compliance_sel.p)}</Stat>)을 따르고, 계열별 실력
+                  <Stat>{formatP(h.compliance_sel.p)}</Stat>)을 따르며, 계열별 실력
                   (<Stat>ρ = {h.compliance_asri.rho.toFixed(3)}</Stat>, 유의하지 않음)은 <em>따르지 않음</em>.
-                  지시로 덮어써도 선호가 그대로 남는 이 현상을{" "}
-                  <strong className="text-foreground">편향 관성</strong>이라 부름. 계열별 ASR 자체는
-                  설정이 달라져도 깔끔하게 전이되므로(<Stat>ρ = +{h.asr_transfer.rho.toFixed(3)}</Stat>,{" "}
-                  <Stat>{formatP(h.asr_transfer.p)}</Stat>), 편향은 실력이 아니라 배분에 있음이 확인됨.
+                  지시로 덮어쓰더라도 선호가 그대로 유지되는 이 현상을{" "}
+                  <strong className="text-foreground">편향 관성</strong>이라 명명함. 계열별 ASR 자체는
+                  설정이 변경되어도 온전히 전이되므로(<Stat>ρ = +{h.asr_transfer.rho.toFixed(3)}</Stat>,{" "}
+                  <Stat>{formatP(h.asr_transfer.p)}</Stat>), 편향은 실력이 아니라 배분에 존재함이 확인됨.
                 </>
               )}
             </p>
@@ -308,21 +308,21 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
                 tag={t("What stays", "유지되는 것")}
                 body={t(
                   "Per-family capability transfers; what an agent does well, it keeps doing well across regimes.",
-                  "계열별 실력은 전이됨. 잘하던 계열은 설정이 바뀌어도 계속 잘함."
+                  "계열별 실력은 전이됨. 성과가 우수하던 계열은 설정이 변경되어도 지속적으로 우수함."
                 )}
               />
               <Takeaway
                 tag={t("What doesn't", "유지되지 않는 것")}
                 body={t(
                   "Allocation does not adapt to capability — agents keep routing attempts to families they already prefer, regardless of outcome.",
-                  "배분은 실력에 맞춰 조정되지 않음. 결과와 상관없이 원래 선호하던 계열로 계속 시도를 몰아감."
+                  "배분은 실력에 따라 조정되지 않음. 결과와 무관하게 기존 선호 계열로 시도를 지속적으로 집중함."
                 )}
               />
               <Takeaway
                 tag={t("What that means for evaluation", "평가에 주는 함의")}
                 body={t(
                   "Outcome-only benchmarks compress distinct strategies into one number. Allocation, attack performance, and bias momentum must be measured as separable axes.",
-                  "결과만 보는 벤치마크는 서로 다른 전략을 하나의 숫자로 뭉갬. 배분, 공격 성능, 편향 관성은 분리된 축으로 측정해야 함."
+                  "결과만을 평가하는 벤치마크는 상이한 전략을 단일 수치로 축약함. 배분, 공격 성능, 편향 관성은 분리된 축으로 측정하여야 함."
                 )}
               />
             </div>
@@ -334,7 +334,7 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
         <BridgeText>
           {t(
             "Forcing redistributes actions but not preferences. Bias persists as momentum.",
-            "강제 지시는 행동만 재배분할 뿐 선호는 바꾸지 못함. 편향은 관성으로 남음."
+            "강제 지시는 행동만 재배분할 뿐 선호를 변경하지 못함. 편향은 관성으로 잔존함."
           )}
         </BridgeText>
       </div>
@@ -588,7 +588,7 @@ function CompliancePredictorsSection({
         <p className="text-sm text-muted-foreground mt-1">
           {t(
             "Each point is one (agent, family) cell under bias injection. Compliance follows Selᵢ (free-choice preference) but is decoupled from ASRᵢ (free-choice capability). Use the chips to filter agents and families.",
-            "각 점은 편향 주입 하의 (에이전트, 계열) 셀 하나임. 순응도는 Selᵢ(자유 선택 시 선호)를 따라가지만 ASRᵢ(자유 선택 시 실력)와는 분리되어 있음. 칩으로 에이전트와 계열을 걸러볼 수 있음."
+            "각 점은 편향 주입 하의 (에이전트, 계열) 셀 1개에 해당함. 순응도는 Selᵢ(자유 선택 시 선호)를 따르나 ASRᵢ(자유 선택 시 실력)와는 분리되어 있음. 칩을 이용해 에이전트와 계열을 필터링할 수 있음."
           )}
         </p>
       </div>
@@ -899,7 +899,7 @@ function GeminiExceptionCallout() {
       <p className="text-sm text-foreground font-semibold leading-snug">
         {t(
           "Cross-setting transfer is significant for 4 of 5 agents — Gemini is the lone outlier.",
-          "설정 간 전이는 5개 중 4개 에이전트에서 유의함. Gemini만 예외임."
+          "설정 간 전이는 5종 중 4종 에이전트에서 유의함. Gemini만 예외임."
         )}
       </p>
       <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
@@ -935,9 +935,9 @@ function GeminiExceptionCallout() {
             <p className="pt-2 border-t border-border/60">
               다만 Gemini 내부에서는 순응도가 목표 한정 ASR과 상관을 보임
               (<span className="font-mono text-foreground">ρ = +0.696, p = 0.025</span>).
-              자유 선택 프로파일이 워낙 한쪽에 쏠려 있다 보니, 지시받은 방향이 이미
-              잘하는 영역과 우연히 겹치는 것임. 가장 뾰족한 배분을 하는 에이전트에서만
-              선호와 실력이 부분적으로 붙어 있음.
+              자유 선택 프로파일이 특정 계열에 크게 편중되어 있어, 지시받은 방향이 이미
+              성과가 우수한 영역과 결과적으로 일치하는 것임. 배분이 가장 집중된
+              에이전트에 한하여 선호와 실력이 부분적으로 결합되어 있음.
             </p>
           </>
         )}

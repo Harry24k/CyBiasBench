@@ -48,16 +48,16 @@ function decouplingInterpretation(row: DecouplingRow, lang: Lang): string {
   const asr = row.top_asr_pct.toFixed(1);
   if (gap >= 8) {
     return lang === "ko"
-      ? `${agent}는 시도의 ${sel}%를 ${family}에 쏟지만 그중 ${asr}%만 성공함. ${gap.toFixed(1)}포인트의 선택–실력 격차로, 배분을 결과의 대리 지표로 삼을 수 없다는 걸 잘 보여줌.`
+      ? `${agent}는 시도의 ${sel}%를 ${family}에 배분하나 그중 ${asr}%만 성공함. ${gap.toFixed(1)}포인트의 선택–실력 격차로서, 배분을 결과의 대리 지표로 사용할 수 없음을 명확히 보여줌.`
       : `${agent} commits ${sel}% of attempts to ${family}, but only ${asr}% of those attempts succeed — a ${gap.toFixed(1)}-point selection–capability gap that cleanly illustrates why allocation is not a proxy for outcome.`;
   }
   if (gap <= -8) {
     return lang === "ko"
-      ? `${agent}가 가장 많이 고른 계열은 ${family}로 선택 비중이 ${sel}%인데, 같은 계열의 ASRᵢ는 ${asr}%임. 여기서는 선택이 오히려 실력을 덜 반영하고 있음.`
+      ? `${agent}의 최다 선택 계열은 ${family}로 선택 비중이 ${sel}%이나, 동일 계열의 ASRᵢ는 ${asr}%임. 이 경우 선택이 오히려 실력을 과소 반영함.`
       : `${agent}'s most-selected family is ${family} at ${sel}% selection, yet ASRᵢ on that same family is ${asr}% — selection actually under-represents capability here.`;
   }
   return lang === "ko"
-    ? `${agent}는 시도의 ${sel}%를 ${family}에 집중하고 해당 계열 ASRᵢ도 ${asr}%로 비슷함. 배분이 성공과 맞아떨어지는 드문 사례임.`
+    ? `${agent}는 시도의 ${sel}%를 ${family}에 집중하며 해당 계열 ASRᵢ도 ${asr}%로 유사함. 배분과 성과가 일치하는 드문 사례임.`
     : `${agent} concentrates ${sel}% of attempts on ${family} with a matching ASRᵢ of ${asr}% — a rare case where allocation tracks success.`;
 }
 
@@ -136,9 +136,9 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
               structural attack-selection metrics separate agents far more strongly than session ASR.
             </>,
             <>
-              배분 프로파일은 계열별 성공률을 그대로 따라가지 않음. 가장 많이 고른 계열이
-              ASR<sub>i</sub>가 가장 높은 계열인 경우는 드물고, 5개 중 4개 에이전트에서
-              세션 엔트로피와 세션 ASR 사이에 상관이 없음. 에이전트 간 효과크기를 보면
+              배분 프로파일은 계열별 성공률을 그대로 반영하지 않음. 최다 선택 계열이
+              ASR<sub>i</sub> 최고 계열인 경우는 드물며, 5종 중 4종 에이전트에서
+              세션 엔트로피와 세션 ASR 간 상관이 없음. 에이전트 간 효과크기 비교 시
               구조적 공격 선택 지표가 세션 ASR보다 훨씬 강하게 에이전트를 구분함.
             </>
           )}
@@ -177,12 +177,12 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                     mis-spent on low-success families. Hover for raw values.
                   </>,
                   <>
-                    각 패널은 해당 에이전트의 배분 프로파일(Sel<sub>i</sub>, 채움)과
-                    같은 에이전트의 계열별 성공률(ASR<sub>i</sub>, 점선)을 겹쳐 보여줌.
+                    각 패널은 해당 에이전트의 배분 프로파일(Sel<sub>i</sub>, 음영)과
+                    동일 에이전트의 계열별 성공률(ASR<sub>i</sub>, 점선)을 중첩하여 제시함.
                     두 지표는 각각의 전역 최댓값(Sel은 {Math.round(maxSel * 100)}%,
-                    ASR은 {Math.round(maxAsr * 100)}%)으로 정규화해 다각형끼리 비교
-                    가능하게 함. 모양이 어긋나는 부분이 성공률 낮은 계열에 힘을
-                    낭비한 지점임. 원값은 마우스를 올리면 나옴.
+                    ASR은 {Math.round(maxAsr * 100)}%)으로 정규화하여 다각형 간 비교가
+                    가능하도록 함. 형태가 어긋나는 구간이 성공률이 낮은 계열에 자원을
+                    낭비한 지점임. 원값은 마우스를 올리면 표시됨.
                   </>
                 )}
               </p>
@@ -344,9 +344,9 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
                     ({Math.round(maxSel * 100)}%). Bold marks each agent&apos;s most-selected family.
                   </>,
                   <>
-                    각 칸은 <span className="font-mono">Selᵢ / ASRᵢ</span>임. 칸 색은 전역 Sel
-                    최댓값({Math.round(maxSel * 100)}%) 대비 Selᵢ에 비례함. 굵은 값은 각
-                    에이전트의 최다 선택 계열임.
+                    각 칸은 <span className="font-mono">Selᵢ / ASRᵢ</span>임. 칸 색상은 전역 Sel
+                    최댓값({Math.round(maxSel * 100)}%) 대비 Selᵢ에 비례함. 굵은 값은
+                    에이전트별 최다 선택 계열을 나타냄.
                   </>
                 )}
               </div>
@@ -365,7 +365,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
               <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
                 {t(
                   "Per-session scatter (n = 36 per agent). Spearman ρ annotated per panel. Only Codex shows a weakly positive correlation; the rest are not significantly different from zero — breadth does not imply outcome. Hover a point for session, target, and condition.",
-                  "세션 단위 산점도임 (에이전트당 n = 36). 패널마다 Spearman ρ를 표기함. Codex만 약한 양의 상관을 보이고 나머지는 0과 유의하게 다르지 않음. 넓게 시도한다고 결과가 좋아지지는 않음. 점에 마우스를 올리면 세션·표적·조건이 나옴."
+                  "세션 단위 산점도임(에이전트당 n = 36). 패널별로 Spearman ρ를 표기함. Codex만 약한 양의 상관을 보이며 나머지는 0과 유의하게 다르지 않음. 탐색 범위가 넓다고 하여 성과가 향상되지는 않음. 점에 마우스를 올리면 세션·표적·조건이 표시됨."
                 )}
               </p>
             </div>
@@ -418,7 +418,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
             <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
               {t(
                 "Each card pins down the agent's most-selected family and the ASRᵢ on that same family. Click a card to expand the interpretation.",
-                "각 카드는 해당 에이전트의 최다 선택 계열과 그 계열의 ASRᵢ를 함께 보여줌. 카드를 누르면 해석이 펼쳐짐."
+                "각 카드는 해당 에이전트의 최다 선택 계열과 해당 계열의 ASRᵢ를 함께 제시함. 카드를 클릭하면 해석이 표시됨."
               )}
             </p>
           </div>
@@ -538,7 +538,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
         <BridgeText>
           {t(
             "Selection and performance are decoupled. A natural intervention is to force the attack family — does this close the gap?",
-            "선택과 성능은 서로 분리되어 있음. 그렇다면 공격 계열을 강제로 지정하는 개입은 이 격차를 좁힐까?"
+            "선택과 성능은 상호 분리되어 있음. 그렇다면 공격 계열을 강제 지정하는 개입이 이 격차를 축소할 수 있는가?"
           )}
         </BridgeText>
       </div>

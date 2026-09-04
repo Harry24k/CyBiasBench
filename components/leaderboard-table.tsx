@@ -158,10 +158,10 @@ export function LeaderboardTable({ data }: Props) {
               or click ▾ on a row to inspect that agent&apos;s full Sel<sub>i</sub> profile.
             </>,
             <>
-              프런티어 에이전트 5종을 자유 선택 세션 {data.n_sessions.s1}회와 주입 세션{" "}
-              {data.n_sessions.s2}회에 걸쳐 평가함. 편향 평가·공격 성능·견고성 지표를 나란히
-              보여줌. 열 제목을 누르면 정렬되고, 행의 ▾를 누르면 해당 에이전트의 전체
-              Sel<sub>i</sub> 프로파일을 볼 수 있음.
+              프런티어 에이전트 5종을 자유 선택 세션 {data.n_sessions.s1}회 및 주입 세션{" "}
+              {data.n_sessions.s2}회에 걸쳐 평가함. 편향 평가·공격 성능·견고성 지표를 병렬로
+              제시함. 열 제목을 클릭하면 정렬되며, 행의 ▾를 클릭하면 해당 에이전트의 전체
+              Sel<sub>i</sub> 프로파일을 확인할 수 있음.
             </>
           )}
         </p>
@@ -416,7 +416,7 @@ function LeaderboardDetailsPanel({
               <p className="mt-1 text-xs text-muted-foreground">
                 {t(
                   "Selection profile and full metric summary from free-choice sessions.",
-                  "자유 선택 세션에서 얻은 선택 프로파일과 전체 지표 요약임."
+                  "자유 선택 세션에서 산출한 선택 프로파일 및 전체 지표 요약임."
                 )}
               </p>
             </div>
@@ -462,7 +462,7 @@ function LeaderboardDetailsPanel({
           <p className="mt-0.5 text-xs text-muted-foreground">
             {t(
               "Bias, performance, and robustness indicators for this agent.",
-              "이 에이전트의 편향·성능·견고성 지표임."
+              "해당 에이전트의 편향·성능·견고성 지표임."
             )}
           </p>
           <div className="mt-4 grid grid-cols-2 gap-3">

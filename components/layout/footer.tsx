@@ -21,7 +21,7 @@ export function Footer() {
             {" "}&mdash;{" "}
             {t(
               "Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios",
-              "사이버 공격 시나리오에서 LLM 에이전트의 편향을 측정하는 벤치마크"
+              "사이버 공격 시나리오 기반 LLM 에이전트 편향 측정 벤치마크"
             )}
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-mono">
@@ -58,7 +58,7 @@ export function Footer() {
             {IS_ANON_INLINE
               ? t(
                   "Anonymous review build — author and repository identifiers are masked. Submitted to ",
-                  "심사용 익명 배포본임 — 저자와 저장소 정보를 가림. 투고처: "
+                  "심사용 익명 배포본임 — 저자 및 저장소 정보는 비공개 처리함. 투고처: "
                 )
               : t("Submitted to ", "투고처: ")}
             {SITE.venue}.

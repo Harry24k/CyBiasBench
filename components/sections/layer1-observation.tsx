@@ -78,10 +78,10 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
               (Prompt-stability JSD 0.038 vs between-agent 0.054).
             </>,
             <>
-              자유 선택 상황에서 에이전트마다 10개 공격 계열에 대한 배분 프로파일이 뚜렷하게 다름.
+              자유 선택 조건에서 에이전트별로 10종 공격 계열에 대한 배분 프로파일이 뚜렷하게 구분됨.
               H(X)에 대한 Kruskal–Wallis 검정은 공통 분포 가설을 기각함
               (H = {kw.H.toFixed(2)}, p = {formatP(kw.p)}, η² = {kw.eta2.toFixed(3)}).
-              프롬프트 변화가 만드는 차이는 에이전트 간 차이보다 작음
+              프롬프트 변화에 따른 차이는 에이전트 간 차이보다 작음
               (프롬프트 안정성 JSD 0.038 vs 에이전트 간 0.054).
             </>
           )}
@@ -101,8 +101,8 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
                   and the most-selected family&apos;s share (Sel<sub>i</sub>).
                 </>,
                 <>
-                  에이전트별 편향 지표 세 가지: 엔트로피 H(X), 세션당 평균 고유 계열 수,
-                  가장 많이 고른 계열의 비중(Sel<sub>i</sub>).
+                  에이전트별 편향 지표 3종: 엔트로피 H(X), 세션당 평균 고유 계열 수,
+                  최다 선택 계열의 비중(Sel<sub>i</sub>).
                 </>
               )}
             </p>
@@ -139,7 +139,7 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
               <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
                 {t("Session ASR", "세션 ASR")}{" "}
                 <span className="text-xs text-muted-foreground font-normal">
-                  {t("↑ better", "↑ 높을수록 좋음")}
+                  {t("↑ better", "↑ 높을수록 우수")}
                 </span>
               </div>
 
@@ -204,8 +204,8 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
                 averaged across sessions.
               </>,
               <>
-                에이전트당 자유 선택 세션 36회. 괄호 안 Sel<sub>i</sub>는 최다 선택 계열의 비중이고,{" "}
-                <span className="font-mono">Sel CR1</span>은 세션 내 집중도를 세션 전체로 평균한 값임.
+                에이전트당 자유 선택 세션 36회임. 괄호 안 Sel<sub>i</sub>는 최다 선택 계열의 비중이며,{" "}
+                <span className="font-mono">Sel CR1</span>은 세션 내 집중도를 전체 세션에 대해 평균한 값임.
               </>
             )}
           </p>
@@ -227,9 +227,9 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
                     between agents, they look obviously different.
                   </>,
                   <>
-                    동일한 Sel<sub>i</sub> 히트맵을 2×2 프롬프트 설계로 나눈 것임.
-                    같은 에이전트 안에서는 네 패널이 거의 똑같이 보이지만,
-                    에이전트끼리는 확연히 다름.
+                    동일한 Sel<sub>i</sub> 히트맵을 2×2 프롬프트 설계 기준으로 분할한 것임.
+                    동일 에이전트 내에서는 네 패널이 거의 동일하게 나타나나,
+                    에이전트 간에는 확연히 구분됨.
                   </>
                 )}
               </p>
@@ -254,7 +254,7 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
             <p className="text-sm text-muted-foreground mt-1">
               {t(
                 "Jensen–Shannon divergence between family distributions. Within-agent drift (prompt conditions vs agent centroid) is much smaller than between-agent separation — profiles reflect intrinsic model tendency, not prompt wording.",
-                "계열 분포 사이의 Jensen–Shannon 발산임. 에이전트 내부 변동(프롬프트 조건 vs 에이전트 중심)이 에이전트 간 격차보다 훨씬 작음. 프로파일은 프롬프트 문구가 아니라 모델 고유의 성향을 반영함."
+                "계열 분포 간 Jensen–Shannon 발산임. 에이전트 내부 변동(프롬프트 조건 vs 에이전트 중심)이 에이전트 간 격차보다 현저히 작음. 프로파일은 프롬프트 문구가 아니라 모델 고유의 성향을 반영함."
               )}
             </p>
           </div>
@@ -294,9 +294,9 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
                       baseline — selection profiles are agent-specific fingerprints.
                     </>,
                     <>
-                      10개 계열 Sel<sub>i</sub> 벡터로 학습한 랜덤 포레스트 분류기는 실제
+                      10종 계열 Sel<sub>i</sub> 벡터로 학습한 랜덤 포레스트 분류기는 실제
                       에이전트를 {Acc} 정확도로 식별함. 무작위 기준선은 {Base}임. 선택
-                      프로파일은 에이전트마다 고유한 지문임.
+                      프로파일은 에이전트별 고유 지문에 해당함.
                     </>
                   );
                 })()}
@@ -315,7 +315,7 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
         <BridgeText>
           {t(
             "Selection profiles are stable and model-specific. But do these preferences track what actually succeeds?",
-            "선택 프로파일은 안정적이고 모델마다 고유함. 그렇다면 이 선호가 실제로 통하는 것과 일치할까?"
+            "선택 프로파일은 안정적이며 모델별로 고유함. 그렇다면 이 선호가 실제 성과와 일치하는가?"
           )}
         </BridgeText>
       </div>
@@ -446,7 +446,7 @@ function MobileSignatureCard({
       pct: maxCr1 > 0 ? (cr1 / maxCr1) * 100 : 0,
     },
     {
-      label: <>{t("Session ASR", "세션 ASR")} <span className="text-muted-foreground/70">{t("↑ better", "↑ 높을수록 좋음")}</span></>,
+      label: <>{t("Session ASR", "세션 ASR")} <span className="text-muted-foreground/70">{t("↑ better", "↑ 높을수록 우수")}</span></>,
       value: `${(sessionAsr * 100).toFixed(1)}%`,
       pct: maxAsr > 0 ? (sessionAsr / maxAsr) * 100 : 0,
     },

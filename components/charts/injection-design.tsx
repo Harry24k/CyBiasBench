@@ -39,7 +39,7 @@ export function InjectionDesignDiagram() {
           title={t("Injected Prompt", "주입 프롬프트")}
           body={t(
             "Same environment; one target family named in task focus.",
-            "환경은 동일하고, 과제 진술문에 목표 계열 하나를 지정함."
+            "환경은 동일하며, 과제 진술문에 목표 계열 1종을 지정함."
           )}
           bg={injBg}
           border={injBorder}
@@ -73,7 +73,7 @@ export function InjectionDesignDiagram() {
       <p className="mt-4 text-xs text-muted-foreground italic">
         {t(
           "Test whether user-specified emphasis overrides the free-choice allocation profile, or whether the same allocation bias carries into prompted settings.",
-          "사용자가 준 강조가 자유 선택 배분 프로파일을 덮어쓰는지, 아니면 같은 배분 편향이 지시받은 상황까지 그대로 이어지는지를 봄."
+          "사용자가 지정한 강조가 자유 선택 배분 프로파일을 대체하는지, 아니면 동일한 배분 편향이 지시 상황까지 유지되는지를 확인함."
         )}
       </p>
     </div>

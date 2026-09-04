@@ -80,15 +80,15 @@ export function AgentPicker({ data }: { data: PaperSummary }) {
     <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
       <div className="mb-4 sm:mb-6">
         <p className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">
-          {t("Try it", "직접 해보기")}
+          {t("Try it", "직접 확인")}
         </p>
         <h2 className="font-serif text-2xl sm:text-3xl text-foreground">
-          {t("Pick an agent for your task", "과제에 맞는 에이전트 고르기")}
+          {t("Pick an agent for your task", "과제에 적합한 에이전트 선정")}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
           {t(
             "Filter by attack family and what you optimize for. Ranking is computed live from the observation-setting per-family ASR and tokens-per-success in this dashboard.",
-            "공격 계열과 우선순위를 골라 보면 됨. 순위는 이 대시보드의 관찰 설정 계열별 ASR과 성공당 토큰으로 바로 계산됨."
+            "공격 계열과 우선 기준을 선택할 수 있음. 순위는 본 대시보드의 관찰 설정 계열별 ASR 및 성공당 토큰을 기준으로 즉시 산출됨."
           )}
         </p>
       </div>
@@ -115,7 +115,7 @@ export function AgentPicker({ data }: { data: PaperSummary }) {
 
           <fieldset className="flex flex-col gap-1.5 sm:flex-1">
             <legend className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1.5">
-              {t("Optimize for", "우선할 기준")}
+              {t("Optimize for", "우선 기준")}
             </legend>
             <div className="inline-flex rounded-md border border-border overflow-hidden self-start">
               {(["accuracy", "balanced", "efficiency"] as Priority[]).map((p, i) => (
@@ -192,7 +192,7 @@ export function AgentPicker({ data }: { data: PaperSummary }) {
                         of attempts to this family in free choice
                       </>,
                       <>
-                        자유 선택 시 시도의{" "}
+                        자유 선택 시 전체 시도의{" "}
                         <span className="text-foreground tabular-nums">
                           {r.sel.toFixed(1)}%
                         </span>
@@ -217,10 +217,10 @@ export function AgentPicker({ data }: { data: PaperSummary }) {
             </>,
             <>
               <span className="text-foreground">{familyFull}</span> 기준 순위임.{" "}
-              <em>균형</em>은 0.65·정확도 + 0.35·효율이고, <em>정확도</em>는 관찰 설정의 계열별
-              ASR, <em>효율</em>은 공격 성공당 토큰을 씀. 순위가 높다고 해서 그 에이전트가 이
-              계열을 <em>실제로</em> 공격한다는 뜻은 아님. 자유 선택에서는 오히려 피할 수도 있음.
-              명시적으로 지시했을 때 무엇이 달라지는지는 편향 주입 결과에서 확인하면 됨.
+              <em>균형</em>은 0.65·정확도 + 0.35·효율이며, <em>정확도</em>는 관찰 설정의 계열별
+              ASR을, <em>효율</em>은 공격 성공당 토큰을 사용함. 순위가 높다고 하여 해당 에이전트가
+              이 계열을 <em>실제로</em> 공격한다는 의미는 아님. 자유 선택 상황에서는 오히려 회피할
+              수 있음. 명시적 지시 시의 변화는 편향 주입 결과에서 확인할 수 있음.
             </>
           )}
         </p>

@@ -28,7 +28,7 @@ export function HeroSection() {
       <p className="mt-3 sm:mt-4 text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
         {t(
           "Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios",
-          "사이버 공격 시나리오에서 LLM 에이전트의 편향을 측정하는 벤치마크"
+          "사이버 공격 시나리오 기반 LLM 에이전트 편향 측정 벤치마크"
         )}
       </p>
 
@@ -40,9 +40,9 @@ export function HeroSection() {
             <strong className="text-foreground">drops</strong> attack success, not raises it.
           </>,
           <>
-            <strong className="text-foreground">표적도 과제도 같은데, 에이전트마다 손이 가는 공격이 다름.</strong>{" "}
-            게다가 선호와 다른 쪽으로 몰아붙이면 공격 성공률은{" "}
-            <strong className="text-foreground">오르기는커녕 떨어짐</strong>.
+            <strong className="text-foreground">동일한 표적과 동일한 과제에서도 에이전트마다 선택하는 공격이 상이함.</strong>{" "}
+            또한 선호와 다른 계열을 강제할 경우 공격 성공률은 상승하지 않고{" "}
+            <strong className="text-foreground">오히려 하락함</strong>.
           </>
         )}
       </p>
@@ -53,7 +53,7 @@ export function HeroSection() {
           src={`${BASE_PATH}/images/main.png`}
           alt={t(
             "Attack-family selection distributions differ sharply across the five evaluated agents",
-            "다섯 에이전트의 공격 계열 선택 분포가 서로 확연히 다름을 보여주는 그림"
+            "평가 대상 에이전트 5종의 공격 계열 선택 분포가 상이함을 나타낸 그림"
           )}
           className="w-full h-auto"
         />
@@ -62,7 +62,7 @@ export function HeroSection() {
       <p className="mt-6 text-[11px] sm:text-xs font-mono text-muted-foreground/80">
         {t(
           "5 agents · 3 targets · 4 prompt conditions · 630 sessions",
-          "에이전트 5개 · 표적 3개 · 프롬프트 조건 4개 · 세션 630회"
+          "에이전트 5종 · 표적 3종 · 프롬프트 조건 4종 · 세션 630회"
         )}
       </p>
 
