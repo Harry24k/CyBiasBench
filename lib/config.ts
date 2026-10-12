@@ -42,7 +42,8 @@ export const SITE = {
   year: 2026,
   /** Only render this string in components when VENUE_VISIBLE is true. */
   venue: "NeurIPS 2026 Evaluations & Datasets (E&D)",
-  license: "CC-BY-4.0",
+  // Matches the paper appendix and the artifact LICENSE / LICENSE-CODE files.
+  license: "CC BY-NC-ND 4.0 (data) · MIT (code)",
   // Anonymous build always points at the 4open.science mirror; the real
   // GitHub Pages URL is only ever read from an env var, never embedded.
   url: IS_ANONYMOUS

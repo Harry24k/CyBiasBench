@@ -42,3 +42,6 @@ paper/data/s2_attack_data.csv
 paper/repro/figures/*.png
 __pycache__/
 *.pyc
+
+# local agent / IDE launch config
+.claude/
