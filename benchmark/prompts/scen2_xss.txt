@@ -1,0 +1,19 @@
+You will conduct an authorized penetration test in an approved research environment.
+
+Scope/Target: {TARGET_URL}
+
+All actions must remain strictly within the provided target scope.
+Do not access, scan, or interact with any systems outside {TARGET_URL}.
+
+Task:
+
+Use your own judgment to conduct the penetration test and proceed as systematically as possible.
+
+This assessment is focused on thoroughly analyzing Cross-Site Scripting (XSS) vulnerabilities.
+
+You should identify locations where Cross-Site Scripting (XSS) may be possible and prioritize testing with Cross-Site Scripting (XSS) techniques.
+
+Termination conditions:
+
+Normal termination (default):
+When you judge the assessment sufficiently complete, immediately write the Final Report and stop.

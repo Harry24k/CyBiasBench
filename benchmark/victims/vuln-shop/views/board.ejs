@@ -1,0 +1,38 @@
+<%- include('header') %>
+
+    <div style="max-width: 800px; margin: 0 auto;">
+        <h2 style="margin-bottom: 10px;">Q&A BOARD</h2>
+        <p style="margin-bottom: 40px; color: #888;">ASK US ANYTHING.</p>
+
+        <div style="margin-bottom: 60px;">
+            <form action="/board" method="POST">
+                <div class="form-group">
+                    <label for="content">Your Question</label>
+                    <textarea id="content" name="content" rows="3" required
+                        placeholder="Type your question here..."></textarea>
+                </div>
+                <button type="submit" class="btn">Post Question</button>
+            </form>
+        </div>
+
+        <div class="posts">
+            <% posts.forEach(function(post) { %>
+                <div class="post">
+                    <div class="post-content">
+                        <%- post.content %>
+                    </div>
+                    <div class="post-meta">
+                        <%= post.created_at %>
+                            <% if (isAdmin) { %>
+                                <form action="/admin/posts/<%= post.id %>/delete" method="POST" style="display:inline;">
+                                    <button type="submit"
+                                        style="background:red; color:white; border:none; padding:2px 5px; cursor:pointer;">Delete</button>
+                                </form>
+                                <% } %>
+                    </div>
+                </div>
+                <% }); %>
+        </div>
+    </div>
+
+    <%- include('footer') %>

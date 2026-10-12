@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+.env
+.DS_Store
+
+# Generated at runtime by scripts/jsd_repro/
+scripts/jsd_repro/figures/
+scripts/jsd_repro/key_figures/
+
+# Generated at runtime by benchmark/run.sh
+benchmark/results/
+benchmark/.compose-*.yml

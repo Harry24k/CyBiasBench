@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cybiasbench"
+version = "1.0.0"
+description = "CyBiasBench: a benchmark dataset for measuring bias in LLM-driven offensive-security agents"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Taein Lim" },
+    { name = "Seongyong Ju" },
+    { name = "Munhyeok Kim" },
+    { name = "Hyunjun Kim" },
+    { name = "Hoki Kim" },
+]
+dependencies = [
+    "pandas>=2.0",
+    "pyarrow>=14",
+]
+
+[project.urls]
+Homepage = "https://trustworthyai.co.kr/CyBiasBench/"
+Repository = "https://github.com/Harry24k/CyBiasBench"
+Paper = "https://arxiv.org/abs/2605.07830"
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "jupyter"]
+jsd = ["matplotlib>=3.8", "scipy>=1.11", "numpy>=1.26"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
