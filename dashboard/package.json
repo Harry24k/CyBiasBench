@@ -1,8 +1,8 @@
 {
-  "name": "anonymous-demo",
+  "name": "cybiasbench-dashboard",
   "version": "0.0.1",
   "private": true,
-  "description": "Anonymous demo for peer review",
+  "description": "Interactive result dashboard for CyBiasBench (NeurIPS 2026 Evaluations & Datasets Track)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
