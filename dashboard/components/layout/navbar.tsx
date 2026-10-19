@@ -45,7 +45,6 @@ const NAV: NavItem[] = [
       labelKo: `${i + 1}. ${c.labelKo}`,
     })),
   },
-  { id: "methodology", label: "Methodology", labelKo: "방법론" },
 ];
 
 const ALL_TRACKED_IDS: string[] = NAV.flatMap((s) => [
@@ -470,10 +469,6 @@ export function Navbar() {
   }, []);
 
   const scrollTo = (id: string) => {
-    // The methodology appendix is collapsed by default; open it first.
-    if (id === "methodology") {
-      window.dispatchEvent(new Event("cybiasbench:open-methodology"));
-    }
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };

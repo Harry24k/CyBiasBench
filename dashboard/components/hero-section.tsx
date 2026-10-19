@@ -14,16 +14,16 @@ export function HeroSection() {
   return (
     <section className="pt-12 sm:pt-20 pb-8 sm:pb-10 max-w-[800px] mx-auto px-4 sm:px-6 text-center">
       <p className="mb-4 sm:mb-5 flex justify-center">
-        <span className="inline-flex items-center justify-center text-center rounded-2xl sm:rounded-full border border-emerald-500/50 bg-emerald-500/10 px-3 py-1 sm:py-0.5 text-[11px] sm:text-xs font-mono uppercase tracking-[0.1em] sm:tracking-[0.16em] text-emerald-500 font-semibold">
+        <span className="inline-flex items-center justify-center text-center rounded-2xl sm:rounded-full border border-emerald-500/50 bg-emerald-500/10 px-3 py-1 sm:py-0.5 text-[11px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.12em] text-emerald-500 font-semibold">
           NeurIPS 2026 Evaluations &amp; Datasets Track
         </span>
       </p>
-      <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-foreground tracking-tight bg-gradient-to-b from-foreground to-foreground/75 bg-clip-text text-transparent">
+      <h1 className="font-bold text-4xl sm:text-5xl md:text-6xl text-foreground tracking-tight bg-gradient-to-b from-foreground to-foreground/75 bg-clip-text text-transparent">
         CyBiasBench
       </h1>
       <p className="mt-3 sm:mt-4 text-lg sm:text-xl md:text-2xl text-foreground/80 leading-snug text-balance">
         {t(
-          "Understanding Attack Selection Bias in AI Agents",
+          "Attack Selection Bias in AI Agents",
           "AI 에이전트의 공격 편향"
         )}
       </p>
@@ -82,13 +82,6 @@ export function HeroSection() {
           )}
         </div>
       )}
-
-      <p className="mt-6 text-[11px] sm:text-xs font-mono text-muted-foreground/80">
-        {t(
-          "5 agents · 3 targets · 4 prompt conditions · 630 sessions",
-          "에이전트 5종 · 표적 3종 · 프롬프트 조건 4종 · 세션 630회"
-        )}
-      </p>
     </section>
   );
 }

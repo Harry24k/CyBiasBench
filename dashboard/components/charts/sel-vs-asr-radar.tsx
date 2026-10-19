@@ -137,11 +137,11 @@ export function SelVsAsrRadar({
         </div>
         <div className="font-mono tabular-nums space-y-1 text-[13px]">
           <div>
-            Sel<sub>i</sub>{" "}
+            {t("Selection share", "선택 비중")}{" "}
             <span style={{ color }}>{(d.selRaw * 100).toFixed(1)}%</span>
           </div>
           <div>
-            ASR<sub>i</sub>{" "}
+            {t("Attack success rate", "공격 성공률")}{" "}
             <span>{(d.asrRaw * 100).toFixed(1)}%</span>
           </div>
         </div>
@@ -162,12 +162,12 @@ export function SelVsAsrRadar({
         </div>
         <div className="text-xs font-mono tabular-nums text-muted-foreground text-right leading-snug">
           <div>
-            <span style={{ color }}>{t("Sel peak", "Sel 최고")}</span>{" "}
+            <span style={{ color }}>{t("Top selection share", "최고 선택 비중")}</span>{" "}
             {(topSel.v * 100).toFixed(1)}% ·{" "}
             {familyLabels?.[topSel.f] ?? topSel.f}
           </div>
           <div>
-            {t("ASR peak", "ASR 최고")} {(topAsr.v * 100).toFixed(1)}% ·{" "}
+            {t("Top success rate", "최고 공격 성공률")} {(topAsr.v * 100).toFixed(1)}% ·{" "}
             {familyLabels?.[topAsr.f] ?? topAsr.f}
           </div>
         </div>

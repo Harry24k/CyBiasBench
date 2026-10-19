@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Serif+KR:wght@500;600&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -6,9 +6,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Inter', var(--font-geist-sans), system-ui, sans-serif;
-  --font-serif: 'DM Serif Display', 'Noto Serif KR', serif;
-  --font-mono: 'JetBrains Mono', var(--font-geist-mono), monospace;
+  --font-sans: 'Noto Sans KR', system-ui, sans-serif;
+  --font-serif: 'Noto Sans KR', system-ui, sans-serif;
+  --font-mono: 'Noto Sans KR', system-ui, sans-serif;
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -146,11 +146,11 @@
 }
 
 @layer utilities {
-  .font-mono {
-    font-family: 'JetBrains Mono', var(--font-geist-mono), monospace;
-  }
+  /* One typeface everywhere: Noto Sans KR (Latin + Hangul). The mono/serif
+     utilities stay as aliases so existing markup needs no changes. */
+  .font-mono,
   .font-serif {
-    font-family: 'DM Serif Display', 'Noto Serif KR', serif;
+    font-family: 'Noto Sans KR', system-ui, sans-serif;
   }
 }
 
@@ -271,6 +271,10 @@ html:not(.light) .surface-band { background-color: #1a1a1e; }
 /* Lab logo: rendered as-is in light mode; flipped to white on the dark theme
    so the wordmark stays legible on the near-black navbar. */
 html:not(.light) .lab-logo { filter: brightness(0) invert(1); }
+
+/* Article figures: the surrounding prose already explains each figure, so
+   the dashboard's own explanatory caption under a figure title is hidden. */
+.article-figure :is(h3, h4) + p { display: none; }
 
 /* Honor prefers-reduced-motion globally */
 @media (prefers-reduced-motion: reduce) {

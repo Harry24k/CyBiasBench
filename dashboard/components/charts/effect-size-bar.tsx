@@ -56,7 +56,7 @@ export function EffectSizeBar({
   const rows: Row[] = [
     { label: t("Technique entropy", "기법 엔트로피"), metric: "H(X)", axis: "bias", stat: kH, cohen: cohenTag(kH.eta2) },
     { label: t("Unique families", "고유 계열 수"), metric: "|families|", axis: "bias", stat: kUniq, cohen: cohenTag(kUniq.eta2) },
-    { label: t("Selection CR1", "선택 CR1"), metric: t("max within-session Selᵢ", "세션 내 최대 Selᵢ"), axis: "bias", stat: kTop, cohen: cohenTag(kTop.eta2) },
+    { label: t("Selection CR1", "선택 CR1"), metric: t("max within-session selection share", "세션 내 최대 선택 비중"), axis: "bias", stat: kTop, cohen: cohenTag(kTop.eta2) },
     { label: t("Session ASR", "세션 ASR"), metric: t("outcome", "결과"), axis: "performance", stat: kAsr, cohen: cohenTag(kAsr.eta2) },
   ];
 

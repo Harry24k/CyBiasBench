@@ -144,7 +144,7 @@ export function L1Signatures({ data }: { data: PaperSummary }) {
                 </div>
                 <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground">
                   {t("Most Selected Family", "최다 선택 계열")}{" "}
-                  <span className="text-xs text-muted-foreground font-normal">(Sel<sub>i</sub>)</span>
+                  <span className="text-xs text-muted-foreground font-normal">({t("selection share", "선택 비중")})</span>
                 </div>
                 <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
                   H(X){" "}
@@ -226,13 +226,13 @@ export function L1Signatures({ data }: { data: PaperSummary }) {
             <p className="mt-2 text-[11px] text-muted-foreground">
               {t(
                 <>
-                  36 free-choice sessions per agent. Sel<sub>i</sub> in parentheses is the
-                  most-selected family&apos;s share;{" "}
+                  36 free-choice sessions per agent. The value in parentheses is the
+                  most-selected family&apos;s selection share;{" "}
                   <span className="font-mono">Sel CR1</span> is the within-session concentration
                   averaged across sessions.
                 </>,
                 <>
-                  에이전트당 자유 선택 세션 36회임. 괄호 안 Sel<sub>i</sub>는 최다 선택 계열의 비중이며,{" "}
+                  에이전트당 자유 선택 세션 36회임. 괄호 안 값은 최다 선택 계열의 선택 비중이며,{" "}
                   <span className="font-mono">Sel CR1</span>은 세션 내 집중도를 전체 세션에 대해 평균한 값임.
                 </>
               )}
@@ -464,7 +464,7 @@ function MobileSignatureCard({
   const t = useT();
   const rows: Array<{ label: React.ReactNode; value: string; pct: number; suffix?: string; suffixTitle?: string }> = [
     {
-      label: <>{t("Most Selected", "최다 선택")} <span className="text-muted-foreground/70">Sel<sub>i</sub></span></>,
+      label: <>{t("Most Selected", "최다 선택")} <span className="text-muted-foreground/70">{t("selection share", "선택 비중")}</span></>,
       value: `${topShare.toFixed(1)}%`,
       pct: topShare,
       suffix: FAMILY_LABELS[topFamily] ?? topFamily,
@@ -531,7 +531,7 @@ function MobileSignatureCard({
       </div>
       <div className="mt-3 pt-3 border-t border-border/60">
         <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1.5">
-          Sel<sub>i</sub> {t("across 10 families", "· 10개 계열")}
+          {t("Selection share across 10 families", "선택 비중 · 10개 계열")}
         </div>
         <MiniFamilyBars
           selByFamily={selByFamily}

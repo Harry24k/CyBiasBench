@@ -59,10 +59,10 @@ export function Chapter({
   return (
     <section id={id} className="scroll-mt-20 pt-16 sm:pt-20">
       <header className={cn(COLUMN, "mb-6 sm:mb-8")}>
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
+        <p className="text-sm font-semibold tracking-[0.12em] text-muted-foreground">
           {String(num).padStart(2, "0")}
         </p>
-        <h2 className="mt-2 font-serif text-[26px] sm:text-[32px] leading-[1.25] text-foreground text-balance">
+        <h2 className="mt-2 text-[24px] sm:text-[30px] font-bold leading-[1.3] tracking-tight text-foreground text-balance">
           {t(en, ko)}
         </h2>
       </header>
@@ -73,7 +73,7 @@ export function Chapter({
 
 /** Spacing wrapper around an existing dashboard block so it reads as a figure in the text. */
 export function Figure({ children }: { children: ReactNode }) {
-  return <div className="py-6 sm:py-8">{children}</div>;
+  return <div className="article-figure py-6 sm:py-8">{children}</div>;
 }
 
 /** Thin horizontal rule in the column. */

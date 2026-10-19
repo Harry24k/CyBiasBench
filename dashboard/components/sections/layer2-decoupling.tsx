@@ -198,48 +198,22 @@ export function L2SelVsAsr({ data }: { data: PaperSummary }) {
     <>
         <FadeIn>
           <section className="max-w-[800px] mx-auto px-4 sm:px-6">
-            <div className="mb-5 flex items-start justify-between gap-4 flex-wrap">
-              <div>
-                <h3 className="text-xl font-semibold text-foreground">
-                  {t("Selection vs per-family ASR (per agent)", "선택 vs 계열별 ASR (에이전트별)")}
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
-                  {t(
-                    <>
-                      Each panel contrasts the agent&apos;s own allocation profile
-                      (Sel<sub>i</sub>, filled) with its own per-family success rate
-                      (ASR<sub>i</sub>, dashed). Each metric is normalized to its
-                      global maximum (Sel to {Math.round(maxSel * 100)}%, ASR
-                      to {Math.round(maxAsr * 100)}%) so the two polygons are
-                      visually comparable — shape divergence reveals effort
-                      mis-spent on low-success families. Hover for raw values.
-                    </>,
-                    <>
-                      각 패널은 해당 에이전트의 배분 프로파일(Sel<sub>i</sub>, 음영)과
-                      동일 에이전트의 계열별 성공률(ASR<sub>i</sub>, 점선)을 중첩하여 제시함.
-                      두 지표는 각각의 전역 최댓값(Sel은 {Math.round(maxSel * 100)}%,
-                      ASR은 {Math.round(maxAsr * 100)}%)으로 정규화하여 다각형 간 비교가
-                      가능하도록 함. 형태가 어긋나는 구간이 성공률이 낮은 계열에 자원을
-                      낭비한 지점임. 원값은 마우스를 올리면 표시됨.
-                    </>
-                  )}
-                </p>
-              </div>
-              <div className="flex items-center gap-x-3 gap-y-2 flex-wrap w-full sm:w-auto">
+            <div className="mb-4 flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-x-3 gap-y-2 flex-wrap w-full">
                 <div className="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs sm:text-sm text-muted-foreground">
                   <span className="flex items-center gap-2">
                     <span className="inline-block w-5 h-0 border-t-2 border-current" />
-                    {t("Selection Selᵢ", "선택 Selᵢ")}
+                    {t("Selection share", "선택 비중")}
                   </span>
                   <span className="flex items-center gap-2">
                     <span
                       className="inline-block w-5 h-0"
                       style={{ borderTop: "1.5px dashed currentColor" }}
                     />
-                    ASRᵢ
+                    {t("Attack success rate", "공격 성공률")}
                   </span>
                 </div>
-                <div className="inline-flex rounded-md border border-border overflow-hidden ml-auto sm:ml-0">
+                <div className="inline-flex rounded-md border border-border overflow-hidden ml-auto">
                   <button
                     type="button"
                     onClick={() => setView("radar")}
@@ -377,14 +351,12 @@ export function L2SelVsAsr({ data }: { data: PaperSummary }) {
                 <div className="px-3 py-2 text-xs text-muted-foreground border-t border-border">
                   {t(
                     <>
-                      Each cell: <span className="font-mono">Selᵢ / ASRᵢ</span>. Cell tint
-                      scales with Selᵢ relative to the global Sel maximum
-                      ({Math.round(maxSel * 100)}%). Bold marks each agent&apos;s most-selected family.
+                      Each cell: selection share / attack success rate. Cell tint scales
+                      with selection share; bold marks each agent&apos;s most-selected family.
                     </>,
                     <>
-                      각 칸은 <span className="font-mono">Selᵢ / ASRᵢ</span>임. 칸 색상은 전역 Sel
-                      최댓값({Math.round(maxSel * 100)}%) 대비 Selᵢ에 비례함. 굵은 값은
-                      에이전트별 최다 선택 계열을 나타냄.
+                      각 칸: 선택 비중 / 공격 성공률. 칸 색상은 선택 비중에 비례하며,
+                      굵은 값은 에이전트별 최다 선택 계열임.
                     </>
                   )}
                 </div>

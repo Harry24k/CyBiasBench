@@ -259,13 +259,12 @@ export function L3Transfer({ data }: { data: PaperSummary }) {
                 )}
               </p>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+            <div>
               <AsrTransferPanel
                 data={predictors}
                 rho={h.asr_transfer.rho}
                 pValue={h.asr_transfer.p}
               />
-              <GeminiExceptionCallout />
             </div>
           </section>
         </FadeIn>
@@ -746,9 +745,9 @@ function CompliancePredictorsSection({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PredictorPanel
-          title={t("Selᵢ (observation) vs Compliance", "Selᵢ (관찰) vs 순응도")}
+          title={t("Selection share (observation) vs Compliance", "선택 비중 (관찰) vs 순응도")}
           xKey="sel_i"
-          xLabel={t("Selection rate Selᵢ", "선택률 Selᵢ")}
+          xLabel={t("Selection share", "선택 비중")}
           data={filtered}
           rho={rhoSel}
           pValue={pSel}
@@ -756,9 +755,9 @@ function CompliancePredictorsSection({
           showRegression={showRegression}
         />
         <PredictorPanel
-          title={t("ASRᵢ (observation) vs Compliance", "ASRᵢ (관찰) vs 순응도")}
+          title={t("Attack success rate (observation) vs Compliance", "공격 성공률 (관찰) vs 순응도")}
           xKey="asr_i"
-          xLabel={t("Per-family ASRᵢ", "계열별 ASRᵢ")}
+          xLabel={t("Attack success rate", "공격 성공률")}
           data={filtered}
           rho={rhoAsri}
           pValue={pAsri}
@@ -956,10 +955,10 @@ function PredictorPanel({
                     {FAMILY_LABELS[row.family] ?? row.family}
                   </div>
                   <div className="font-mono tabular-nums">
-                    Selᵢ: {(row.sel_i * 100).toFixed(1)}%
+                    {t("Selection share", "선택 비중")}: {(row.sel_i * 100).toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums">
-                    {t("ASRᵢ (obs)", "ASRᵢ (관찰)")}: {(row.asr_i * 100).toFixed(1)}%
+                    {t("Attack success rate (obs)", "공격 성공률 (관찰)")}: {(row.asr_i * 100).toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums">
                     {t("target ASR (inj)", "목표 ASR (주입)")}: {(row.asr_i_s2 * 100).toFixed(1)}%
@@ -999,65 +998,6 @@ function PredictorPanel({
           )}
         </ComposedChart>
       </ResponsiveContainer>
-    </div>
-  );
-}
-
-function GeminiExceptionCallout() {
-  const t = useT();
-  return (
-    <div className="rounded-lg border border-blue-500/40 bg-blue-500/5 p-5 space-y-3 self-start">
-      <div className="flex items-baseline gap-2">
-        <span className="text-[11px] font-mono uppercase tracking-widest text-blue-400">
-          {t("Gemini exception", "Gemini 예외")}
-        </span>
-      </div>
-      <p className="text-sm text-foreground font-semibold leading-snug">
-        {t(
-          "Cross-setting transfer is significant for 4 of 5 agents — Gemini is the lone outlier.",
-          "설정 간 전이는 5종 중 4종 에이전트에서 유의함. Gemini만 예외임."
-        )}
-      </p>
-      <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
-        {t(
-          <>
-            <p>
-              Aggregate: <span className="font-mono text-foreground">ρ = +0.696</span>{" "}
-              <span className="font-mono">(p = 1.96×10⁻⁸, n = 50)</span>.{" "}
-              Per-agent (n=10):
-            </p>
-            <ul className="space-y-1 font-mono">
-              <li>· Claude / Codex / GLM / Kimi: significant at p &lt; 0.05</li>
-              <li>· Gemini: <span className="text-foreground">ρ = +0.122, n.s.</span></li>
-            </ul>
-            <p className="pt-2 border-t border-border/60">
-              Yet within Gemini, compliance correlates with target-restricted ASR
-              (<span className="font-mono text-foreground">ρ = +0.696, p = 0.025</span>).
-              Its highly concentrated free-choice profile means steering happens to
-              align with where it&apos;s already capable — preference and ability are
-              partially fused only for the most peaked allocator.
-            </p>
-          </>,
-          <>
-            <p>
-              전체: <span className="font-mono text-foreground">ρ = +0.696</span>{" "}
-              <span className="font-mono">(p = 1.96×10⁻⁸, n = 50)</span>.{" "}
-              에이전트별 (n=10):
-            </p>
-            <ul className="space-y-1 font-mono">
-              <li>· Claude / Codex / GLM / Kimi: p &lt; 0.05에서 유의</li>
-              <li>· Gemini: <span className="text-foreground">ρ = +0.122, 유의하지 않음</span></li>
-            </ul>
-            <p className="pt-2 border-t border-border/60">
-              다만 Gemini 내부에서는 순응도가 목표 한정 ASR과 상관을 보임
-              (<span className="font-mono text-foreground">ρ = +0.696, p = 0.025</span>).
-              자유 선택 프로파일이 특정 계열에 크게 편중되어 있어, 지시받은 방향이 이미
-              성과가 우수한 영역과 결과적으로 일치하는 것임. 배분이 가장 집중된
-              에이전트에 한하여 선호와 실력이 부분적으로 결합되어 있음.
-            </p>
-          </>
-        )}
-      </div>
     </div>
   );
 }
@@ -1102,7 +1042,7 @@ function AsrTransferPanel({
             tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
             tick={{ fontSize: 12, fill: colors.tick }}
             label={{
-              value: t("Observation per-family ASRᵢ", "관찰 계열별 ASRᵢ"),
+              value: t("Attack success rate (observation)", "공격 성공률 (관찰)"),
               position: "insideBottom",
               offset: -15,
               style: { fontSize: 12, fill: colors.tick },
@@ -1115,7 +1055,7 @@ function AsrTransferPanel({
             tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
             tick={{ fontSize: 12, fill: colors.tick }}
             label={{
-              value: t("Injection per-family ASRᵢ (forced)", "주입 계열별 ASRᵢ (강제)"),
+              value: t("Attack success rate (injection)", "공격 성공률 (주입)"),
               angle: -90,
               position: "insideLeft",
               style: { fontSize: 12, fill: colors.tick },
@@ -1158,13 +1098,13 @@ function AsrTransferPanel({
                     {FAMILY_LABELS[row.family] ?? row.family}
                   </div>
                   <div className="font-mono tabular-nums">
-                    {t("Obs ASRᵢ", "관찰 ASRᵢ")}: {(row.asr_i * 100).toFixed(1)}%
+                    {t("Attack success rate (obs)", "공격 성공률 (관찰)")}: {(row.asr_i * 100).toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums">
-                    {t("Inj ASRᵢ", "주입 ASRᵢ")}: {(row.asr_i_s2 * 100).toFixed(1)}%
+                    {t("Attack success rate (inj)", "공격 성공률 (주입)")}: {(row.asr_i_s2 * 100).toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums">
-                    Selᵢ: {(row.sel_i * 100).toFixed(1)}%
+                    {t("Selection share", "선택 비중")}: {(row.sel_i * 100).toFixed(1)}%
                   </div>
                   <div className="font-mono tabular-nums">
                     {t("compliance", "순응도")}: {(row.compliance * 100).toFixed(1)}%
