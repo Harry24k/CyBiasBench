@@ -4,24 +4,22 @@ import { RESEARCHERS, PAPER } from "@/lib/config";
 import { BASE_PATH } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 
-// Inline literals so Next.js' build-time NEXT_PUBLIC_* substitution turns
-// these into constant booleans, letting the bundler dead-code-eliminate the
-// venue eyebrow and the "(anonymized for review)" annotation entirely on
-// the GitHub Pages build. Using the imported IS_ANONYMOUS would leave both
-// branches of every ternary in the JS chunk — visible to anyone reading
-// view-source.
+// Inline literal so Next.js' build-time NEXT_PUBLIC_* substitution turns
+// this into a constant boolean, letting the bundler dead-code-eliminate the
+// "(anonymized for review)" annotation entirely on the GitHub Pages build.
+// The NeurIPS 2026 acceptance eyebrow is shown on every build.
 const IS_ANON_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
-const VENUE_VISIBLE_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 
 export function HeroSection() {
   const t = useT();
   return (
     <section className="pt-10 sm:pt-24 pb-8 sm:pb-16 max-w-[1500px] mx-auto px-4 sm:px-6 text-center">
-      {VENUE_VISIBLE_INLINE && (
-        <p className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.22em] text-muted-foreground mb-3 sm:mb-4">
-          NeurIPS 2026 · Evaluations &amp; Datasets Track
-        </p>
-      )}
+      <p className="mb-3 sm:mb-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-[11px] sm:text-xs font-mono uppercase tracking-[0.22em] text-muted-foreground">
+        <span className="inline-flex items-center rounded-full border border-emerald-500/50 bg-emerald-500/10 px-2.5 py-0.5 tracking-[0.16em] text-emerald-500 font-semibold">
+          {t("Accepted", "채택")}
+        </span>
+        <span>NeurIPS 2026 · Evaluations &amp; Datasets Track</span>
+      </p>
       <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-foreground tracking-tight bg-gradient-to-b from-foreground to-foreground/75 bg-clip-text text-transparent">
         CyBiasBench
       </h1>

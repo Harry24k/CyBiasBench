@@ -3,12 +3,11 @@
 import { SITE, REPO, PAPER } from "@/lib/config";
 import { useT } from "@/lib/i18n";
 
-// Inline literals — see hero-section.tsx for the same trick. Lets the bundler
-// drop both the venue paragraph (NeurIPS string) and the "Anonymous review
-// build..." string from the GitHub Pages chunk entirely, not just at render
-// time.
+// Inline literal — see hero-section.tsx for the same trick. Lets the bundler
+// drop the "Anonymous build..." string from the GitHub Pages chunk entirely,
+// not just at render time. The NeurIPS 2026 acceptance line shows on every
+// build.
 const IS_ANON_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
-const VENUE_VISIBLE_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 
 export function Footer() {
   const t = useT();
@@ -53,24 +52,17 @@ export function Footer() {
             <span>{SITE.year}</span>
           </div>
         </div>
-        {VENUE_VISIBLE_INLINE ? (
-          <p className="text-[11px] text-muted-foreground/70">
-            {IS_ANON_INLINE
-              ? t(
-                  "Anonymous review build — author and repository identifiers are masked. Submitted to ",
-                  "심사용 익명 배포본임 — 저자 및 저장소 정보는 비공개 처리함. 투고처: "
-                )
-              : t("Submitted to ", "투고처: ")}
-            {SITE.venue}.
-          </p>
-        ) : (
-          <p className="text-[11px] text-muted-foreground/70">
-            {t(
-              "Research preview · maintained by the authors.",
-              "연구 프리뷰본 · 저자가 직접 관리함."
+        <p className="text-[11px] text-muted-foreground/70">
+          {IS_ANON_INLINE &&
+            t(
+              "Anonymous build — author and repository identifiers are masked. ",
+              "익명 배포본임 — 저자 및 저장소 정보는 비공개 처리함. "
             )}
-          </p>
-        )}
+          {t(
+            <>Accepted at {SITE.venue}.</>,
+            <>{SITE.venue} 채택.</>
+          )}
+        </p>
       </div>
     </footer>
   );

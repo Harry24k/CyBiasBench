@@ -5,14 +5,14 @@
  *   │ Deploy target       │ Author identity  │ Venue keywords   │
  *   ├─────────────────────┼──────────────────┼──────────────────┤
  *   │ Vercel (default)    │ Anonymous        │ NeurIPS visible  │
- *   │ GitHub Pages        │ Real names       │ NeurIPS hidden   │
+ *   │ GitHub Pages        │ Real names       │ NeurIPS visible  │
  *   └─────────────────────┴──────────────────┴──────────────────┘
  *
  * The Vercel build serves the double-blind review URL — masks who wrote it
  * but can openly say "submitted to NeurIPS 2026". The GitHub Pages build
  * lives at a deanonymizing URL (github.com/<user>/...) so it shows the real
- * authors, but must scrub every NeurIPS keyword to avoid linking
- * <real name> + <NeurIPS submission> until the review period ends.
+ * authors. Now that the paper has been accepted to NeurIPS 2026 and the
+ * review period is over, the venue is shown on both builds.
  *
  * Mode is controlled by a single env var at build time:
  *   • Vercel deploy   : NEXT_PUBLIC_DEPLOY_TARGET=vercel  (default)
@@ -28,8 +28,8 @@ const DEPLOY_TARGET = process.env.NEXT_PUBLIC_DEPLOY_TARGET ?? "vercel";
 /** True everywhere except the GitHub Pages build. */
 export const IS_ANONYMOUS = DEPLOY_TARGET !== "github";
 
-/** True everywhere except the GitHub Pages build. Gates NeurIPS keywords. */
-export const VENUE_VISIBLE = DEPLOY_TARGET !== "github";
+/** Accepted to NeurIPS 2026 — the venue is visible on every build. */
+export const VENUE_VISIBLE = true;
 
 export const SITE = {
   name: "CyBiasBench",
@@ -40,8 +40,7 @@ export const SITE = {
   longDescription:
     "CyBiasBench is a benchmark for quantifying attack-selection bias — the model-specific tendency of an LLM agent to disproportionately concentrate effort on a narrow set of attack families regardless of prompt variation. It evaluates 5 agents across 3 vulnerable web targets in 4 prompt conditions (180 Bias Observation sessions), plus 450 Bias Injection sessions that test bias momentum: agents resist explicit user steering, and the forced redistribution does not yield measurable gains in attack performance.",
   year: 2026,
-  /** Only render this string in components when VENUE_VISIBLE is true. */
-  venue: "NeurIPS 2026 Evaluations & Datasets (E&D)",
+  venue: "NeurIPS 2026 Evaluations & Datasets (E&D) Track",
   license: "CC-BY-4.0",
   // Anonymous build always points at the 4open.science mirror; the real
   // GitHub Pages URL is only ever read from an env var, never embedded.
@@ -107,5 +106,5 @@ export const PAPER = {
   label:
     process.env.NEXT_PUBLIC_DEPLOY_TARGET === "github"
       ? "Paper (arXiv)"
-      : "PDF (under review)",
+      : "Paper (NeurIPS 2026)",
 };

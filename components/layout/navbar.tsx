@@ -11,6 +11,12 @@ import { useLang, useT } from "@/lib/i18n";
 // "Anonymous review build" branch on the GitHub Pages build.
 const IS_ANON_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
 
+const LAB = {
+  url: "https://trustworthyai.co.kr/",
+  logo: "https://trustworthyai.co.kr/assets/img/logo_wide_t.png",
+  name: "TrustworthyAI Lab",
+};
+
 interface SubItem {
   id: string;
   label: string;
@@ -480,12 +486,31 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/85 backdrop-blur-md">
       <div className="max-w-[1500px] mx-auto px-6 h-14 flex items-center justify-between">
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="flex items-center gap-2 cursor-pointer"
-        >
-          <span className="font-serif text-lg text-foreground">CyBiasBench</span>
-        </button>
+        {IS_ANON_INLINE ? (
+          // Anonymous build: a lab logo would deanonymize the authors.
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <span className="font-serif text-lg text-foreground">CyBiasBench</span>
+          </button>
+        ) : (
+          <a
+            href={LAB.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex shrink-0 items-center"
+            aria-label={LAB.name}
+            title={LAB.name}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={LAB.logo}
+              alt={LAB.name}
+              className="lab-logo h-7 sm:h-8 w-auto max-w-[180px] sm:max-w-[240px] object-contain"
+            />
+          </a>
+        )}
 
         <div className="flex items-center gap-1">
           {NAV.map((item) =>

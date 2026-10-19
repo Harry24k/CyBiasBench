@@ -117,6 +117,13 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Wrap at word boundaries only, in both Korean and English: keep-all stops
+       Hangul from splitting mid-word (어절 단위 줄바꿈), and overflow-wrap only
+       breaks a single token when it is longer than its whole line (e.g. a URL),
+       so nothing ever overflows the layout. */
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    hyphens: manual;
     /* Suspenders: clip on body too, plus position:relative so any rogue
        absolute child establishes its containing block here (and gets
        clipped along with the rest of the body). max-width pins the body
@@ -260,6 +267,10 @@ html:not(.light) .surface-band { background-color: #1a1a1e; }
 .light .bg-amber-500\/10 { background-color: rgba(180,83,9,0.10) !important; }
 .light .bg-amber-400\/10 { background-color: rgba(180,83,9,0.10) !important; }
 .light .bg-amber-500\/5 { background-color: rgba(180,83,9,0.06) !important; }
+
+/* Lab logo: rendered as-is in light mode; flipped to white on the dark theme
+   so the wordmark stays legible on the near-black navbar. */
+html:not(.light) .lab-logo { filter: brightness(0) invert(1); }
 
 /* Honor prefers-reduced-motion globally */
 @media (prefers-reduced-motion: reduce) {

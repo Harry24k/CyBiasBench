@@ -5,10 +5,6 @@ import { Footer } from "@/components/layout/footer";
 import { SITE, RESEARCHERS, REPO, IS_ANONYMOUS } from "@/lib/config";
 import { LanguageProvider } from "@/lib/i18n";
 
-// Inline literal so Next.js' build-time NEXT_PUBLIC_* substitution lets the
-// bundler dead-code-eliminate venue keywords on the GitHub Pages build.
-const VENUE_VISIBLE_INLINE = process.env.NEXT_PUBLIC_DEPLOY_TARGET !== "github";
-
 // SITE_URL is the full canonical share URL. SITE.url already embeds the
 // per-build path (4open.science/r/... on Vercel, /CyBiasBench/ on GH Pages),
 // so we use it as-is without re-appending BASE_PATH — the previous
@@ -37,7 +33,8 @@ export const metadata: Metadata = {
     "attack-selection bias",
     "web exploitation",
     "agent evaluation",
-    ...(VENUE_VISIBLE_INLINE ? ["NeurIPS 2026", "datasets and benchmarks"] : []),
+    "NeurIPS 2026",
+    "evaluations and datasets",
   ],
   authors: IS_ANONYMOUS
     ? [{ name: "Anonymous Authors" }]
