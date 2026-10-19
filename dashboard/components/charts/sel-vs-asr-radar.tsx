@@ -152,7 +152,7 @@ export function SelVsAsrRadar({
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-2 gap-3">
+      <div className="flex flex-col gap-1 mb-1">
         <div className="flex items-center gap-2">
           <span
             className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -160,7 +160,7 @@ export function SelVsAsrRadar({
           />
           <span className="text-sm font-semibold text-foreground">{label}</span>
         </div>
-        <div className="text-xs font-mono tabular-nums text-muted-foreground text-right leading-snug">
+        <div className="text-[11px] tabular-nums text-muted-foreground leading-snug">
           <div>
             <span style={{ color }}>{t("Top selection share", "최고 선택 비중")}</span>{" "}
             {(topSel.v * 100).toFixed(1)}% ·{" "}
@@ -173,7 +173,7 @@ export function SelVsAsrRadar({
         </div>
       </div>
       <ResponsiveContainer width="100%" height={height}>
-        <RadarChart data={data} cx="50%" cy="50%" outerRadius="72%">
+        <RadarChart data={data} cx="50%" cy="50%" outerRadius="66%" margin={{ top: 4, right: 18, bottom: 4, left: 18 }}>
           <PolarGrid stroke={colors.grid} />
           <PolarAngleAxis
             dataKey="metric"

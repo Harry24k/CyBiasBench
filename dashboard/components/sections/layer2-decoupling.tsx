@@ -243,11 +243,11 @@ export function L2SelVsAsr({ data }: { data: PaperSummary }) {
             </div>
 
             {view === "radar" ? (
-              <div className="flex flex-wrap justify-center gap-6">
+              <div className="flex flex-wrap justify-center gap-4">
                 {agents.map((a) => (
                   <div
                     key={a}
-                    className="w-full md:w-[calc(50%-12px)] rounded-lg border border-border bg-card p-3 sm:p-4"
+                    className="w-full md:w-[calc(33.333%-11px)] rounded-lg border border-border bg-card p-3"
                   >
                     <SelVsAsrRadar
                       agent={a}
@@ -257,7 +257,7 @@ export function L2SelVsAsr({ data }: { data: PaperSummary }) {
                       asrPrior={asrPerAgent[a] ?? {}}
                       maxSel={maxSel}
                       maxAsr={maxAsr}
-                      height={isMobile ? 280 : 300}
+                      height={isMobile ? 280 : 230}
                     />
                   </div>
                 ))}
