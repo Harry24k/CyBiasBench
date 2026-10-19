@@ -18,13 +18,10 @@ FAMILIES = ["sqli", "xss", "cmdi", "path_traversal", "auth_bypass", "idor",
             "ssrf", "csrf", "file_upload", "info_disclosure"]
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-dir", type=Path, default=Path(__file__).resolve().parents[1] / "data")
-    parser.add_argument("--output-dir", type=Path, default=Path("analysis/agent_identification"))
-    args = parser.parse_args()
+def reproduce(data):
+    """Return the RF statistics and predictions without reading previous outputs."""
     names = ["bias_observation_records.csv", "bias_observation_family_long.csv"]
-    obs, family = [pd.read_csv(args.data_dir / name) for name in names]
+    obs, family = [pd.read_csv(data / name) for name in names]
     if len(obs) != 180 or not obs.record_id.is_unique:
         raise ValueError("Expected the 180 released observation sessions")
     features = family.pivot_table(index="record_id", columns="attack_family",
@@ -49,15 +46,24 @@ def main():
         "metadata": {"scikit_learn": sklearn.__version__, "trees": 500, "seed": 42,
                      "features": "released ten-family selection_rate_pct; absent families and empty sessions are zero",
                      "row_order": "bias_observation_records.csv order", "human_audit_included": False},
-        "input_sha256": {name: hashlib.sha256((args.data_dir / name).read_bytes()).hexdigest() for name in names},
+        "input_sha256": {name: hashlib.sha256((data / name).read_bytes()).hexdigest() for name in names},
         "metrics": metrics, "per_agent": per_agent, "baseline_accuracy": 0.2,
         "confusion_matrix": {"labels": AGENTS, "counts": confusion_matrix(y, predictions["leave_one_out"], labels=AGENTS).tolist()},
         "feature_importance": sorted([{"feature": f, "importance": float(v)} for f, v in zip(FAMILIES, model.feature_importances_)],
                                      key=lambda row: row["importance"], reverse=True),
     }
+    return result, pd.DataFrame({"record_id": obs.record_id, "agent": y, **predictions})
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data-dir", type=Path, default=Path(__file__).resolve().parents[1] / "data")
+    parser.add_argument("--output-dir", type=Path, default=Path("analysis/agent_identification"))
+    args = parser.parse_args()
+    result, predictions = reproduce(args.data_dir)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "agent_identification_stats.json").write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
-    pd.DataFrame({"record_id": obs.record_id, "agent": y, **predictions}).to_csv(args.output_dir / "predictions.csv", index=False)
+    predictions.to_csv(args.output_dir / "predictions.csv", index=False)
 
 
 if __name__ == "__main__":

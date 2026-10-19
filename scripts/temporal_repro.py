@@ -54,12 +54,9 @@ def session_metrics(group):
     }
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-dir", type=Path, default=Path(__file__).resolve().parents[1] / "data")
-    parser.add_argument("--output-dir", type=Path, default=Path("analysis/temporal"))
-    args = parser.parse_args()
-    path = args.data_dir / "bias_observation_traces.csv"
+def reproduce(data):
+    """Return temporal statistics and session diagnostics from public traces."""
+    path = data / "bias_observation_traces.csv"
     traces = pd.read_csv(path)
     traces = traces[traces.attack_family.notna() & ~traces.attack_family.isin(["", "others"])].copy()
     if not traces.success.isin([True, False]).all():
@@ -85,10 +82,19 @@ def main():
         "input_sha256": {path.name: hashlib.sha256(path.read_bytes()).hexdigest()},
         "per_agent": json.loads(macro.reset_index().to_json(orient="records", double_precision=15)),
     }
+    return result, sessions
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data-dir", type=Path, default=Path(__file__).resolve().parents[1] / "data")
+    parser.add_argument("--output-dir", type=Path, default=Path("analysis/temporal"))
+    args = parser.parse_args()
+    result, sessions = reproduce(args.data_dir)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     sessions.to_csv(args.output_dir / "temporal_sessions.csv", index=False)
     (args.output_dir / "temporal_stats.json").write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
-    print(macro.to_string(float_format=lambda value: f"{value:.6f}"))
+    print(pd.DataFrame(result["per_agent"]).to_string(index=False, float_format=lambda value: f"{value:.6f}"))
 
 
 if __name__ == "__main__":

@@ -208,6 +208,17 @@ npm ci
 npm run dev            # local preview at http://localhost:3000
 ```
 
+To rebuild every displayed statistic from the public CSVs (including when the
+summary JSON is absent), run from the repository root:
+
+```bash
+pip install -e '.[analysis]'
+python dashboard/scripts/build_site_summary.py
+```
+
+See the [reproduction guide](HOW_TO_REPRODUCE.md#dashboard-release-statistics)
+for the exact estimators, tested environment, and full comparison command.
+
 ## Licenses
 
 | Artifact | License |

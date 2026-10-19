@@ -137,18 +137,60 @@ CSRF successes. Neither analysis uses expert-corrected labels.
 
 ### Dashboard release statistics
 
-After running all four analysis scripts above:
+Run from the repository root after `pip install -e '.[analysis]'`:
 
 ```bash
 python dashboard/scripts/build_site_summary.py
+# Optional full recomputation and comparison (does not write):
 python dashboard/scripts/build_site_summary.py --check
+# Fast tests of aggregation and missing-family behavior:
+python -m unittest discover -s dashboard/scripts/tests -v
 ```
 
-This updates the checked-in dashboard snapshot with the reproduced ASR estimates,
-confidence intervals, momentum correlations, agent identification, and temporal
-adaptation. It checks input SHA-256 hashes
-before writing. Other historical paper-summary fields are retained, so this
-command is not a full regeneration of every dashboard metric.
+This is a complete reconstruction of `dashboard/public/data/paper_summary.json`.
+It needs only the public observation records, observation family-long table,
+injection records, and both trace CSVs. Neither an existing summary, intermediate
+`analysis/` outputs, nor the private paper tree is required. `--data-dir PATH`
+and `--summary PATH` override the input and output locations. Random-forest
+leave-one-out evaluation takes a few minutes; it uses one worker. No model calls
+or network access are needed. `--check` compares every field with absolute and
+relative numeric tolerances of `1e-12` and reports changed field paths.
+
+Aggregation conventions preserved from the paper and dashboard:
+
+- Selection and diversity use the focal ten families. Observation family counts
+  are reconstructed as `attack_total * selection_rate_pct / 100`, without integer
+  rounding. Heatmaps pool those counts within each agent or agent/condition.
+  Entropy, distinct-family count, and Selection CR1 are computed per session and
+  then averaged, including empty sessions as zeros. These are distinct from the
+  archived session-mean heatmap aggregation discussed in the paper.
+- Entropy–ASR Spearman correlations and Kruskal–Wallis tests use those session
+  metrics. Kruskal effect size is `(H - k + 1) / (n - k)`.
+- Prompt-axis JSD contrasts pooled Guided/Unguided and Structured/Unstructured
+  profiles. Centroid statistics compare normalized condition profiles to their
+  count-weighted agent centroid, using the archived `1e-12` smoothing; the
+  between-agent centroid statistics use the same smoothing. Target-wise
+  marginal JSD uses unsmoothed pooled counts. Headline JSD values are calculated
+  and then rounded to the paper's four decimal places.
+- Compliance–selection and compliance–family-ASR correlations standardize
+  within agent before pooling. Family-ASR transfer uses raw pooling over all
+  50 cells with undefined family ASR set to zero; scatter data retains `null`
+  for those undefined values. Compliance–session-ASR uses raw pooled cells and
+  means of the released (four-decimal) injection session-ASR column.
+- Tokens per success is total tokens divided by total successful requests,
+  including tokens spent in unsuccessful sessions. It is not the mean of
+  per-session ratios. The decoupling table uses each agent's most-selected
+  family, that family's pooled ASR, and the agent's token cost.
+- The ASR comparison and bootstrap use exact trace-verified count ratios,
+  unlike the rounded column used by the historical cell correlation above.
+  Temporal diagnostics and RF identification follow the definitions immediately
+  above this section. All success labels remain the original automatic labels.
+
+The `reproduction` block records the five input hashes and method metadata.
+The builder checks that the inputs did not change during computation. Full
+reconstruction was verified with Python 3.12.6, NumPy 2.2.4, pandas 2.2.3, SciPy
+1.16.3, and scikit-learn 1.8.0. Random-forest results can depend on the library
+version, so use scikit-learn 1.8.0 when reproducing the checked-in snapshot.
 
 ---
 
