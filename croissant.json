@@ -1,0 +1,1252 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "dct": "http://purl.org/dc/terms/",
+    "equivalentProperty": "cr:equivalentProperty",
+    "examples": {
+      "@id": "cr:examples",
+      "@type": "@json"
+    },
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileProperty": "cr:fileProperty",
+    "fileObject": "cr:fileObject",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "samplingRate": "cr:samplingRate",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform",
+    "prov": "http://www.w3.org/ns/prov#"
+  },
+  "@type": "sc:Dataset",
+  "name": "CyBiasBench",
+  "description": "CyBiasBench is a 630-session benchmark for measuring attack-selection bias in LLM agents performing authorized web-exploitation tasks. The release contains aggregate session records, per-family long-form records, and sanitized request-level HTTP traces for five agents across three intentionally vulnerable target applications. Metrics include selection rate, entropy H(X), most-selected family, Selection CR1, per-family ASR, session ASR, compliance, and requested-family ASR.",
+  "conformsTo": [
+    "http://mlcommons.org/croissant/1.0",
+    "http://mlcommons.org/croissant/RAI/1.0"
+  ],
+  "license": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+  "url": "https://github.com/Harry24k/CyBiasBench",
+  "sameAs": "https://arxiv.org/abs/2605.07830",
+  "version": "1.0.0",
+  "datePublished": "2026-05-07",
+  "dateModified": "2026-10-19",
+  "citeAs": "@inproceedings{lim2026cybiasbench, title = {CyBiasBench: Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios}, author = {Lim, Taein and Ju, Seongyong and Kim, Munhyeok and Kim, Hyunjun and Kim, Hoki}, booktitle = {NeurIPS 2026 Evaluations and Datasets Track}, year = {2026}, url = {https://arxiv.org/abs/2605.07830} }",
+  "keywords": [
+    "LLM agents",
+    "attack-selection bias",
+    "offensive-cyber evaluation",
+    "web exploitation",
+    "OWASP",
+    "behavioral benchmark",
+    "responsible AI"
+  ],
+  "creator": [
+    { "@type": "Person", "name": "Taein Lim", "affiliation": "Chung-Ang University" },
+    { "@type": "Person", "name": "Seongyong Ju", "affiliation": "Chung-Ang University" },
+    { "@type": "Person", "name": "Munhyeok Kim", "affiliation": "Chung-Ang University" },
+    { "@type": "Person", "name": "Hyunjun Kim", "affiliation": "Myongji University" },
+    { "@type": "Person", "name": "Hoki Kim", "affiliation": "Chung-Ang University" }
+  ],
+  "rai:dataLimitations": [
+    "Scope is restricted to authorized web-exploitation tasks in isolated target environments.",
+    "The benchmark covers five agents, three target applications, four free-choice prompt conditions, and ten requested attack families for steering.",
+    "Measurements are HTTP-level; raw payload bodies, response bodies, headers, exact timestamps, and agent chain-of-thought are not released.",
+    "Per-family attempt counts are agent-driven in the bias observation setting, so rare families can have wider uncertainty.",
+    "The bias injection setting studies explicit single-family steering; softer steering regimes are not covered.",
+    "Results characterize five deployed-agent snapshots on three web targets, not stable model rankings.",
+    "Allocation also depends on vulnerability availability, discoverability, execution difficulty, request costs, tools, and prompts; this design does not causally isolate intrinsic preference.",
+    "Decision value at larger scale, superiority to simple diversity heuristics, and generalization to unseen targets remain unestablished."
+  ],
+  "rai:dataBiases": [
+    "The target applications emphasize web vulnerabilities and do not cover binary, kernel, hardware, cloud-native, or enterprise lateral-movement tasks.",
+    "The agent roster is a snapshot of five model families available at data collection time.",
+    "Success verification is rule-based and target-specific; false negatives are possible when an agent succeeds through an unintended path.",
+    "Selection metrics are less sensitive than success metrics to target difficulty, but still reflect the benchmark target and prompt distribution."
+  ],
+  "rai:personalSensitiveInformation": [
+    "No personal or user-generated content is included.",
+    "All sessions ran in isolated benchmark environments against intentionally vulnerable target applications with synthetic data.",
+    "The release removes raw bodies, headers, fine-grained timing, run identifiers, environment-specific identifiers, and provider credentials."
+  ],
+  "rai:dataUseCases": [
+    "Quantifying attack-selection bias in LLM agents under matched target and prompt conditions.",
+    "Studying whether explicit requested-family steering changes allocation, compliance, and attack performance.",
+    "Reproducing the paper figures and tables from released aggregate and trace data.",
+    "Defensive and methodological research on behavioral auditing of tool-using agents.",
+    "Not for training, fine-tuning, or distilling agents to attack real-world systems."
+  ],
+  "rai:hasSyntheticData": true,
+  "distribution": [
+    {
+      "@type": "cr:FileObject",
+      "@id": "bias_observation_records",
+      "name": "bias_observation_records.csv",
+      "description": "One row per free-choice session with session-level counts, ASR, entropy, most-selected family, Selection CR1, and token use.",
+      "contentUrl": "https://raw.githubusercontent.com/Harry24k/CyBiasBench/v1.0.0/data/bias_observation_records.csv",
+      "encodingFormat": "text/csv",
+      "sha256": "92fd68d3bdd5568d9cf1b858099e631ced9018a16abab8254234fa98876a303c",
+      "contentSize": "23033 B"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "bias_observation_family_long",
+      "name": "bias_observation_family_long.csv",
+      "description": "Long-form per-session attack-family selection rate and per-family ASR.",
+      "contentUrl": "https://raw.githubusercontent.com/Harry24k/CyBiasBench/v1.0.0/data/bias_observation_family_long.csv",
+      "encodingFormat": "text/csv",
+      "sha256": "112207642c9416fbb4050bab11ea60e58214fe84e7cdaf6435322d29eced13c9",
+      "contentSize": "96176 B"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "bias_observation_traces",
+      "name": "bias_observation_traces.csv",
+      "description": "Request-level sanitized HTTP traces for free-choice sessions, with classifier labels and success flags.",
+      "contentUrl": "https://raw.githubusercontent.com/Harry24k/CyBiasBench/v1.0.0/data/bias_observation_traces.csv",
+      "encodingFormat": "text/csv",
+      "sha256": "ed8b11eba2d8c2a67b0fc24aadf20ac9f76883403c83963e738899b0ce96deb6",
+      "contentSize": "3318810 B"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "bias_injection_records",
+      "name": "bias_injection_records.csv",
+      "description": "One row per steered session with requested family, compliance, requested-family ASR, session ASR, and token use.",
+      "contentUrl": "https://raw.githubusercontent.com/Harry24k/CyBiasBench/v1.0.0/data/bias_injection_records.csv",
+      "encodingFormat": "text/csv",
+      "sha256": "65cbdc79d5726610479312aeeb6c1be1de478b3ecdc82574af98a573be44dbd4",
+      "contentSize": "42283 B"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "bias_injection_family_long",
+      "name": "bias_injection_family_long.csv",
+      "description": "Long-form per-session attack-family attempt and success counts under steering.",
+      "contentUrl": "https://raw.githubusercontent.com/Harry24k/CyBiasBench/v1.0.0/data/bias_injection_family_long.csv",
+      "encodingFormat": "text/csv",
+      "sha256": "0f2dbb241cceef7607f315debaa890540f4df955fa132eb0251be73056a5a079",
+      "contentSize": "119015 B"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "bias_injection_traces",
+      "name": "bias_injection_traces.csv",
+      "description": "Request-level sanitized HTTP traces for steered sessions, with classifier labels and success flags.",
+      "contentUrl": "https://raw.githubusercontent.com/Harry24k/CyBiasBench/v1.0.0/data/bias_injection_traces.csv",
+      "encodingFormat": "text/csv",
+      "sha256": "4257dcddcc703e163a29142b95ec90c72d0afbdd91c27d815a25d353ffbaf470",
+      "contentSize": "43344319 B"
+    }
+  ],
+  "recordSet": [
+    {
+      "@type": "cr:RecordSet",
+      "@id": "bias_observation_records-records",
+      "name": "Bias Observation aggregate records",
+      "description": "One row per free-choice session with session-level counts, ASR, entropy, most-selected family, Selection CR1, and token use. Rows: 180.",
+      "field": [
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_records/record_id",
+          "name": "record_id",
+          "dataType": "sc:Text",
+          "description": "Stable key used to join aggregate, long-form, and trace records.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_records"
+            },
+            "extract": {
+              "column": "record_id"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_records/agent",
+          "name": "agent",
+          "dataType": "sc:Text",
+          "description": "Agent identifier used in the paper tables.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_records"
+            },
+            "extract": {
+              "column": "agent"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_records/target",
+          "name": "target",
+          "dataType": "sc:Text",
+          "description": "Target application identifier.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_records"
+            },
+            "extract": {
+              "column": "target"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_records/condition",
+          "name": "condition",
+          "dataType": "sc:Text",
+          "description": "Prompt condition for the bias observation setting: GS, GU, US, or UU.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_records"
+            },
+            "extract": {
+              "column": "condition"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_records/attack_total",
+          "name": "attack_total",
+          "dataType": "sc:Integer",
+          "description": "Number of HTTP requests classified as attacks.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_records"
+            },
+            "extract": {
+              "column": "attack_total"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_records/attack_success",
+          "name": "attack_success",
+          "dataType": "sc:Integer",
+          "description": "Number of attack requests marked successful by verifier rules.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_records"
+            },
+            "extract": {
+              "column": "attack_success"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_records/session_asr",
+          "name": "session_asr",
+          "dataType": "sc:Float",
+          "description": "Session-level attack success rate: attack_success / attack_total.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_records"
+            },
+            "extract": {
+              "column": "session_asr"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_records/entropy",
+          "name": "entropy",
+          "dataType": "sc:Float",
+          "description": "Shannon entropy H(X) over attack-family selections in a session.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_records"
+            },
+            "extract": {
+              "column": "entropy"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_records/most_selected_family",
+          "name": "most_selected_family",
+          "dataType": "sc:Text",
+          "description": "Attack family with the largest selection share.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_records"
+            },
+            "extract": {
+              "column": "most_selected_family"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_records/selection_cr1",
+          "name": "selection_cr1",
+          "dataType": "sc:Float",
+          "description": "Selection concentration ratio at 1: largest within-session selection share, in percent.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_records"
+            },
+            "extract": {
+              "column": "selection_cr1"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_records/total_tokens",
+          "name": "total_tokens",
+          "dataType": "sc:Integer",
+          "description": "Prompt plus completion tokens used by the agent during the session.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_records"
+            },
+            "extract": {
+              "column": "total_tokens"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "@type": "cr:RecordSet",
+      "@id": "bias_observation_family_long-records",
+      "name": "Bias Observation per-family records",
+      "description": "Long-form per-session attack-family selection rate and per-family ASR. Rows: 1,082.",
+      "field": [
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_family_long/record_id",
+          "name": "record_id",
+          "dataType": "sc:Text",
+          "description": "Stable key used to join aggregate, long-form, and trace records.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_family_long"
+            },
+            "extract": {
+              "column": "record_id"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_family_long/agent",
+          "name": "agent",
+          "dataType": "sc:Text",
+          "description": "Agent identifier used in the paper tables.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_family_long"
+            },
+            "extract": {
+              "column": "agent"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_family_long/target",
+          "name": "target",
+          "dataType": "sc:Text",
+          "description": "Target application identifier.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_family_long"
+            },
+            "extract": {
+              "column": "target"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_family_long/condition",
+          "name": "condition",
+          "dataType": "sc:Text",
+          "description": "Prompt condition for the bias observation setting: GS, GU, US, or UU.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_family_long"
+            },
+            "extract": {
+              "column": "condition"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_family_long/attack_family",
+          "name": "attack_family",
+          "dataType": "sc:Text",
+          "description": "Classifier-assigned attack family label; traces also use others for non-attack traffic.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_family_long"
+            },
+            "extract": {
+              "column": "attack_family"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_family_long/selection_rate_pct",
+          "name": "selection_rate_pct",
+          "dataType": "sc:Float",
+          "description": "Percent of session attacks assigned to this attack family; paper Sel_i.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_family_long"
+            },
+            "extract": {
+              "column": "selection_rate_pct"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_family_long/asr",
+          "name": "asr",
+          "dataType": "sc:Float",
+          "description": "Per-family attack success rate; paper ASR_i.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_family_long"
+            },
+            "extract": {
+              "column": "asr"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "@type": "cr:RecordSet",
+      "@id": "bias_observation_traces-records",
+      "name": "Bias Observation sanitized request traces",
+      "description": "Request-level sanitized HTTP traces for free-choice sessions, with classifier labels and success flags. Rows: 19,116.",
+      "field": [
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/record_id",
+          "name": "record_id",
+          "dataType": "sc:Text",
+          "description": "Stable key used to join aggregate, long-form, and trace records.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "record_id"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/scenario",
+          "name": "scenario",
+          "dataType": "sc:Text",
+          "description": "Benchmark setting: bias_observation or bias_injection.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "scenario"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/target",
+          "name": "target",
+          "dataType": "sc:Text",
+          "description": "Target application identifier.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "target"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/agent",
+          "name": "agent",
+          "dataType": "sc:Text",
+          "description": "Agent identifier used in the paper tables.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "agent"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/request_index",
+          "name": "request_index",
+          "dataType": "sc:Integer",
+          "description": "Zero-based request order within a session; absolute timestamps are not retained.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "request_index"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/req_method",
+          "name": "req_method",
+          "dataType": "sc:Text",
+          "description": "HTTP request method.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "req_method"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/req_path",
+          "name": "req_path",
+          "dataType": "sc:Text",
+          "description": "HTTP request path with query string; bodies and headers are not retained.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "req_path"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/resp_status_code",
+          "name": "resp_status_code",
+          "dataType": "sc:Float",
+          "description": "HTTP response status code.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "resp_status_code"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/attack_family",
+          "name": "attack_family",
+          "dataType": "sc:Text",
+          "description": "Classifier-assigned attack family label; traces also use others for non-attack traffic.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "attack_family"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/matched_rules",
+          "name": "matched_rules",
+          "dataType": "sc:Text",
+          "description": "Classifier rule identifiers matched for the request.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "matched_rules"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/capec_id",
+          "name": "capec_id",
+          "dataType": "sc:Text",
+          "description": "CAPEC mapping for the assigned attack family.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "capec_id"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/cwe_id",
+          "name": "cwe_id",
+          "dataType": "sc:Text",
+          "description": "CWE mapping for the assigned attack family.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "cwe_id"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/success",
+          "name": "success",
+          "dataType": "sc:Boolean",
+          "description": "Verifier success flag for this request.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "success"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_observation_traces/success_evidence",
+          "name": "success_evidence",
+          "dataType": "sc:Text",
+          "description": "Short non-payload evidence label from the verifier.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_observation_traces"
+            },
+            "extract": {
+              "column": "success_evidence"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "@type": "cr:RecordSet",
+      "@id": "bias_injection_records-records",
+      "name": "Bias Injection aggregate records",
+      "description": "One row per steered session with requested family, compliance, requested-family ASR, session ASR, and token use. Rows: 450.",
+      "field": [
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/record_id",
+          "name": "record_id",
+          "dataType": "sc:Text",
+          "description": "Stable key used to join aggregate, long-form, and trace records.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "record_id"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/agent",
+          "name": "agent",
+          "dataType": "sc:Text",
+          "description": "Agent identifier used in the paper tables.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "agent"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/target",
+          "name": "target",
+          "dataType": "sc:Text",
+          "description": "Target application identifier.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "target"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/requested_family",
+          "name": "requested_family",
+          "dataType": "sc:Text",
+          "description": "Attack family requested in the bias injection prompt.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "requested_family"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/rep",
+          "name": "rep",
+          "dataType": "sc:Integer",
+          "description": "Repetition index.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "rep"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/attack_total",
+          "name": "attack_total",
+          "dataType": "sc:Integer",
+          "description": "Number of HTTP requests classified as attacks.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "attack_total"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/attack_success",
+          "name": "attack_success",
+          "dataType": "sc:Integer",
+          "description": "Number of attack requests marked successful by verifier rules.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "attack_success"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/session_asr",
+          "name": "session_asr",
+          "dataType": "sc:Float",
+          "description": "Session-level attack success rate: attack_success / attack_total.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "session_asr"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/requested_family_attempts",
+          "name": "requested_family_attempts",
+          "dataType": "sc:Integer",
+          "description": "Attack requests classified as the requested family.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "requested_family_attempts"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/requested_family_successes",
+          "name": "requested_family_successes",
+          "dataType": "sc:Integer",
+          "description": "Successful attack requests classified as the requested family.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "requested_family_successes"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/requested_family_asr",
+          "name": "requested_family_asr",
+          "dataType": "sc:Float",
+          "description": "Requested-family success rate: requested_family_successes / requested_family_attempts; reported as 0.0 when requested_family_attempts == 0.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "requested_family_asr"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/compliance",
+          "name": "compliance",
+          "dataType": "sc:Float",
+          "description": "Fraction of attack attempts assigned to the requested family.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "compliance"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_records/total_tokens",
+          "name": "total_tokens",
+          "dataType": "sc:Integer",
+          "description": "Prompt plus completion tokens used by the agent during the session.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_records"
+            },
+            "extract": {
+              "column": "total_tokens"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "@type": "cr:RecordSet",
+      "@id": "bias_injection_family_long-records",
+      "name": "Bias Injection per-family records",
+      "description": "Long-form per-session attack-family attempt and success counts under steering. Rows: 1,597.",
+      "field": [
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_family_long/record_id",
+          "name": "record_id",
+          "dataType": "sc:Text",
+          "description": "Stable key used to join aggregate, long-form, and trace records.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_family_long"
+            },
+            "extract": {
+              "column": "record_id"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_family_long/agent",
+          "name": "agent",
+          "dataType": "sc:Text",
+          "description": "Agent identifier used in the paper tables.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_family_long"
+            },
+            "extract": {
+              "column": "agent"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_family_long/target",
+          "name": "target",
+          "dataType": "sc:Text",
+          "description": "Target application identifier.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_family_long"
+            },
+            "extract": {
+              "column": "target"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_family_long/requested_family",
+          "name": "requested_family",
+          "dataType": "sc:Text",
+          "description": "Attack family requested in the bias injection prompt.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_family_long"
+            },
+            "extract": {
+              "column": "requested_family"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_family_long/rep",
+          "name": "rep",
+          "dataType": "sc:Integer",
+          "description": "Repetition index.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_family_long"
+            },
+            "extract": {
+              "column": "rep"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_family_long/attack_family",
+          "name": "attack_family",
+          "dataType": "sc:Text",
+          "description": "Classifier-assigned attack family label; traces also use others for non-attack traffic.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_family_long"
+            },
+            "extract": {
+              "column": "attack_family"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_family_long/attempts",
+          "name": "attempts",
+          "dataType": "sc:Integer",
+          "description": "Attack requests classified as this attack family.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_family_long"
+            },
+            "extract": {
+              "column": "attempts"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_family_long/success",
+          "name": "success",
+          "dataType": "sc:Integer",
+          "description": "Successful attack requests classified as this attack family.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_family_long"
+            },
+            "extract": {
+              "column": "success"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "@type": "cr:RecordSet",
+      "@id": "bias_injection_traces-records",
+      "name": "Bias Injection sanitized request traces",
+      "description": "Request-level sanitized HTTP traces for steered sessions, with classifier labels and success flags. Rows: 258,019.",
+      "field": [
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/record_id",
+          "name": "record_id",
+          "dataType": "sc:Text",
+          "description": "Stable key used to join aggregate, long-form, and trace records.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "record_id"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/scenario",
+          "name": "scenario",
+          "dataType": "sc:Text",
+          "description": "Benchmark setting: bias_observation or bias_injection.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "scenario"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/target",
+          "name": "target",
+          "dataType": "sc:Text",
+          "description": "Target application identifier.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "target"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/agent",
+          "name": "agent",
+          "dataType": "sc:Text",
+          "description": "Agent identifier used in the paper tables.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "agent"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/request_index",
+          "name": "request_index",
+          "dataType": "sc:Integer",
+          "description": "Zero-based request order within a session; absolute timestamps are not retained.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "request_index"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/req_method",
+          "name": "req_method",
+          "dataType": "sc:Text",
+          "description": "HTTP request method.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "req_method"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/req_path",
+          "name": "req_path",
+          "dataType": "sc:Text",
+          "description": "HTTP request path with query string; bodies and headers are not retained.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "req_path"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/resp_status_code",
+          "name": "resp_status_code",
+          "dataType": "sc:Float",
+          "description": "HTTP response status code.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "resp_status_code"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/attack_family",
+          "name": "attack_family",
+          "dataType": "sc:Text",
+          "description": "Classifier-assigned attack family label; traces also use others for non-attack traffic.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "attack_family"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/matched_rules",
+          "name": "matched_rules",
+          "dataType": "sc:Text",
+          "description": "Classifier rule identifiers matched for the request.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "matched_rules"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/capec_id",
+          "name": "capec_id",
+          "dataType": "sc:Text",
+          "description": "CAPEC mapping for the assigned attack family.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "capec_id"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/cwe_id",
+          "name": "cwe_id",
+          "dataType": "sc:Text",
+          "description": "CWE mapping for the assigned attack family.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "cwe_id"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/success",
+          "name": "success",
+          "dataType": "sc:Boolean",
+          "description": "Verifier success flag for this request.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "success"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "bias_injection_traces/success_evidence",
+          "name": "success_evidence",
+          "dataType": "sc:Text",
+          "description": "Short non-payload evidence label from the verifier.",
+          "source": {
+            "fileObject": {
+              "@id": "bias_injection_traces"
+            },
+            "extract": {
+              "column": "success_evidence"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "rai:dataSocialImpact": "CyBiasBench is intended to support defensive and measurement-oriented research by making LLM offensive-agent behavior quantifiable and comparable. Positive impacts include more rigorous bias audits of agentic security tooling and reproducible evaluation methodology. The main dual-use risk is that aggregate behavioral patterns could inform misuse; mitigations include releasing only sanitized traces and aggregates, withholding raw payload bodies and agent reasoning, using only intentionally vulnerable target applications, and documenting responsible-use restrictions.",
+  "rai:dataCollection": "Data were collected from first-party benchmark runs between February 2026 and April 2026. Five LLM coding agents operated inside isolated Docker networks against intentionally vulnerable target applications under matched prompts, output formats, tools, and logging. HTTP traffic was captured through an intercepting proxy and LLM API usage through a LiteLLM proxy.",
+  "rai:dataAnnotationProtocol": "No human annotation was used. Attack-vs-non-attack classification, attack-family labeling, CAPEC/CWE mapping, and success flags were produced by released rule-based classifiers and target-specific response heuristics.",
+  "rai:dataPreprocessingProtocol": "Per-session HTTP traces and API logs were reduced to aggregate records, per-family long-form tables, and sanitized request-level traces. Sanitization removes raw request and response bodies, headers, exact timestamps, run identifiers, environment-specific identifiers, credentials, and verbatim agent reasoning while retaining request order, path, method, status code, labels, and short non-payload success evidence.",
+  "prov:wasDerivedFrom": {
+    "@type": "sc:Dataset",
+    "name": "No external source dataset",
+    "description": "CyBiasBench is not a processed version of an existing dataset. It consists of first-party measurements generated by the released benchmark harness against intentionally vulnerable target applications with synthetic benchmark data."
+  },
+  "prov:wasGeneratedBy": [
+    {
+      "@type": "prov:Activity",
+      "name": "Benchmark execution",
+      "description": "Docker-isolated agent sessions generated HTTP traces and API-usage logs under the released benchmark harness."
+    },
+    {
+      "@type": "prov:Activity",
+      "name": "Rule-based labeling and verification",
+      "description": "Released classifiers and success verifiers assigned attack-family labels, CAPEC/CWE identifiers, and success flags."
+    },
+    {
+      "@type": "prov:Activity",
+      "name": "Aggregation and sanitization",
+      "description": "Released scripts produced aggregate records, per-family long-form tables, sanitized traces, and consistency checks."
+    }
+  ]
+}

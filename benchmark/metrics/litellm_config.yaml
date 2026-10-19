@@ -1,0 +1,145 @@
+# LiteLLM proxy: routes every agent's API calls through one place so the
+# custom logger can record token, cost, and latency to usage.jsonl.
+
+model_list:
+  # ---- Anthropic / Claude ----
+  - model_name: claude-opus-4-5-20251101
+    litellm_params:
+      model: claude-opus-4-5-20251101
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: claude-sonnet-4-20250514
+    litellm_params:
+      model: claude-sonnet-4-20250514
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: claude-haiku-4-5-20251001
+    litellm_params:
+      model: claude-haiku-4-5-20251001
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: claude-3-5-sonnet-20241022
+    litellm_params:
+      model: claude-3-5-sonnet-20241022
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: claude-3-5-haiku-20241022
+    litellm_params:
+      model: claude-3-5-haiku-20241022
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # ---- OpenAI ----
+  - model_name: gpt-5.2-codex
+    litellm_params:
+      model: gpt-5.2-codex
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: gpt-5.2-pro
+    litellm_params:
+      model: gpt-5.2-pro
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: gpt-5.2-thinking
+    litellm_params:
+      model: gpt-5.2-thinking
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: gpt-5.2
+    litellm_params:
+      model: gpt-5.2
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: gpt-4o
+    litellm_params:
+      model: gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: o1-preview
+    litellm_params:
+      model: o1-preview
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: o1-mini
+    litellm_params:
+      model: o1-mini
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: o3-mini
+    litellm_params:
+      model: o3-mini
+      api_key: os.environ/OPENAI_API_KEY
+
+  # ---- Google / Gemini ----
+  - model_name: gemini-3-pro-preview
+    litellm_params:
+      model: gemini/gemini-3-pro-preview
+      api_key: os.environ/GOOGLE_API_KEY
+  - model_name: gemini-3.1-pro-preview
+    litellm_params:
+      model: gemini/gemini-3.1-pro-preview
+      api_key: os.environ/GOOGLE_API_KEY
+  - model_name: gemini-2.5-pro
+    litellm_params:
+      model: gemini/gemini-2.5-pro
+      api_key: os.environ/GOOGLE_API_KEY
+  - model_name: gemini-2.0-flash
+    litellm_params:
+      model: gemini/gemini-2.0-flash
+      api_key: os.environ/GOOGLE_API_KEY
+  - model_name: gemini-1.5-pro
+    litellm_params:
+      model: gemini/gemini-1.5-pro
+      api_key: os.environ/GOOGLE_API_KEY
+  - model_name: gemini-1.5-flash
+    litellm_params:
+      model: gemini/gemini-1.5-flash
+      api_key: os.environ/GOOGLE_API_KEY
+
+  # ---- Z.ai / GLM (OpenAI-compatible) ----
+  - model_name: glm-5.1
+    litellm_params:
+      model: openai/glm-5.1
+      api_key: os.environ/GLM_API_KEY
+      api_base: os.environ/GLM_BASE_URL
+  - model_name: glm-5
+    litellm_params:
+      model: openai/glm-5
+      api_key: os.environ/GLM_API_KEY
+      api_base: os.environ/GLM_BASE_URL
+  - model_name: glm-4.7
+    litellm_params:
+      model: openai/glm-4.7
+      api_key: os.environ/GLM_API_KEY
+      api_base: os.environ/GLM_BASE_URL
+  - model_name: glm-4.5-air
+    litellm_params:
+      model: openai/glm-4.5-air
+      api_key: os.environ/GLM_API_KEY
+      api_base: os.environ/GLM_BASE_URL
+
+  # ---- Moonshot / Kimi ----
+  - model_name: kimi-k2.5
+    litellm_params:
+      model: openai/kimi-k2.5
+      api_key: os.environ/KIMI_API_KEY
+      api_base: https://api.moonshot.ai/v1
+  - model_name: kimi-k2-thinking
+    litellm_params:
+      model: openai/kimi-k2-thinking
+      api_key: os.environ/KIMI_API_KEY
+      api_base: https://api.moonshot.ai/v1
+  - model_name: kimi-k2-turbo-preview
+    litellm_params:
+      model: openai/kimi-k2-turbo-preview
+      api_key: os.environ/KIMI_API_KEY
+      api_base: https://api.moonshot.ai/v1
+
+litellm_settings:
+  json_logs: true
+  set_verbose: true
+  # Strip provider-incompatible params (e.g. Kimi's `thinking`,
+  # OpenAI's `prompt_cache_key`) so cross-provider routing doesn't 400.
+  drop_params: true
+  success_callback: ["custom_logger.metrics_logger"]
+  failure_callback: ["custom_logger.metrics_logger"]
+  callbacks: ["custom_logger.metrics_logger"]
+
+general_settings:
+  disable_spend_logs: false
+  store_model_in_db: false
+
+environment_variables:
+  METRICS_LOG_DIR: /app/logs

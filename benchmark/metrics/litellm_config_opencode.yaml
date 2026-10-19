@@ -1,0 +1,33 @@
+# LiteLLM Proxy Configuration for OpenCode + Ollama
+# ===========================================
+# OpenCode v1.x sends model="gpt-4o" via built-in openai provider.
+# This config maps gpt-4o/gpt-4o-mini → whichever Ollama model is
+# specified by OLLAMA_MODEL env var (default: qwen3-235b-agent).
+#
+# To switch models, change OLLAMA_MODEL in .env or pass via --opencode-model.
+
+model_list:
+  - model_name: gpt-4o
+    litellm_params:
+      model: ollama/qwen3-235b-agent
+      api_base: os.environ/OLLAMA_API_BASE
+
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: ollama/qwen3-235b-agent
+      api_base: os.environ/OLLAMA_API_BASE
+
+litellm_settings:
+  drop_params: true
+  json_logs: true
+  set_verbose: true
+  success_callback: ["custom_logger.metrics_logger"]
+  failure_callback: ["custom_logger.metrics_logger"]
+  callbacks: ["custom_logger.metrics_logger"]
+
+general_settings:
+  disable_spend_logs: false
+  store_model_in_db: false
+
+environment_variables:
+  METRICS_LOG_DIR: /app/logs

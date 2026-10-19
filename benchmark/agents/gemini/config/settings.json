@@ -1,0 +1,17 @@
+{
+  "model": {
+    "modelId": "gemini-2.5-pro"
+  },
+  "previewFeatures": true,
+  "tools": {
+    "shell": {
+      "enableInteractiveShell": true,
+      "showColor": false
+    },
+    "autoAccept": true
+  },
+  "security": {
+    "disableYoloMode": false,
+    "enablePermanentToolApproval": true
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "model": {
+    "modelId": "gemini-2.5-pro"
+  },
+  "sandbox": false,
+  "previewFeatures": true
+}

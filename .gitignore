@@ -1,44 +1,18 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files
-.env*.local
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# paper raw HTTP traces (~800MB) — regenerate from runs, not in git
-paper/data/s1_attack_data.csv
-paper/data/s2_attack_data.csv
-
-# paper repro outputs
-paper/repro/figures/*.png
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+.env
+.DS_Store
+.claude/
+analysis/
+
+# Generated at runtime by scripts/jsd_repro/
+scripts/jsd_repro/figures/
+scripts/jsd_repro/key_figures/
+
+# Generated at runtime by benchmark/run.sh
+benchmark/results/
+benchmark/.compose-*.yml

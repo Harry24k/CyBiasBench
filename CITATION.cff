@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use CyBiasBench, please cite the paper below."
+title: "CyBiasBench: Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios"
+type: dataset
+version: 1.0.0
+license: CC-BY-NC-ND-4.0
+repository-code: "https://github.com/Harry24k/CyBiasBench"
+url: "https://trustworthyai.co.kr/CyBiasBench/"
+authors:
+  - family-names: Lim
+    given-names: Taein
+    affiliation: Chung-Ang University
+  - family-names: Ju
+    given-names: Seongyong
+    affiliation: Chung-Ang University
+  - family-names: Kim
+    given-names: Munhyeok
+    affiliation: Chung-Ang University
+  - family-names: Kim
+    given-names: Hyunjun
+    affiliation: Myongji University
+  - family-names: Kim
+    given-names: Hoki
+    affiliation: Chung-Ang University
+preferred-citation:
+  type: conference-paper
+  title: "CyBiasBench: Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios"
+  collection-title: "NeurIPS 2026 Evaluations and Datasets Track"
+  year: 2026
+  url: "https://arxiv.org/abs/2605.07830"
+  authors:
+    - family-names: Lim
+      given-names: Taein
+    - family-names: Ju
+      given-names: Seongyong
+    - family-names: Kim
+      given-names: Munhyeok
+    - family-names: Kim
+      given-names: Hyunjun
+    - family-names: Kim
+      given-names: Hoki

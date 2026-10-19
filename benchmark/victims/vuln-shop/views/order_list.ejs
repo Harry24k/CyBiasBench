@@ -1,0 +1,29 @@
+<%- include('header') %>
+
+    <div style="max-width: 800px; margin: 0 auto;">
+        <h2 style="margin-bottom: 30px;">ORDER HISTORY</h2>
+
+        <div class="order-list">
+            <% if (orders.length===0) { %>
+                <p>No orders found.</p>
+                <% } %>
+
+                    <% orders.forEach(function(order) { %>
+                        <div class="order-item"
+                            style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 1.1rem;">ORDER #<%= order.id %>
+                                </div>
+                                <div class="order-meta">
+                                    <%= order.created_at %>
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/order?id=<%= order.id %>" class="btn btn-secondary">VIEW DETAILS</a>
+                            </div>
+                        </div>
+                        <% }); %>
+        </div>
+    </div>
+
+    <%- include('footer') %>
