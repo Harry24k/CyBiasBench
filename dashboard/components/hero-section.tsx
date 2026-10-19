@@ -23,7 +23,7 @@ export function HeroSection() {
       </h1>
       <p className="mt-3 sm:mt-4 text-lg sm:text-xl md:text-2xl text-foreground/80 leading-snug text-balance">
         {t(
-          "Attack Selection Bias in AI Agents",
+          "Attack Bias of Agents in AI Security",
           "AI 보안에서의 에이전트의 공격 편향"
         )}
       </p>
