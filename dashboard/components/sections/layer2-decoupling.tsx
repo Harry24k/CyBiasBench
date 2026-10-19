@@ -70,7 +70,7 @@ export function Layer2Decoupling({ data }: { data: PaperSummary }) {
   const asrPerAgent = data.fig3_asri_per_agent;
   const scatter = data.fig4_entropy_asr_scatter;
   const rhoTable = data.table3_entropy_asr_rho;
-  const tpsPerAgent = data.tps_per_agent ?? {};
+  const tpsPerAgent = useMemo(() => data.tps_per_agent ?? {}, [data.tps_per_agent]);
   const h = data.headline_stats;
   const agentColors = useAgentColors();
   const isMobile = useIsMobile();

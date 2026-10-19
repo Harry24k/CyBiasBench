@@ -1,18 +1,20 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useCallback, useSyncExternalStore } from "react";
+
+function subscribeTheme(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+  return () => observer.disconnect();
+}
+
+const getTheme = () => document.documentElement.classList.contains("light");
+const lightServerSnapshot = () => true;
+const falseServerSnapshot = () => false;
 
 export function useTheme() {
   // Light mode is the canonical default; the inline script in app/layout.tsx
   // adds the `light` class before paint unless the user has opted into dark.
-  const [isLight, setIsLight] = useState(true);
-  useEffect(() => {
-    const check = () => setIsLight(document.documentElement.classList.contains("light"));
-    check();
-    const observer = new MutationObserver(check);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-  return isLight;
+  return useSyncExternalStore(subscribeTheme, getTheme, lightServerSnapshot);
 }
 
 export function useChartColors() {
@@ -30,16 +32,17 @@ export function useChartColors() {
 // cannot express (e.g. Recharts pixel heights). Returns false during SSR and
 // the first paint, then re-renders once the media query resolves.
 export function useIsMobile(maxPx: number = 639) {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia(`(max-width: ${maxPx}px)`);
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, [maxPx]);
-  return isMobile;
+  return useMediaQuery(`(max-width: ${maxPx}px)`);
+}
+
+export function useMediaQuery(query: string) {
+  const subscribe = useCallback((onChange: () => void) => {
+    const media = window.matchMedia(query);
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, [query]);
+  const getSnapshot = useCallback(() => window.matchMedia(query).matches, [query]);
+  return useSyncExternalStore(subscribe, getSnapshot, falseServerSnapshot);
 }
 
 export function useAgentColors(): Record<string, string> {

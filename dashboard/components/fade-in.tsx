@@ -19,7 +19,6 @@ export function FadeIn({ children, className = "", delay = 0 }: FadeInProps) {
       window.matchMedia &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) {
-      setVisible(true);
       return;
     }
 

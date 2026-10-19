@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef, useLayoutEffect } from "react";
+import { useMounted } from "@/lib/use-mounted";
+
+import { useState, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
@@ -31,11 +33,8 @@ export function PortalTooltip({
     left: 0,
   });
   const triggerRef = useRef<HTMLSpanElement | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useLayoutEffect(() => {
     if (!open || !triggerRef.current) return;

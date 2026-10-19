@@ -1,5 +1,7 @@
 "use client";
 
+import { useMounted } from "@/lib/use-mounted";
+
 /**
  * AsrPerFamilyHeatmap — per-family attack success rate (ASR_i) across all 5 agents.
  *
@@ -15,7 +17,7 @@
  * — so the visual mismatch is the point.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AGENT_LABELS,
@@ -83,8 +85,8 @@ export default function AsrPerFamilyHeatmap({ data }: Props) {
   const [hover, setHover] = useState<CellState | null>(null);
 
   const agents = data.agents;
-  const asri = data.fig3_asri_per_agent ?? {};
-  const sigs = data.table1_agent_signatures ?? {};
+  const asri = useMemo(() => data.fig3_asri_per_agent ?? {}, [data.fig3_asri_per_agent]);
+  const sigs = data.table1_agent_signatures;
 
   const families = useMemo(() => {
     if (!sortByMax) return data.families;
@@ -373,8 +375,7 @@ function CellTooltip({
   rect: DOMRect;
 }) {
   const t = useT();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
   if (!mounted) return null;
 
   const W = 300;

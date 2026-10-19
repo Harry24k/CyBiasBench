@@ -110,12 +110,12 @@ export function SelVsAsrRadar({
   interface TooltipPayloadItem {
     payload?: RadarDatum;
   }
-  const RadarTooltip = ({
+  const renderRadarTooltip = ({
     active,
     payload,
   }: {
     active?: boolean;
-    payload?: TooltipPayloadItem[];
+    payload?: readonly TooltipPayloadItem[];
   }) => {
     if (!active || !payload || payload.length === 0) return null;
     const d = payload[0]?.payload;
@@ -185,7 +185,7 @@ export function SelVsAsrRadar({
             domain={[0, 1]}
             tickCount={4}
           />
-          <Tooltip content={<RadarTooltip />} />
+          <Tooltip content={renderRadarTooltip} />
           <Radar
             name="asrNorm"
             dataKey="asrNorm"

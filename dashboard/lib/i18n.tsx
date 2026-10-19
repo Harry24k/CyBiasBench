@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
 
 /**
@@ -20,7 +21,7 @@ import React, {
  *
  * The provider always renders `en` on the server (the site is a static export,
  * so there is no request-time locale) and adopts the stored preference in an
- * effect, which keeps the first client render identical to the prerendered
+ * external-store snapshot, which keeps the first client render identical to the prerendered
  * HTML and avoids a hydration mismatch.
  */
 
@@ -40,24 +41,31 @@ const LangContext = createContext<LangContextValue>({
   toggle: () => {},
 });
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+function readPreference(): Lang {
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored === "ko" || stored === "en") return stored;
+  } catch {
+    // Browser preferences still work when storage is disabled.
+  }
+  return navigator.language?.startsWith("ko") ? "ko" : "en";
+}
 
-  useEffect(() => {
-    let stored: string | null = null;
-    try {
-      stored = window.localStorage.getItem(STORAGE_KEY);
-    } catch {
-      // Private mode / storage disabled — stay on the default.
-    }
-    if (stored === "ko" || stored === "en") {
-      setLangState(stored);
-      return;
-    }
-    if (typeof navigator !== "undefined" && navigator.language?.startsWith("ko")) {
-      setLangState("ko");
-    }
-  }, []);
+function subscribePreference(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener("languagechange", onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener("languagechange", onChange);
+  };
+}
+
+const englishServerSnapshot = (): Lang => "en";
+
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  const preferred = useSyncExternalStore(subscribePreference, readPreference, englishServerSnapshot);
+  const [selected, setLangState] = useState<Lang | null>(null);
+  const lang = selected ?? preferred;
 
   useEffect(() => {
     document.documentElement.lang = lang;

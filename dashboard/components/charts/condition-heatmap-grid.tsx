@@ -1,8 +1,10 @@
 "use client";
 
+import { useMounted } from "@/lib/use-mounted";
+
 import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
-import { useTheme } from "@/lib/use-theme";
+import { useTheme, useMediaQuery } from "@/lib/use-theme";
 import { AGENT_LABELS } from "@/lib/types";
 import { useT } from "@/lib/i18n";
 
@@ -273,21 +275,11 @@ function HeatmapCell({
   const [hover, setHover] = useState(false);
   const cellRef = useRef<HTMLTableCellElement | null>(null);
   const [coords, setCoords] = useState<{ top: number; left: number; placeAbove: boolean; width: number }>({ top: 0, left: 0, placeAbove: true, width: 280 });
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   // Touch devices fire synthetic mouseenter on tap, which would open the
   // tooltip and the modal simultaneously. Only enable hover on devices
   // whose primary input actually supports hover (desktop pointers).
-  const [canHover, setCanHover] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-    if (typeof window !== "undefined" && window.matchMedia) {
-      const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
-      setCanHover(mq.matches);
-      const onChange = (e: MediaQueryListEvent) => setCanHover(e.matches);
-      mq.addEventListener?.("change", onChange);
-      return () => mq.removeEventListener?.("change", onChange);
-    }
-  }, []);
+  const canHover = useMediaQuery("(hover: hover) and (pointer: fine)");
   useLayoutEffect(() => {
     if (!hover || !cellRef.current) return;
     const update = () => {
@@ -387,8 +379,7 @@ function CellDialog({
   onClose: () => void;
 }) {
   const t = useT();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();

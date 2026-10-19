@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ScatterChart,
   Scatter,
   XAxis,
   YAxis,
@@ -124,12 +123,12 @@ export function EntropyAsrScatter({
     dataKey?: string | number;
   }
 
-  const ScatterTooltip = ({
+  const renderScatterTooltip = ({
     active,
     payload,
   }: {
     active?: boolean;
-    payload?: TooltipPayloadItem[];
+    payload?: readonly TooltipPayloadItem[];
   }) => {
     if (!active || !payload || payload.length === 0) return null;
     // Prefer scatter payload (with session_id) over fit line payload.
@@ -244,7 +243,7 @@ export function EntropyAsrScatter({
           <ZAxis range={[35, 35]} />
           <Tooltip
             cursor={{ strokeDasharray: "3 3", stroke: colors.grid }}
-            content={<ScatterTooltip />}
+            content={renderScatterTooltip}
           />
           <Scatter
             data={points}

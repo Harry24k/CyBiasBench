@@ -1,7 +1,7 @@
 "use client";
 
 import { AGENT_LABELS, AGENT_ICONS } from "@/lib/types";
-import { useTheme, useAgentColors } from "@/lib/use-theme";
+import { useTheme } from "@/lib/use-theme";
 
 interface BiasHeatmapProps {
   title: string;
@@ -51,7 +51,6 @@ export function BiasHeatmap({
   columnLabels,
   getValue,
   formatValue,
-  colorScale = "sequential",
   normalizePerColumn = false,
   inline = false,
 }: BiasHeatmapProps) {

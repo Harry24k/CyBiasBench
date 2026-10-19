@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useMounted } from "@/lib/use-mounted";
+
+import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -15,10 +17,7 @@ interface DialogProps {
 
 export function Dialog({ open, onClose, title, children, className }: DialogProps) {
   const t = useT();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   useEffect(() => {
     if (!open) return;

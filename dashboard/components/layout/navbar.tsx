@@ -1,10 +1,13 @@
 "use client";
 
+import { useMounted } from "@/lib/use-mounted";
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { REPO } from "@/lib/config";
+import { useTheme } from "@/lib/use-theme";
 import { useLang, useT } from "@/lib/i18n";
 
 // Inline literal so the bundler can dead-code-eliminate the
@@ -84,24 +87,18 @@ function LangToggle() {
 }
 
 function ThemeToggle() {
-  const [theme, setTheme] = useState<"dark" | "light">("light");
-
-  useEffect(() => {
-    const stored = localStorage.getItem("cybiasbench-theme");
-    if (stored === "dark") setTheme("dark");
-    else
-      setTheme(
-        document.documentElement.classList.contains("light") ? "light" : "dark"
-      );
-  }, []);
+  const theme = useTheme() ? "light" : "dark";
 
   const t = useT();
 
   const toggle = useCallback(() => {
     const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    document.documentElement.className = next === "light" ? "light" : "";
-    localStorage.setItem("cybiasbench-theme", next);
+    document.documentElement.classList.toggle("light", next === "light");
+    try {
+      localStorage.setItem("cybiasbench-theme", next);
+    } catch {
+      // Theme switching also works when browser storage is unavailable.
+    }
   }, [theme]);
 
   return (
@@ -269,11 +266,8 @@ function MobileMenu({
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!open) return;
