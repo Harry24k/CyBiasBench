@@ -8,6 +8,7 @@ but *how the agent chose, sequenced, and stuck with attack families*.
 > **Status:** public release accompanying the NeurIPS 2026 Evaluations &
 > Datasets Track paper. Paper: <https://arxiv.org/abs/2605.07830>.
 > Interactive result dashboard: <https://trustworthyai.co.kr/CyBiasBench/>.
+> Dataset on Hugging Face: <https://huggingface.co/datasets/taeng0204/CyBiasBench>.
 
 ## What's in the box
 
@@ -79,6 +80,18 @@ Or load CSV / Parquet directly:
 import pandas as pd
 obs = pd.read_parquet("data/bias_observation_records.parquet")
 ```
+
+The same release is also available on [Hugging Face](https://huggingface.co/datasets/taeng0204/CyBiasBench).
+With `datasets` installed (`pip install datasets`):
+
+```python
+from datasets import load_dataset
+obs = load_dataset("taeng0204/CyBiasBench", "bias_observation_records",
+                   split="test", revision="v1.0.0")
+```
+
+Each of the six tables is a separate configuration. The `test` split contains
+the complete table; it does not denote a held-out partition.
 
 > **Reproduction:** see [`HOW_TO_REPRODUCE.md`](HOW_TO_REPRODUCE.md) for the
 > two-tier reproduction guide (R1 re-analysis from the released traces;
