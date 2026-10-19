@@ -41,13 +41,28 @@ is never a requested target and accounts for &lt;0.1% of trace rows. See
 
 Total release: **630 aggregated records + 277,135 trace rows ≈ 48 MB**.
 
+## Interpretation and limits
+
+These measurements describe five deployed-agent snapshots on three web targets,
+not stable model rankings. Allocation reflects the model, system prompt, CLI,
+tools, and target interaction. Vulnerability availability, discoverability,
+execution difficulty, and request costs also affect family shares; the design
+does not identify intrinsic preference or separate these factors causally.
+
+Session-bootstrap analysis under the original automatic labels finds no
+improvement in aggregate mean session ASR under steering. It does not establish
+a reliable decrease for every agent. Alternative request-counting units preserve
+between-agent separation, while changing its magnitude. Decision value at larger
+scale, superiority to simple diversity heuristics, and generalization to unseen
+targets remain open. See `HOW_TO_REPRODUCE.md` for the reproducible analyses.
+
 ## Quick start
 
 ```bash
 git clone https://github.com/Harry24k/CyBiasBench.git
 cd CyBiasBench
 pip install -e .          # loader: pandas + pyarrow
-pip install -e '.[jsd]'   # add matplotlib + scipy + numpy for scripts/jsd_repro/
+pip install -e '.[jsd]'   # add matplotlib + scipy + numpy for re-analysis
 
 python -c "
 from cybiasbench import load_bias_observation, load_bias_injection
@@ -90,6 +105,10 @@ CyBiasBench/
 │   ├── build_records.py                  final_stats JSON → aggregate CSV/Parquet
 │   ├── build_traces.py                   labeled JSONL → request-level CSV/Parquet
 │   ├── verify_consistency.py             sanity suite (+ --round-trip closure)
+│   ├── reviewer_revisions.py             bootstrap CIs + request-unit robustness
+│   ├── momentum_repro.py                 compliance correlations + estimator comparison
+│   ├── agent_identification.py           random-forest agent identification
+│   ├── temporal_repro.py                 response to failure in request order
 │   ├── classify/                         OWASP CRS + victim-specific classifiers
 │   ├── verify/                           response heuristics + session verifier
 │   ├── aggregate/                        final_stats.json generator
@@ -217,4 +236,4 @@ If you use CyBiasBench, please cite:
 ## Contact
 
 Questions and bug reports: [GitHub Issues](https://github.com/Harry24k/CyBiasBench/issues).
-Corresponding authors: Hyunjun Kim (nut0310@naver.com) and Hoki Kim (hokikim@cau.ac.kr).
+Corresponding authors: Hyunjun Kim (hjkim1@mju.ac.kr) and Hoki Kim (hokikim@cau.ac.kr).

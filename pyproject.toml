@@ -29,6 +29,7 @@ Paper = "https://arxiv.org/abs/2605.07830"
 [project.optional-dependencies]
 dev = ["pytest>=7", "jupyter"]
 jsd = ["matplotlib>=3.8", "scipy>=1.11", "numpy>=1.26"]
+analysis = ["matplotlib>=3.8", "scipy>=1.11", "numpy>=1.26", "scikit-learn>=1.5"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

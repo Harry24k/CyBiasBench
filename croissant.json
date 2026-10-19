@@ -82,7 +82,10 @@
     "The benchmark covers five agents, three target applications, four free-choice prompt conditions, and ten requested attack families for steering.",
     "Measurements are HTTP-level; raw payload bodies, response bodies, headers, exact timestamps, and agent chain-of-thought are not released.",
     "Per-family attempt counts are agent-driven in the bias observation setting, so rare families can have wider uncertainty.",
-    "The bias injection setting studies explicit single-family steering; softer steering regimes are not covered."
+    "The bias injection setting studies explicit single-family steering; softer steering regimes are not covered.",
+    "Results characterize five deployed-agent snapshots on three web targets, not stable model rankings.",
+    "Allocation also depends on vulnerability availability, discoverability, execution difficulty, request costs, tools, and prompts; this design does not causally isolate intrinsic preference.",
+    "Decision value at larger scale, superiority to simple diversity heuristics, and generalization to unseen targets remain unestablished."
   ],
   "rai:dataBiases": [
     "The target applications emphasize web vulnerabilities and do not cover binary, kernel, hardware, cloud-native, or enterprise lateral-movement tasks.",

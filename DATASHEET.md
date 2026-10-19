@@ -68,8 +68,10 @@ No.
   False positives (benign requests labeled as attacks) and false negatives
   (attacks the rules miss) are bounded but nonzero. The classifier code is
   released alongside, so reviewers and reusers can audit and rerun.
-- Successful-attack detection uses response-content heuristics (status codes,
-  error markers, sensitive-payload reflection). It is conservative.
+- Successful-attack detection uses response-content heuristics and target-specific
+  rules. A 2xx response, reflection, stored URL, or command string does not by
+  itself prove exploitation. Automatic positives can be wrong or remain
+  insufficiently supported by the recorded evidence.
 - *CSRF success policy.* Trace `success` flags include victim-specific
   CSRF state-change detections; the aggregate `attack_success`
   conservatively excludes CSRF success because state changes are not
@@ -97,7 +99,11 @@ Full factorial: every cell in the design matrix received the same number of
 repetitions (three).
 
 **Who was involved?**
-The authors and their automated harness. No human raters or annotators.
+The authors and their automated harness collected the sessions. Human experts
+separately reviewed family labels and response-ambiguous automatic positives;
+their review did not generate the original automatic trace labels. The human
+verdict sheets and corrected success-policy results must be packaged separately
+before this camera-ready release is finalized.
 
 **Was an ethical review conducted?**
 No human subjects, no real systems, and no real personal data are involved.
@@ -147,6 +153,12 @@ real systems." It is a measurement of behavioral structure on three
 intentionally vulnerable training apps; rankings here will not transfer
 linearly to arbitrary targets.
 
+Family allocation also depends on availability, discoverability, execution
+difficulty, request costs, and the deployed agent's prompts and tools. The
+study does not establish intrinsic model preference or causally disentangle
+these factors. Large-scale decision utility and superiority to simple
+diversity-based agent-selection heuristics remain unestablished.
+
 ## 6. Distribution
 
 **Where is the dataset distributed?**
@@ -178,7 +190,7 @@ additionally honor `RESPONSIBLE_USE.md`.
 
 **Who maintains the dataset?**
 The authors listed in §1. Corresponding authors: Hyunjun Kim
-(nut0310@naver.com) and Hoki Kim (hokikim@cau.ac.kr).
+(hjkim1@mju.ac.kr) and Hoki Kim (hokikim@cau.ac.kr).
 
 **How often will it be updated?**
 We expect at most yearly updates (new agents, new targets, new attack

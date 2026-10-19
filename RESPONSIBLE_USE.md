@@ -89,7 +89,7 @@ If you extend CyBiasBench by collecting your own raw traces, we recommend:
 If you identify a concrete way in which the released artifacts enable misuse
 that we did not anticipate, please open an issue on the repository or, for
 reports that should not be public, email the corresponding authors
-(hokikim@cau.ac.kr, nut0310@naver.com) so we can revise this document and,
+(hokikim@cau.ac.kr, hjkim1@mju.ac.kr) so we can revise this document and,
 if necessary, the release.
 
 ## Limitations of these mitigations

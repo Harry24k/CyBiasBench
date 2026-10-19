@@ -26,7 +26,7 @@ cd CyBiasBench
 pip install -e '.[jsd]'    # pandas, pyarrow, matplotlib, scipy, numpy
 ```
 
-Three commands cover everything R1 proves:
+Start with the consistency and JSD checks:
 
 ```bash
 # 1. Internal-consistency suite (rows, domains, cross-table sums)
@@ -53,8 +53,102 @@ That's it. If `verify_consistency.py --round-trip` ends with
 print the four expected numbers, paper-number reproducibility is
 confirmed.
 
-The figures emitted to `scripts/jsd_repro/figures/` are byte-equivalent
-regenerations of the JSD figures in the paper.
+The figures emitted to `scripts/jsd_repro/figures/` reproduce the JSD analysis.
+Rendering details can differ across Matplotlib and font versions.
+
+### Reviewer-requested uncertainty and counting-unit checks
+
+```bash
+python scripts/reviewer_revisions.py --output-dir analysis/reviewer_revisions
+```
+
+This checks attack and success counts against traces for all 630 sessions, then
+generates a JSON result with input SHA-256 hashes, LaTeX table rows, and the ASR
+confidence-interval figure. Injection `session_asr` values are rounded to four
+decimals in the records; inference uses the exact count ratios. Zero-attack
+sessions contribute ASR zero. The original CSRF success-exclusion policy is
+preserved.
+
+- **ASR:** 20,000 percentile bootstrap draws, seed 20260725, complete sessions
+  resampled within agent × scenario. The five fixed agents have equal weight.
+  Expected aggregate ΔASR: −0.0582, 95% CI [−0.0919, −0.0247]. Three individual
+  intervals include zero. These are original-verifier results, not the human
+  audit's corrected ASR figures.
+- **Counting units:** raw requests, identical-probe bursts, family episodes,
+  unique probes, and family presence. Probes use family, method, normalized
+  path, and sorted matched-rule identifiers. Normalization drops query strings
+  and maps decimal path segments to `{id}`. Consecutiveness is over focal-family
+  requests. The 179 nonempty sessions enter compositional tests; all 180 enter
+  breadth averages.
+- **Inference:** 1,999 permutations, seed 20261017, preserving complete session
+  vectors and agent sample sizes within target × prompt-condition blocks. All
+  five session-macro tests reach the plus-one reporting floor of 0.0005.
+
+The explicit public-trace probe definition gives slightly different burst and
+unique-probe JSDs from the less fully specified rebuttal table. The camera-ready
+working copy uses the regenerated values: burst 0.052/0.080 and unique probe
+0.048/0.070 (pooled/session-macro). This is a counting-definition clarification,
+not a new data collection or a change to the original family labels.
+
+
+### Bias momentum
+
+```bash
+python scripts/momentum_repro.py --output-dir analysis/momentum
+```
+
+This exports the 50 agent–family cells and their correlations. Observation
+selection and per-family ASR use pooled family counts reconstructed from the
+released selection rates and ASR values. Compliance is the mean over nine
+injection sessions per cell. Unattempted-family ASR is zero, matching the figure.
+
+The reported estimator standardizes each variable within each agent using the
+population standard deviation, then computes Spearman correlation over the
+50 cells: **ρ = +0.529341** for selection versus compliance and
+**ρ = −0.247875** for per-family ASR versus compliance. The JSON also reports raw
+pooled correlations and mean per-agent correlations as distinct estimators.
+P-values in the output are unadjusted; the paper applies Bonferroni correction
+when interpreting the reported correlations.
+
+### Agent identification and temporal adaptation
+
+```bash
+pip install -e '.[analysis]'  # adds scikit-learn to the re-analysis dependencies
+python scripts/agent_identification.py --output-dir analysis/agent_identification
+python scripts/temporal_repro.py --output-dir analysis/temporal
+```
+
+Agent identification uses the ten-family selection vector from each of the
+180 observation sessions, including an all-zero vector for the empty session.
+A random forest with 500 trees and seed 42 yields leave-one-out accuracy 0.650
+and macro F1 0.649154, and stratified five-fold accuracy 0.650 and macro F1
+0.650718. These values were checked with scikit-learn 1.8.0. The output records
+the library version, predictions, confusion matrix, and input hashes. This
+analysis uses one worker and can take a few minutes.
+
+Temporal analysis sorts classified non-`others` requests by `request_index`,
+using the released trace success flags and paths without query strings. It
+computes transition rates and repeated-failure shares per session, then averages
+defined values by agent. The displayed failure/success switch ratio is the
+quotient of the two macro-average transition rates. This reproduces all columns
+of the dashboard's temporal table. These trace-success diagnostics preserve CSRF
+flags as released; they are distinct from session ASR, whose numerator excludes
+CSRF successes. Neither analysis uses expert-corrected labels.
+
+### Dashboard release statistics
+
+After running all four analysis scripts above:
+
+```bash
+python dashboard/scripts/build_site_summary.py
+python dashboard/scripts/build_site_summary.py --check
+```
+
+This updates the checked-in dashboard snapshot with the reproduced ASR estimates,
+confidence intervals, momentum correlations, agent identification, and temporal
+adaptation. It checks input SHA-256 hashes
+before writing. Other historical paper-summary fields are retained, so this
+command is not a full regeneration of every dashboard metric.
 
 ---
 
@@ -163,6 +257,10 @@ CyBiasBench/
 │   ├── verify/             # response heuristics + session ASR verifier
 │   ├── aggregate/          # bias_{observation,injection}.py
 │   ├── jsd_repro/          # paper Section 4 / Appendix B numbers
+│   ├── reviewer_revisions.py # bootstrap CIs + request-unit checks
+│   ├── momentum_repro.py     # standardized compliance correlations
+│   ├── agent_identification.py # random-forest cross-validation
+│   ├── temporal_repro.py     # sequential response to failure
 │   ├── build_records.py
 │   ├── build_traces.py
 │   └── verify_consistency.py
