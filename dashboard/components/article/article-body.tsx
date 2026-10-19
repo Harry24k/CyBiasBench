@@ -46,7 +46,7 @@ export function ArticleIntro() {
       />
       <P
         en={<>To investigate these differences, we developed <strong>CyBiasBench</strong>, a benchmark for understanding how LLM agents select cyberattack techniques and how those choices relate to their actual performance.</>}
-        ko={<>이러한 차이를 살펴보기 위해 연구실에서는 <strong>CyBiasBench</strong>를 개발했습니다. CyBiasBench는 LLM 에이전트가 어떤 공격을 선택하고, 그 선택이 실제 성능과 어떻게 연결되는지를 체계적으로 분석하는 벤치마크입니다.</>}
+        ko={<>이러한 차이를 살펴보기 위해 본 연구진은 <strong>CyBiasBench</strong>를 개발했습니다. CyBiasBench는 LLM 에이전트가 어떤 공격을 선택하고, 그 선택이 실제 성능과 어떻게 연결되는지를 체계적으로 분석하는 벤치마크입니다.</>}
       />
     </Prose>
   );
@@ -108,7 +108,7 @@ export function ArticleChapters({ data }: { data: PaperSummary }) {
         <Prose>
           <P
             en="After identifying differences in attack selection, we examined whether agents tended to favor the techniques they performed best."
-            ko="에이전트마다 공격 선택 패턴이 다르다는 사실을 확인한 뒤, 우리는 이러한 선택이 실제 공격 성능과 얼마나 일치하는지 살펴봤습니다. 일반적으로 에이전트가 효과적인 공격 방법에 더 많은 자원을 배분할 것으로 기대할 수 있지만, 실험 결과는 그렇지 않았습니다."
+            ko="에이전트마다 공격 선택 패턴이 다르다는 사실을 확인한 뒤, 본 연구진은 이러한 선택이 실제 공격 성능과 얼마나 일치하는지 살펴봤습니다. 일반적으로 에이전트가 효과적인 공격 방법에 더 많은 자원을 배분할 것으로 기대할 수 있지만, 실험 결과는 그렇지 않았습니다."
           />
           <EnOnly en="One might expect an agent to devote more effort to attacks with higher chances of success. Our results, however, revealed a different pattern." />
           <P
@@ -204,7 +204,7 @@ export function ArticleChapters({ data }: { data: PaperSummary }) {
           />
           <P
             en={<>We call this relationship <strong>bias momentum</strong>, describing how an agent&apos;s existing attack-allocation patterns remain associated with its behavior under explicit instructions.</>}
-            ko={<>우리는 자유 선택 상황에서 나타난 자원 배분이 명시적인 지시 상황의 행동과 연결되는 이러한 현상을 <strong>편향 관성(Bias Momentum)</strong>이라고 정의했습니다.</>}
+            ko={<>본 연구진은 자유 선택 상황에서 나타난 자원 배분이 명시적인 지시 상황의 행동과 연결되는 이러한 현상을 <strong>편향 관성(Bias Momentum)</strong>이라고 정의했습니다.</>}
           />
           <P
             en="Importantly, bias momentum does not establish a fixed internal preference or a causal mechanism. It describes a behavioral relationship observed under the evaluated security-testing conditions."
