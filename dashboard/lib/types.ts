@@ -88,6 +88,13 @@ export interface ComplianceRow {
   compliance_mean: number;
 }
 
+export interface SessionAsrEstimate {
+  observation: number;
+  injection: number;
+  delta: number;
+  ci95: [number, number];
+}
+
 export interface EntropyAsrRho {
   rho: number;
   p: number;
@@ -151,7 +158,6 @@ export interface HeadlineStats {
   compliance_sel: { rho: number; p: number; n: number };
   compliance_asri: { rho: number; p: number; n: number };
   compliance_session_asr?: { rho: number; p: number; n: number };
-  all_negative_delta_asr: boolean;
   rf_accuracy?: number;
   rf_baseline?: number;
   prompt_stability_jsd_main?: number;
@@ -175,6 +181,13 @@ export interface PaperSummary {
   fig4_entropy_asr_scatter: ScatterPoint[];
   fig5_compliance_predictors: CompliancePredictor[];
   headline_stats: HeadlineStats;
+  session_asr_uncertainty: {
+    estimates: Record<string, SessionAsrEstimate>;
+    bootstrap_draws: number;
+    bootstrap_seed: number;
+    success_policy: string;
+    input_sha256: Record<string, string>;
+  };
   tps_per_agent?: Record<string, number | null>;
   tps_full?: Array<{
     agent: string;

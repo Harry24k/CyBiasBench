@@ -59,11 +59,11 @@ export function FindingsSection({ data }: { data: PaperSummary }) {
       cta: t("See decoupling →", "비결합 보기 →"),
     },
     {
-      stat: h.all_negative_delta_asr ? "ΔASR ≤ 0" : t("ΔASR mixed", "ΔASR 혼재"),
+      stat: t("No aggregate ASR gain", "전체 평균 ASR 개선 없음"),
       label: t("Bias momentum: steering fails to help", "편향 관성: 지시에도 개선되지 않음"),
       desc: t(
-        `Under explicit family steering, compliance follows free-choice preference (ρ = +${h.compliance_sel.rho.toFixed(3)}) — not per-family capability (ρ = ${h.compliance_asri.rho.toFixed(3)}, n.s.). All 5 agents lose session ASR (ΔASR ≤ 0). Capability itself transfers cleanly (ρ = +${h.asr_transfer.rho.toFixed(3)}); the loss is allocation-level.`,
-        `계열을 명시적으로 지시할 경우 순응도는 자유 선택 시의 선호를 따름 (ρ = +${h.compliance_sel.rho.toFixed(3)}). 계열별 실력을 따르는 것은 아님 (ρ = ${h.compliance_asri.rho.toFixed(3)}, 유의하지 않음). 5종 에이전트 모두 세션 ASR이 하락함 (ΔASR ≤ 0). 실력 자체는 설정이 변경되어도 그대로 전이되므로(ρ = +${h.asr_transfer.rho.toFixed(3)}), 손실은 배분 수준에서 발생함.`
+        `Under explicit family steering, compliance is associated with free-choice allocation (ρ = +${h.compliance_sel.rho.toFixed(3)}), while its association with per-family ASR is not significant (ρ = ${h.compliance_asri.rho.toFixed(3)}, under Bonferroni). Steering does not improve aggregate mean session ASR. Three individual-agent intervals include zero.`,
+        `계열을 명시적으로 지시할 경우 순응도는 자유 선택 시의 배분과 연관됨 (ρ = +${h.compliance_sel.rho.toFixed(3)}). 계열별 ASR과의 상관은 유의하지 않음 (ρ = ${h.compliance_asri.rho.toFixed(3)}, Bonferroni 보정). 지시는 전체 평균 세션 ASR을 개선하지 않으며, 개별 에이전트 3종의 신뢰구간은 0을 포함함.`
       ),
       sample: t("450 bias-injection sessions", "편향 주입 세션 450회"),
       tone: "injection" as const,
@@ -186,10 +186,10 @@ function SynthesisCard() {
       title: t("Bias momentum", "편향 관성"),
       metrics: t("Compliance · ΔASR", "순응도 · ΔASR"),
       ref: t("Bias Injection", "편향 주입"),
-      blurb: t("How preferences resist explicit steering.", "선호가 명시적 지시에 얼마나 저항하는지의 문제임."),
+      blurb: t("How free-choice allocation relates to steering compliance.", "자유 선택 시의 배분이 지시 순응도와 어떻게 연관되는지의 문제임."),
       detail: t(
-        "Under explicit family-level steering, compliance follows free-choice preference (ρ = +0.529) rather than per-family capability (ρ = −0.248, n.s.). All five agents show ΔASR ≤ 0; performance declines under steering reflect an allocation-level failure, not a capability gap.",
-        "계열을 명시적으로 지시할 경우 순응도는 계열별 실력(ρ = −0.248, 유의하지 않음)이 아니라 자유 선택 시의 선호(ρ = +0.529)를 따름. 에이전트 5종 모두 ΔASR ≤ 0이며, 지시 하의 성능 하락은 실력 부족이 아니라 배분 수준의 실패임."
+        "Under explicit family-level steering, compliance is associated with free-choice allocation (ρ = +0.529), while its association with per-family ASR is not significant (ρ = −0.248, under Bonferroni). Steering does not improve aggregate mean session ASR. These associations do not isolate intrinsic preference or establish the cause of the ASR change.",
+        "계열을 명시적으로 지시할 경우 순응도는 자유 선택 시의 배분과 연관되며(ρ = +0.529), 계열별 ASR과의 상관은 유의하지 않음(ρ = −0.248, Bonferroni 보정). 지시는 전체 평균 세션 ASR을 개선하지 않음. 이 연관성만으로 내재적 선호를 분리하거나 ASR 변화의 원인을 확정할 수는 없음."
       ),
     },
   ];

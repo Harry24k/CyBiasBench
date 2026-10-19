@@ -4,7 +4,6 @@ import { FadeIn } from "@/components/fade-in";
 import { BridgeText } from "@/components/bridge-text";
 import { ConditionHeatmapGrid } from "@/components/charts/condition-heatmap-grid";
 import { MiniFamilyBars } from "@/components/charts/mini-radar";
-import { PortalTooltip } from "@/components/charts/portal-tooltip";
 import { AGENT_LABELS, FAMILY_FULLNAME } from "@/lib/types";
 import type { PaperSummary } from "@/lib/types";
 import { useAgentColors, useChartColors, useTheme } from "@/lib/use-theme";
@@ -224,12 +223,12 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
                   <>
                     Same Sel<sub>i</sub> heatmap split by the 2×2 prompt design.
                     Within an agent, the four panels look nearly identical;
-                    between agents, they look obviously different.
+                    between agents, they look obviously different. Family shares also depend on vulnerability availability, discoverability, and execution difficulty.
                   </>,
                   <>
                     동일한 Sel<sub>i</sub> 히트맵을 2×2 프롬프트 설계 기준으로 분할한 것임.
                     동일 에이전트 내에서는 네 패널이 거의 동일하게 나타나나,
-                    에이전트 간에는 확연히 구분됨.
+                    에이전트 간에는 확연히 구분됨. 계열별 비중에는 취약점 가용성·발견 가능성·실행 난이도도 영향을 줌.
                   </>
                 )}
               </p>
@@ -253,8 +252,8 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
               {t(
-                "Jensen–Shannon divergence between family distributions. Within-agent drift (prompt conditions vs agent centroid) is much smaller than between-agent separation — profiles reflect intrinsic model tendency, not prompt wording.",
-                "계열 분포 간 Jensen–Shannon 발산임. 에이전트 내부 변동(프롬프트 조건 vs 에이전트 중심)이 에이전트 간 격차보다 현저히 작음. 프로파일은 프롬프트 문구가 아니라 모델 고유의 성향을 반영함."
+                "Jensen–Shannon divergence between family distributions. Within-agent drift (prompt conditions vs agent centroid) is much smaller than between-agent separation — these patterns persist across the evaluated prompts without isolating intrinsic preference.",
+                "계열 분포 간 Jensen–Shannon 발산임. 에이전트 내부 변동(프롬프트 조건 vs 에이전트 중심)이 에이전트 간 격차보다 현저히 작음. 평가한 프롬프트들에서 패턴이 유지되지만, 내재적 선호만을 분리한 결과는 아님."
               )}
             </p>
           </div>

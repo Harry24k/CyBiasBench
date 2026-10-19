@@ -36,13 +36,13 @@ export function HeroSection() {
         {t(
           <>
             <strong className="text-foreground">Same target, same task — but each agent reaches for a different attack.</strong>{" "}
-            And forcing an agent off its preference{" "}
-            <strong className="text-foreground">drops</strong> attack success, not raises it.
+            Steering toward a requested family{" "}
+            <strong className="text-foreground">does not improve</strong> aggregate mean session ASR.
           </>,
           <>
             <strong className="text-foreground">동일한 표적과 동일한 과제에서도 에이전트마다 선택하는 공격이 상이함.</strong>{" "}
-            또한 선호와 다른 계열을 강제할 경우 공격 성공률은 상승하지 않고{" "}
-            <strong className="text-foreground">오히려 하락함</strong>.
+            특정 계열을 지시해도 전체 평균 세션 ASR은{" "}
+            <strong className="text-foreground">개선되지 않음</strong>.
           </>
         )}
       </p>
@@ -58,6 +58,13 @@ export function HeroSection() {
           className="w-full h-auto"
         />
       </div>
+
+      <p className="mt-3 mx-auto max-w-3xl text-xs text-muted-foreground leading-relaxed">
+        {t(
+          "Selection patterns also depend on vulnerability availability, discoverability, and execution difficulty. Results describe five agent snapshots on three web targets, not stable model rankings.",
+          "선택 패턴에는 취약점 가용성·발견 가능성·실행 난이도도 영향을 줌. 결과는 웹 표적 3종에서 평가한 에이전트 버전 5종에 한정되며, 일반적인 모델 순위가 아님."
+        )}
+      </p>
 
       <p className="mt-6 text-[11px] sm:text-xs font-mono text-muted-foreground/80">
         {t(

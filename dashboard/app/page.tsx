@@ -9,7 +9,7 @@ import { AgentPicker } from "@/components/agent-picker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Collapsible, InlineCollapsible } from "@/components/methodology/collapsible";
+import { Collapsible } from "@/components/methodology/collapsible";
 import { Dialog } from "@/components/methodology/dialog";
 import type { PaperSummary } from "@/lib/types";
 import {
@@ -226,9 +226,10 @@ Proceed as systematically as possible."`,
   },
 };
 
+const keys = ["guided", "unguided", "structured", "unstructured"] as const;
+
 function PromptConditionsTabs() {
   const t = useT();
-  const keys = ["guided", "unguided", "structured", "unstructured"] as const;
   const [active, setActive] = useState<typeof keys[number]>("guided");
   const [paused, setPaused] = useState(false);
   const [userTouched, setUserTouched] = useState(false);
@@ -265,7 +266,7 @@ function PromptConditionsTabs() {
       });
     }, 4000);
     return () => clearInterval(id);
-  }, [paused, userTouched, inView, keys]);
+  }, [paused, userTouched, inView]);
 
   const status = userTouched
     ? t("manual", "수동")
@@ -412,12 +413,12 @@ function FamilyTaxonomyTable() {
                 <th
                   key={h.key}
                   className={`px-3 py-2 font-medium text-muted-foreground select-none cursor-pointer hover:text-foreground ${h.nowrap ? "whitespace-nowrap" : ""}`}
-                  onClick={() => handleHeaderClick(h.key)}
-                  role="button"
                   aria-sort={sortKey === h.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
                 >
-                  {h.label}
-                  {indicator(h.key)}
+                  <button type="button" className="w-full text-left cursor-pointer" onClick={() => handleHeaderClick(h.key)}>
+                    {h.label}
+                    {indicator(h.key)}
+                  </button>
                 </th>
               ))}
             </tr>
@@ -732,13 +733,13 @@ const METRIC_GROUPS: MetricGroup[] = [
         desc: "Outcome gap between forced-injection and free-choice sessions, per agent.",
         descKo: "에이전트별 강제 주입 세션과 자유 선택 세션 간 결과 격차임.",
         definition:
-          "Per-agent gap between forced-injection and free-choice observation ASR. The headline finding is that ΔASR ≤ 0 for every agent: forcing a family never raises overall ASR, even when compliance is high.",
+          "Per-agent difference between mean injection and free-choice session ASR. Steering does not improve aggregate mean session ASR. Three individual-agent 95% session-bootstrap intervals include zero.",
         definitionKo:
-          "에이전트별 강제 주입 ASR과 자유 선택 관찰 ASR의 차이임. 핵심 결과는 모든 에이전트에서 ΔASR ≤ 0이라는 점임. 순응도가 높은 경우에도 계열을 강제하면 전체 ASR은 상승하지 않음.",
+          "에이전트별 주입과 자유 선택 조건의 평균 세션 ASR 차이임. 지시는 전체 평균 세션 ASR을 개선하지 않으며, 개별 에이전트 3종의 95% 세션 부트스트랩 구간은 0을 포함함.",
         example:
-          "Claude observation ASR = 0.218 and injection ASR = 0.176, so ΔASR = −0.042. Bias injection costs about 4.2 points of overall success.",
+          "The agent-equal mean ΔASR is −0.0582, with a 95% session-bootstrap interval of [−0.0919, −0.0247] under the original automatic labels.",
         exampleKo:
-          "Claude의 관찰 ASR = 0.218, 주입 ASR = 0.176이므로 ΔASR = −0.042임. 편향 주입으로 전체 성공률이 약 4.2포인트 감소함.",
+          "원래 자동 성공 판정에 기반한 에이전트 균등 평균 ΔASR은 −0.0582이며, 95% 세션 부트스트랩 구간은 [−0.0919, −0.0247]임.",
       },
     ],
   },

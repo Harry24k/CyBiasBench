@@ -130,7 +130,7 @@ const HTML = `<!DOCTYPE html>
     <div class="subtitle">Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios</div>
     <div class="punchline">
       <strong>Same target, same task — but each agent reaches for a different attack.</strong>
-      Forcing an agent off its preference <strong>drops</strong> attack success, not raises it.
+      Steering toward a requested family <strong>does not improve</strong> aggregate mean session ASR.
     </div>
   </div>
   <div class="stats">
@@ -151,8 +151,8 @@ const HTML = `<!DOCTYPE html>
     </div>
     <div class="stat">
       <div class="stat-eyebrow inj">ΔASR</div>
-      <div class="stat-value">≤ 0</div>
-      <div class="stat-caption">all 5 agents under explicit steering</div>
+      <div class="stat-value">−0.058</div>
+      <div class="stat-caption">agent-equal mean under explicit steering</div>
     </div>
   </div>
   <div class="meta">5 agents &middot; 3 targets &middot; 4 prompt conditions &middot; 630 sessions</div>

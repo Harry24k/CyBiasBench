@@ -38,11 +38,11 @@ export const SITE = {
   shortDescription:
     "A 630-session benchmark for measuring attack-selection bias in LLM cyber-attack agents.",
   longDescription:
-    "CyBiasBench is a benchmark for quantifying attack-selection bias — the model-specific tendency of an LLM agent to disproportionately concentrate effort on a narrow set of attack families regardless of prompt variation. It evaluates 5 agents across 3 vulnerable web targets in 4 prompt conditions (180 Bias Observation sessions), plus 450 Bias Injection sessions that test bias momentum: agents resist explicit user steering, and the forced redistribution does not yield measurable gains in attack performance.",
+    "CyBiasBench measures operational attack selection in five deployed agent snapshots across three web targets: 180 free-choice and 450 bias-injection sessions. Steering compliance is associated with free-choice allocation, while steering does not improve aggregate mean session ASR. These patterns are conditioned by vulnerability availability, discoverability, execution difficulty, and the agent's tools and prompts.",
   year: 2026,
   /** Only render this string in components when VENUE_VISIBLE is true. */
   venue: "NeurIPS 2026 Evaluations & Datasets (E&D)",
-  license: "CC-BY-4.0",
+  license: "Data: CC BY-NC-ND 4.0 · Code: MIT",
   // Anonymous build always points at the 4open.science mirror; the real
   // GitHub Pages URL is only ever read from an env var, never embedded.
   url: IS_ANONYMOUS
