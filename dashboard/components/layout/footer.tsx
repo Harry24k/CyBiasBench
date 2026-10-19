@@ -13,7 +13,7 @@ export function Footer() {
   const t = useT();
   return (
     <footer className="border-t border-border mt-24">
-      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 py-10 space-y-4 text-sm text-muted-foreground">
+      <div className="max-w-[800px] mx-auto px-4 sm:px-6 py-10 space-y-4 text-sm text-muted-foreground">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <span className="font-serif text-foreground">{SITE.name}</span>

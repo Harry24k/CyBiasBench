@@ -77,7 +77,7 @@ export function AgentPicker({ data }: { data: PaperSummary }) {
       : (FAMILY_FULLNAME[family] ?? family);
 
   return (
-    <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
+    <section className="max-w-[800px] mx-auto px-4 sm:px-6">
       <div className="mb-4 sm:mb-6">
         <p className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground mb-2">
           {t("Try it", "직접 확인")}

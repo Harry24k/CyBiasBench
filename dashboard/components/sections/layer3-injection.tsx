@@ -65,7 +65,7 @@ function formatP(p: number): string {
   return p.toFixed(3);
 }
 
-export function Layer3Injection({ data }: { data: PaperSummary }) {
+function useL3(data: PaperSummary) {
   const t = useT();
   const agents = data.agents;
   const families = data.families;
@@ -89,9 +89,14 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
     color: agentColors[a] ?? "#888",
   }));
 
+  return { t, agents, families, t4, predictors, h, agentColors, sessionsPerAgent, obsInjBars };
+}
+
+export function Layer3Injection({ data }: { data: PaperSummary }) {
+  const { t, h } = useL3(data);
   return (
     <div id="findings-layer3" className="space-y-14 scroll-mt-24">
-      <header className="max-w-[1500px] mx-auto px-4 sm:px-6">
+      <header className="max-w-[800px] mx-auto px-4 sm:px-6">
         <h2 className="font-serif text-2xl sm:text-3xl text-foreground">
           {t("Bias Injection", "편향 주입")}
         </h2>
@@ -115,213 +120,21 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
         </p>
       </header>
 
-      <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
-          <div className="mb-4">
-            <h3 className="text-xl font-semibold text-foreground">
-              {t("Bias Injection design", "편향 주입 설계")}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t(
-                "Requested-family condition. The environment, tool access, and verification pipeline remain identical to Bias Observation; only the task focus statement names a target family.",
-                "계열 지정 조건임. 환경, 도구 접근, 검증 파이프라인은 편향 관찰과 완전히 동일하며, 과제 진술문에서 목표 계열을 지정하는 부분만 상이함."
-              )}
-            </p>
-          </div>
-          <InjectionDesignDiagram />
-        </section>
-      </FadeIn>
+      <L3Design data={data} />
 
-      <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
-          <div className="mb-4 flex items-baseline justify-between flex-wrap gap-2">
-            <div>
-              <h3 className="text-xl font-semibold text-foreground">
-                {t("Observation vs Injection session ASR per agent", "에이전트별 관찰 vs 주입 세션 ASR")}
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {t(
-                  "Side-by-side observation and forced-injection session ASR for each agent. Hover for raw obs/inj, ΔASR, compliance, and per-agent injection session count.",
-                  "에이전트별 관찰 세션 ASR과 강제 주입 세션 ASR을 병렬 비교함. 마우스를 올리면 원값(obs/inj), ΔASR, 순응도, 에이전트별 주입 세션 수가 표시됨."
-                )}
-              </p>
-            </div>
-            <span className="text-xs font-mono tracking-wide text-foreground px-2 py-1 rounded border border-foreground/30 bg-muted">
-              {t("Agent-equal mean ΔASR", "에이전트 균등 평균 ΔASR")} {data.session_asr_uncertainty.estimates.agent_equal_mean.delta.toFixed(4)}
-            </span>
-          </div>
-          <ObsInjBars bars={obsInjBars} />
-          <div className="mt-6">
-            <h4 className="text-sm font-semibold text-foreground mb-2">
-              {t("ΔASR per agent", "에이전트별 ΔASR")}
-            </h4>
-            <DeltaAsrBars
-              bars={obsInjBars.map((b) => ({
-                agent: b.agent,
-                label: b.label,
-                delta: b.delta,
-                color: b.color,
-              }))}
-            />
-          </div>
-          <SessionAsrUncertainty data={data} />
-        </section>
-      </FadeIn>
+      <L3ObsInj data={data} />
 
-      <FadeIn>
-        <CompliancePredictorsSection
-          predictors={predictors}
-          agents={agents}
-          families={families}
-          rhoSel={h.compliance_sel.rho}
-          pSel={h.compliance_sel.p}
-          rhoAsri={h.compliance_asri.rho}
-          pAsri={h.compliance_asri.p}
-        />
-      </FadeIn>
+      <L3Compliance data={data} />
 
-      <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
-          <div className="mb-4">
-            <h3 className="text-xl font-semibold text-foreground">
-              {t("Per-family ASR transfer (observation → injection)", "계열별 ASR 전이 (관찰 → 주입)")}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t(
-                <>
-                  Observation per-family ASR<sub>i</sub> vs injection per-family ASR<sub>i</sub> under forced
-                  injection. The strong positive correlation
-                  (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)})
-                  confirms capability persists across prompt conditions and forcing.
-                </>,
-                <>
-                  관찰 설정의 계열별 ASR<sub>i</sub>와 강제 주입 설정의 계열별 ASR<sub>i</sub>를
-                  비교함. 강한 양의 상관
-                  (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)})은
-                  프롬프트 조건 및 강제 지시가 변경되어도 실력이 유지됨을 나타냄.
-                </>
-              )}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
-            <AsrTransferPanel
-              data={predictors}
-              rho={h.asr_transfer.rho}
-              pValue={h.asr_transfer.p}
-            />
-            <GeminiExceptionCallout />
-          </div>
-        </section>
-      </FadeIn>
+      <L3Transfer data={data} />
 
-      <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
-          <CorrelationTableToggle h={h} />
-        </section>
-      </FadeIn>
+      <L3Correlations data={data} />
 
-      <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
-          <div className="mb-4">
-            <h3 className="text-xl font-semibold text-foreground">
-              {t("Per-agent injection summary", "에이전트별 주입 요약")}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t(
-                "Compliance, observed/injected session ASR, and ΔASR by agent. Sorted by estimated ΔASR ascending.",
-                "에이전트별 순응도, 관찰/주입 세션 ASR, ΔASR임. 추정 ΔASR의 오름차순으로 정렬함."
-              )}
-            </p>
-          </div>
-          <PerAgentSummaryTable rows={obsInjBars} />
-        </section>
-      </FadeIn>
+      <L3Summary data={data} />
 
-      <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
-          <div className="relative rounded-xl border border-border bg-card p-5 sm:p-7 pl-6 sm:pl-8 space-y-5 overflow-hidden">
-            <div
-              className="absolute inset-y-0 left-0 w-1 bg-foreground/70"
-              aria-hidden="true"
-            />
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-border text-[11px] font-mono uppercase tracking-widest text-foreground">
-                {t("Synthesis · §5–7", "종합 · §5–7")}
-              </span>
-              <span className="text-xs font-mono text-muted-foreground">
-                {t("Three separable axes", "분리 가능한 세 가지 축")}
-              </span>
-            </div>
-            <h3 className="font-serif text-2xl sm:text-3xl text-foreground leading-tight">
-              {t(
-                "Allocation, attack performance, and bias momentum are distinct axes.",
-                "배분, 공격 성능, 편향 관성은 서로 다른 축임."
-              )}
-            </h3>
-            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              {t(
-                <>
-                  Across five frontier agents, three target environments, and 630
-                  total sessions, attack-selection bias is{" "}
-                  <strong className="text-foreground">stable, agent-specific, and prompt-invariant</strong>:
-                  behavioral heterogeneity (
-                  <Stat>η²<sub>H(X)</sub> = {h.kruskal_H.eta2.toFixed(3)}</Stat>,{" "}
-                  <Stat>{formatP(h.kruskal_H.p)}</Stat>) outpaces outcome heterogeneity (
-                  <Stat>η²<sub>ASR</sub> = {h.kruskal_session_asr.eta2.toFixed(3)}</Stat>) by an order of magnitude.
-                  Under bias injection, compliance follows free-choice selection
-                  (<Stat>ρ = +{h.compliance_sel.rho.toFixed(3)}</Stat>,{" "}
-                  <Stat>{formatP(h.compliance_sel.p)}</Stat>), <em>not</em> per-family capability
-                  (<Stat>ρ = {h.compliance_asri.rho.toFixed(3)}</Stat>, n.s.) — free-choice allocation remains associated with steering compliance, a phenomenon we term{" "}
-                  <strong className="text-foreground">bias momentum</strong>. Per-family ASR itself transfers
-                  cleanly across settings (<Stat>ρ = +{h.asr_transfer.rho.toFixed(3)}</Stat>,{" "}
-                  <Stat>{formatP(h.asr_transfer.p)}</Stat>). These associations do not isolate intrinsic preference or establish the cause of the ASR change.
-                </>,
-                <>
-                  프런티어 에이전트 5종, 표적 환경 3종, 총 630회 세션에 걸쳐 공격 선택 편향은{" "}
-                  <strong className="text-foreground">안정적이고, 에이전트별로 고유하며, 프롬프트에 둔감함</strong>.
-                  행동의 이질성(
-                  <Stat>η²<sub>H(X)</sub> = {h.kruskal_H.eta2.toFixed(3)}</Stat>,{" "}
-                  <Stat>{formatP(h.kruskal_H.p)}</Stat>)이 결과의 이질성(
-                  <Stat>η²<sub>ASR</sub> = {h.kruskal_session_asr.eta2.toFixed(3)}</Stat>)을 한 자릿수 차이로 상회함.
-                  편향 주입 하에서 순응도는 자유 선택 시의 선택
-                  (<Stat>ρ = +{h.compliance_sel.rho.toFixed(3)}</Stat>,{" "}
-                  <Stat>{formatP(h.compliance_sel.p)}</Stat>)을 따르며, 계열별 실력
-                  (<Stat>ρ = {h.compliance_asri.rho.toFixed(3)}</Stat>, 유의하지 않음)은 <em>따르지 않음</em>.
-                  자유 선택 시의 배분이 지시 순응도와 연관되는 이 현상을{" "}
-                  <strong className="text-foreground">편향 관성</strong>이라 명명함. 계열별 ASR 자체는
-                  설정이 변경되어도 온전히 전이되므로(<Stat>ρ = +{h.asr_transfer.rho.toFixed(3)}</Stat>,{" "}
-                  <Stat>{formatP(h.asr_transfer.p)}</Stat>). 이러한 연관성만으로 내재적 선호나 ASR 변화의 원인을 확정할 수는 없음.
-                </>
-              )}
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-border">
-              <Takeaway
-                tag={t("What stays", "유지되는 것")}
-                body={t(
-                  "Per-family capability transfers; what an agent does well, it keeps doing well across regimes.",
-                  "계열별 실력은 전이됨. 성과가 우수하던 계열은 설정이 변경되어도 지속적으로 우수함."
-                )}
-              />
-              <Takeaway
-                tag={t("What doesn't", "유지되지 않는 것")}
-                body={t(
-                  "Compliance is associated with free-choice allocation. Steering does not improve aggregate mean session ASR.",
-                  "순응도는 자유 선택 시의 배분과 연관됨. 지시는 전체 평균 세션 ASR을 개선하지 않음."
-                )}
-              />
-              <Takeaway
-                tag={t("What that means for evaluation", "평가에 주는 함의")}
-                body={t(
-                  "Outcome-only benchmarks compress distinct strategies into one number. Allocation, attack performance, and bias momentum must be measured as separable axes.",
-                  "결과만을 평가하는 벤치마크는 상이한 전략을 단일 수치로 축약함. 배분, 공격 성능, 편향 관성은 분리된 축으로 측정하여야 함."
-                )}
-              />
-            </div>
-          </div>
-        </section>
-      </FadeIn>
+      <L3Synthesis data={data} />
 
-      <div className="max-w-[1500px] mx-auto px-4 sm:px-6">
+      <div className="max-w-[800px] mx-auto px-4 sm:px-6">
         <BridgeText>
           {t(
             "Free-choice allocation remains associated with steering compliance. Steering does not improve aggregate mean session ASR.",
@@ -330,6 +143,261 @@ export function Layer3Injection({ data }: { data: PaperSummary }) {
         </BridgeText>
       </div>
     </div>
+  );
+}
+
+export function L3Design({ data }: { data: PaperSummary }) {
+  const { t } = useL3(data);
+  return (
+    <>
+        <FadeIn>
+          <section className="max-w-[800px] mx-auto px-4 sm:px-6">
+            <div className="mb-4">
+              <h3 className="text-xl font-semibold text-foreground">
+                {t("Bias Injection design", "편향 주입 설계")}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {t(
+                  "Requested-family condition. The environment, tool access, and verification pipeline remain identical to Bias Observation; only the task focus statement names a target family.",
+                  "계열 지정 조건임. 환경, 도구 접근, 검증 파이프라인은 편향 관찰과 완전히 동일하며, 과제 진술문에서 목표 계열을 지정하는 부분만 상이함."
+                )}
+              </p>
+            </div>
+            <InjectionDesignDiagram />
+          </section>
+        </FadeIn>
+    </>
+  );
+}
+
+export function L3ObsInj({ data }: { data: PaperSummary }) {
+  const { t, obsInjBars } = useL3(data);
+  return (
+    <>
+        <FadeIn>
+          <section className="max-w-[800px] mx-auto px-4 sm:px-6">
+            <div className="mb-4 flex items-baseline justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-xl font-semibold text-foreground">
+                  {t("Observation vs Injection session ASR per agent", "에이전트별 관찰 vs 주입 세션 ASR")}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t(
+                    "Side-by-side observation and forced-injection session ASR for each agent. Hover for raw obs/inj, ΔASR, compliance, and per-agent injection session count.",
+                    "에이전트별 관찰 세션 ASR과 강제 주입 세션 ASR을 병렬 비교함. 마우스를 올리면 원값(obs/inj), ΔASR, 순응도, 에이전트별 주입 세션 수가 표시됨."
+                  )}
+                </p>
+              </div>
+              <span className="text-xs font-mono tracking-wide text-foreground px-2 py-1 rounded border border-foreground/30 bg-muted">
+                {t("Agent-equal mean ΔASR", "에이전트 균등 평균 ΔASR")} {data.session_asr_uncertainty.estimates.agent_equal_mean.delta.toFixed(4)}
+              </span>
+            </div>
+            <ObsInjBars bars={obsInjBars} />
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold text-foreground mb-2">
+                {t("ΔASR per agent", "에이전트별 ΔASR")}
+              </h4>
+              <DeltaAsrBars
+                bars={obsInjBars.map((b) => ({
+                  agent: b.agent,
+                  label: b.label,
+                  delta: b.delta,
+                  color: b.color,
+                }))}
+              />
+            </div>
+            <SessionAsrUncertainty data={data} />
+          </section>
+        </FadeIn>
+    </>
+  );
+}
+
+export function L3Compliance({ data }: { data: PaperSummary }) {
+  const { agents, families, predictors, h } = useL3(data);
+  return (
+    <>
+        <FadeIn>
+          <CompliancePredictorsSection
+            predictors={predictors}
+            agents={agents}
+            families={families}
+            rhoSel={h.compliance_sel.rho}
+            pSel={h.compliance_sel.p}
+            rhoAsri={h.compliance_asri.rho}
+            pAsri={h.compliance_asri.p}
+          />
+        </FadeIn>
+    </>
+  );
+}
+
+export function L3Transfer({ data }: { data: PaperSummary }) {
+  const { t, predictors, h } = useL3(data);
+  return (
+    <>
+        <FadeIn>
+          <section className="max-w-[800px] mx-auto px-4 sm:px-6">
+            <div className="mb-4">
+              <h3 className="text-xl font-semibold text-foreground">
+                {t("Per-family ASR transfer (observation → injection)", "계열별 ASR 전이 (관찰 → 주입)")}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {t(
+                  <>
+                    Observation per-family ASR<sub>i</sub> vs injection per-family ASR<sub>i</sub> under forced
+                    injection. The strong positive correlation
+                    (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)})
+                    confirms capability persists across prompt conditions and forcing.
+                  </>,
+                  <>
+                    관찰 설정의 계열별 ASR<sub>i</sub>와 강제 주입 설정의 계열별 ASR<sub>i</sub>를
+                    비교함. 강한 양의 상관
+                    (ρ = +{h.asr_transfer.rho.toFixed(3)}, p = {formatP(h.asr_transfer.p)})은
+                    프롬프트 조건 및 강제 지시가 변경되어도 실력이 유지됨을 나타냄.
+                  </>
+                )}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+              <AsrTransferPanel
+                data={predictors}
+                rho={h.asr_transfer.rho}
+                pValue={h.asr_transfer.p}
+              />
+              <GeminiExceptionCallout />
+            </div>
+          </section>
+        </FadeIn>
+    </>
+  );
+}
+
+export function L3Correlations({ data }: { data: PaperSummary }) {
+  const { h } = useL3(data);
+  return (
+    <>
+        <FadeIn>
+          <section className="max-w-[800px] mx-auto px-4 sm:px-6">
+            <CorrelationTableToggle h={h} />
+          </section>
+        </FadeIn>
+    </>
+  );
+}
+
+export function L3Summary({ data }: { data: PaperSummary }) {
+  const { t, obsInjBars } = useL3(data);
+  return (
+    <>
+        <FadeIn>
+          <section className="max-w-[800px] mx-auto px-4 sm:px-6">
+            <div className="mb-4">
+              <h3 className="text-xl font-semibold text-foreground">
+                {t("Per-agent injection summary", "에이전트별 주입 요약")}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {t(
+                  "Compliance, observed/injected session ASR, and ΔASR by agent. Sorted by estimated ΔASR ascending.",
+                  "에이전트별 순응도, 관찰/주입 세션 ASR, ΔASR임. 추정 ΔASR의 오름차순으로 정렬함."
+                )}
+              </p>
+            </div>
+            <PerAgentSummaryTable rows={obsInjBars} />
+          </section>
+        </FadeIn>
+    </>
+  );
+}
+
+export function L3Synthesis({ data }: { data: PaperSummary }) {
+  const { t, h } = useL3(data);
+  return (
+    <>
+        <FadeIn>
+          <section className="max-w-[800px] mx-auto px-4 sm:px-6">
+            <div className="relative rounded-xl border border-border bg-card p-5 sm:p-7 pl-6 sm:pl-8 space-y-5 overflow-hidden">
+              <div
+                className="absolute inset-y-0 left-0 w-1 bg-foreground/70"
+                aria-hidden="true"
+              />
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-border text-[11px] font-mono uppercase tracking-widest text-foreground">
+                  {t("Synthesis · §5–7", "종합 · §5–7")}
+                </span>
+                <span className="text-xs font-mono text-muted-foreground">
+                  {t("Three separable axes", "분리 가능한 세 가지 축")}
+                </span>
+              </div>
+              <h3 className="font-serif text-2xl sm:text-3xl text-foreground leading-tight">
+                {t(
+                  "Allocation, attack performance, and bias momentum are distinct axes.",
+                  "배분, 공격 성능, 편향 관성은 서로 다른 축임."
+                )}
+              </h3>
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                {t(
+                  <>
+                    Across five frontier agents, three target environments, and 630
+                    total sessions, attack-selection bias is{" "}
+                    <strong className="text-foreground">stable, agent-specific, and prompt-invariant</strong>:
+                    behavioral heterogeneity (
+                    <Stat>η²<sub>H(X)</sub> = {h.kruskal_H.eta2.toFixed(3)}</Stat>,{" "}
+                    <Stat>{formatP(h.kruskal_H.p)}</Stat>) outpaces outcome heterogeneity (
+                    <Stat>η²<sub>ASR</sub> = {h.kruskal_session_asr.eta2.toFixed(3)}</Stat>) by an order of magnitude.
+                    Under bias injection, compliance follows free-choice selection
+                    (<Stat>ρ = +{h.compliance_sel.rho.toFixed(3)}</Stat>,{" "}
+                    <Stat>{formatP(h.compliance_sel.p)}</Stat>), <em>not</em> per-family capability
+                    (<Stat>ρ = {h.compliance_asri.rho.toFixed(3)}</Stat>, n.s.) — free-choice allocation remains associated with steering compliance, a phenomenon we term{" "}
+                    <strong className="text-foreground">bias momentum</strong>. Per-family ASR itself transfers
+                    cleanly across settings (<Stat>ρ = +{h.asr_transfer.rho.toFixed(3)}</Stat>,{" "}
+                    <Stat>{formatP(h.asr_transfer.p)}</Stat>). These associations do not isolate intrinsic preference or establish the cause of the ASR change.
+                  </>,
+                  <>
+                    프런티어 에이전트 5종, 표적 환경 3종, 총 630회 세션에 걸쳐 공격 선택 편향은{" "}
+                    <strong className="text-foreground">안정적이고, 에이전트별로 고유하며, 프롬프트에 둔감함</strong>.
+                    행동의 이질성(
+                    <Stat>η²<sub>H(X)</sub> = {h.kruskal_H.eta2.toFixed(3)}</Stat>,{" "}
+                    <Stat>{formatP(h.kruskal_H.p)}</Stat>)이 결과의 이질성(
+                    <Stat>η²<sub>ASR</sub> = {h.kruskal_session_asr.eta2.toFixed(3)}</Stat>)을 한 자릿수 차이로 상회함.
+                    편향 주입 하에서 순응도는 자유 선택 시의 선택
+                    (<Stat>ρ = +{h.compliance_sel.rho.toFixed(3)}</Stat>,{" "}
+                    <Stat>{formatP(h.compliance_sel.p)}</Stat>)을 따르며, 계열별 실력
+                    (<Stat>ρ = {h.compliance_asri.rho.toFixed(3)}</Stat>, 유의하지 않음)은 <em>따르지 않음</em>.
+                    자유 선택 시의 배분이 지시 순응도와 연관되는 이 현상을{" "}
+                    <strong className="text-foreground">편향 관성</strong>이라 명명함. 계열별 ASR 자체는
+                    설정이 변경되어도 온전히 전이되므로(<Stat>ρ = +{h.asr_transfer.rho.toFixed(3)}</Stat>,{" "}
+                    <Stat>{formatP(h.asr_transfer.p)}</Stat>). 이러한 연관성만으로 내재적 선호나 ASR 변화의 원인을 확정할 수는 없음.
+                  </>
+                )}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-border">
+                <Takeaway
+                  tag={t("What stays", "유지되는 것")}
+                  body={t(
+                    "Per-family capability transfers; what an agent does well, it keeps doing well across regimes.",
+                    "계열별 실력은 전이됨. 성과가 우수하던 계열은 설정이 변경되어도 지속적으로 우수함."
+                  )}
+                />
+                <Takeaway
+                  tag={t("What doesn't", "유지되지 않는 것")}
+                  body={t(
+                    "Compliance is associated with free-choice allocation. Steering does not improve aggregate mean session ASR.",
+                    "순응도는 자유 선택 시의 배분과 연관됨. 지시는 전체 평균 세션 ASR을 개선하지 않음."
+                  )}
+                />
+                <Takeaway
+                  tag={t("What that means for evaluation", "평가에 주는 함의")}
+                  body={t(
+                    "Outcome-only benchmarks compress distinct strategies into one number. Allocation, attack performance, and bias momentum must be measured as separable axes.",
+                    "결과만을 평가하는 벤치마크는 상이한 전략을 단일 수치로 축약함. 배분, 공격 성능, 편향 관성은 분리된 축으로 측정하여야 함."
+                  )}
+                />
+              </div>
+            </div>
+          </section>
+        </FadeIn>
+    </>
   );
 }
 
@@ -628,7 +696,7 @@ function CompliancePredictorsSection({
   }
 
   return (
-    <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
+    <section className="max-w-[800px] mx-auto px-4 sm:px-6">
       <div className="mb-4">
         <h3 className="text-xl font-semibold text-foreground">
           {t("Compliance predictors", "순응도 예측 요인")}

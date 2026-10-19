@@ -164,7 +164,7 @@ export function BiasHeatmap({
   }
 
   return (
-    <section className="max-w-[1500px] mx-auto px-4 sm:px-6 mt-20">
+    <section className="max-w-[800px] mx-auto px-4 sm:px-6 mt-20">
       <div className="mb-6">
         <h2 className="font-serif text-2xl sm:text-3xl text-foreground">{title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>

@@ -75,7 +75,7 @@ export function FindingsSection({ data }: { data: PaperSummary }) {
   return (
     <div className="space-y-24">
       <FadeIn>
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 space-y-6">
+        <div className="max-w-[800px] mx-auto px-4 sm:px-6 space-y-6">
           <div className="rounded-xl border border-border bg-muted/30 p-5">
             <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">
               {t("Four metric axes used throughout the dashboard", "대시보드 전반에 사용되는 네 가지 지표 축")}

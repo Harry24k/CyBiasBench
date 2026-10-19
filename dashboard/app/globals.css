@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Serif+KR:wght@500;600&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -7,7 +7,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: 'Inter', var(--font-geist-sans), system-ui, sans-serif;
-  --font-serif: 'DM Serif Display', serif;
+  --font-serif: 'DM Serif Display', 'Noto Serif KR', serif;
   --font-mono: 'JetBrains Mono', var(--font-geist-mono), monospace;
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
@@ -150,7 +150,7 @@
     font-family: 'JetBrains Mono', var(--font-geist-mono), monospace;
   }
   .font-serif {
-    font-family: 'DM Serif Display', serif;
+    font-family: 'DM Serif Display', 'Noto Serif KR', serif;
   }
 }
 

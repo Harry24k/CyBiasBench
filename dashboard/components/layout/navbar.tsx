@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { REPO } from "@/lib/config";
 import { useTheme } from "@/lib/use-theme";
 import { useLang, useT } from "@/lib/i18n";
+import { CHAPTERS } from "@/components/article/chapters";
 
 // Inline literal so the bundler can dead-code-eliminate the
 // "Anonymous review build" branch on the GitHub Pages build.
@@ -35,28 +36,16 @@ interface NavItem {
 const NAV: NavItem[] = [
   { id: "overview", label: "Overview", labelKo: "개요" },
   {
-    id: "methodology",
-    label: "Methodology",
-    labelKo: "방법론",
-    sub: [
-      { id: "m-design", label: "Design", labelKo: "실험 설계" },
-      { id: "m-infra", label: "Infrastructure", labelKo: "인프라" },
-      { id: "m-prompts", label: "Prompts", labelKo: "프롬프트" },
-      { id: "m-classify", label: "Classification", labelKo: "분류" },
-      { id: "m-metrics", label: "Metrics", labelKo: "지표" },
-    ],
-  },
-  {
     id: "findings",
     label: "Findings",
     labelKo: "주요 결과",
-    sub: [
-      { id: "findings-layer1", label: "Bias Observation", labelKo: "편향 관찰" },
-      { id: "findings-layer2", label: "Selection ≠ Performance", labelKo: "선택 ≠ 성능" },
-      { id: "findings-layer3", label: "Bias Injection", labelKo: "편향 주입" },
-      { id: "findings-synthesis", label: "Synthesis", labelKo: "종합" },
-    ],
+    sub: CHAPTERS.map((c, i) => ({
+      id: c.id,
+      label: `${i + 1}. ${c.label}`,
+      labelKo: `${i + 1}. ${c.labelKo}`,
+    })),
   },
+  { id: "methodology", label: "Methodology", labelKo: "방법론" },
 ];
 
 const ALL_TRACKED_IDS: string[] = NAV.flatMap((s) => [
@@ -449,12 +438,28 @@ export function Navbar() {
       { rootMargin: "-40% 0px -50% 0px", threshold: 0 }
     );
 
-    ALL_TRACKED_IDS.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
+    // Chapters render only after the summary JSON loads, so keep attaching
+    // newly mounted section ids until every tracked id is observed.
+    const attached = new Set<string>();
+    const attach = () => {
+      for (const id of ALL_TRACKED_IDS) {
+        if (attached.has(id)) continue;
+        const el = document.getElementById(id);
+        if (el) {
+          observer.observe(el);
+          attached.add(id);
+        }
+      }
+      if (attached.size === ALL_TRACKED_IDS.length) mutations.disconnect();
+    };
+    const mutations = new MutationObserver(attach);
+    mutations.observe(document.body, { childList: true, subtree: true });
+    attach();
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      mutations.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -465,6 +470,10 @@ export function Navbar() {
   }, []);
 
   const scrollTo = (id: string) => {
+    // The methodology appendix is collapsed by default; open it first.
+    if (id === "methodology") {
+      window.dispatchEvent(new Event("cybiasbench:open-methodology"));
+    }
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -479,7 +488,7 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/85 backdrop-blur-md">
-      <div className="max-w-[1500px] mx-auto px-6 h-14 flex items-center justify-between">
+      <div className="max-w-[800px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         {IS_ANON_INLINE ? (
           // Anonymous build: a lab logo would deanonymize the authors.
           <button
@@ -501,7 +510,7 @@ export function Navbar() {
             <img
               src={LAB.logo}
               alt={LAB.name}
-              className="lab-logo h-7 sm:h-8 w-auto max-w-[180px] sm:max-w-[240px] object-contain"
+              className="lab-logo h-7 sm:h-8 w-auto max-w-[170px] sm:max-w-[210px] object-contain"
             />
           </a>
         )}

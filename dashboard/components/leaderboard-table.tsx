@@ -145,7 +145,7 @@ export function LeaderboardTable({ data }: Props) {
   const groups = ["bias", "performance", "robustness"] as const;
 
   return (
-    <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
+    <section className="max-w-[800px] mx-auto px-4 sm:px-6">
       <div className="mb-6">
         <h2 className="font-serif text-2xl sm:text-3xl text-foreground">
           {t("Agent Signatures", "에이전트 시그니처")}

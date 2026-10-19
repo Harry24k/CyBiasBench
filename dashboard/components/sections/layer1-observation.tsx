@@ -47,7 +47,7 @@ function formatP(p: number): string {
   return p.toFixed(3);
 }
 
-export function Layer1Observation({ data }: { data: PaperSummary }) {
+function useL1(data: PaperSummary) {
   const t = useT();
   const agents = data.agents;
   const families = data.families;
@@ -61,9 +61,14 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
   const maxCr1 = Math.max(...agents.map((a) => sig[a]?.selection_cr1 ?? 0));
   const maxAsr = Math.max(...agents.map((a) => (sig[a]?.session_asr_mean ?? 0)));
 
+  return { t, agents, families, sig, jsd, kw, agentColors, maxH, maxUniq, maxCr1, maxAsr };
+}
+
+export function Layer1Observation({ data }: { data: PaperSummary }) {
+  const { t, kw } = useL1(data);
   return (
     <div id="findings-layer1" className="space-y-14 scroll-mt-24">
-      <header className="max-w-[1500px] mx-auto px-4 sm:px-6">
+      <header className="max-w-[800px] mx-auto px-4 sm:px-6">
         <h2 className="font-serif text-2xl sm:text-3xl text-foreground">
           {t("Bias Observation", "편향 관찰")}
         </h2>
@@ -87,230 +92,15 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
         </p>
       </header>
 
-      <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
-          <div className="mb-4">
-            <h3 className="text-xl font-semibold text-foreground">
-              {t("Agent Signatures", "에이전트 시그니처")}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t(
-                <>
-                  Three bias indicators per agent: entropy H(X), mean unique families per session,
-                  and the most-selected family&apos;s share (Sel<sub>i</sub>).
-                </>,
-                <>
-                  에이전트별 편향 지표 3종: 엔트로피 H(X), 세션당 평균 고유 계열 수,
-                  최다 선택 계열의 비중(Sel<sub>i</sub>).
-                </>
-              )}
-            </p>
-          </div>
+      <L1Signatures data={data} />
 
-          <div className="rounded-lg border border-border overflow-hidden bg-card">
-            {/* Desktop: dense per-agent grid */}
-            <div className="hidden md:grid grid-cols-[150px_1.5fr_0.9fr_0.9fr_0.9fr_0.9fr] text-sm">
-              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground">
-                {t("Agent", "에이전트")}
-              </div>
-              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground">
-                {t("Most Selected Family", "최다 선택 계열")}{" "}
-                <span className="text-xs text-muted-foreground font-normal">(Sel<sub>i</sub>)</span>
-              </div>
-              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
-                H(X){" "}
-                <span className="text-xs text-muted-foreground font-normal">
-                  {t("↑ breadth", "↑ 넓음")}
-                </span>
-              </div>
-              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
-                {t("Unique / sess", "고유 / 세션")}{" "}
-                <span className="text-xs text-muted-foreground font-normal">
-                  {t("↑ breadth", "↑ 넓음")}
-                </span>
-              </div>
-              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
-                {t("Sel CR1", "Sel CR1")}{" "}
-                <span className="text-xs text-muted-foreground font-normal">
-                  {t("↑ concentrated", "↑ 집중")}
-                </span>
-              </div>
-              <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
-                {t("Session ASR", "세션 ASR")}{" "}
-                <span className="text-xs text-muted-foreground font-normal">
-                  {t("↑ better", "↑ 높을수록 우수")}
-                </span>
-              </div>
+      <L1ConditionHeatmap data={data} />
 
-              {agents.map((a) => {
-                const s = sig[a];
-                if (!s) return null;
-                const color = agentColors[a] ?? "#888";
-                return (
-                  <SignatureRow
-                    key={a}
-                    agent={a}
-                    color={color}
-                    entropy={s.entropy}
-                    unique={s.unique_techniques}
-                    topShare={s.top_share}
-                    topFamily={s.top_family}
-                    cr1={s.selection_cr1 ?? 0}
-                    sessionAsr={s.session_asr_mean ?? 0}
-                    maxH={maxH}
-                    maxUniq={maxUniq}
-                    maxCr1={maxCr1}
-                    maxAsr={maxAsr}
-                  />
-                );
-              })}
-            </div>
+      <L1Jsd data={data} />
 
-            {/* Mobile: stacked cards (same metrics as desktop), inline Sel_i bars */}
-            <div className="md:hidden divide-y divide-border">
-              {agents.map((a) => {
-                const s = sig[a];
-                if (!s) return null;
-                const color = agentColors[a] ?? "#888";
-                return (
-                  <MobileSignatureCard
-                    key={a}
-                    agent={a}
-                    color={color}
-                    entropy={s.entropy}
-                    unique={s.unique_techniques}
-                    topShare={s.top_share}
-                    topFamily={s.top_family}
-                    cr1={s.selection_cr1 ?? 0}
-                    sessionAsr={s.session_asr_mean ?? 0}
-                    maxH={maxH}
-                    maxUniq={maxUniq}
-                    maxCr1={maxCr1}
-                    maxAsr={maxAsr}
-                    selByFamily={data.fig3_selection_per_agent[a] ?? {}}
-                    families={families}
-                  />
-                );
-              })}
-            </div>
-          </div>
-          <p className="mt-2 text-[11px] text-muted-foreground">
-            {t(
-              <>
-                36 free-choice sessions per agent. Sel<sub>i</sub> in parentheses is the
-                most-selected family&apos;s share;{" "}
-                <span className="font-mono">Sel CR1</span> is the within-session concentration
-                averaged across sessions.
-              </>,
-              <>
-                에이전트당 자유 선택 세션 36회임. 괄호 안 Sel<sub>i</sub>는 최다 선택 계열의 비중이며,{" "}
-                <span className="font-mono">Sel CR1</span>은 세션 내 집중도를 전체 세션에 대해 평균한 값임.
-              </>
-            )}
-          </p>
-        </section>
-      </FadeIn>
+      <L1Identification data={data} />
 
-      {data.fig2_selection_heatmap_by_condition && (
-        <FadeIn>
-          <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
-            <div className="mb-4">
-              <h3 className="text-xl font-semibold text-foreground">
-                {t("Selection across the four prompt conditions", "네 가지 프롬프트 조건별 선택")}
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {t(
-                  <>
-                    Same Sel<sub>i</sub> heatmap split by the 2×2 prompt design.
-                    Within an agent, the four panels look nearly identical;
-                    between agents, they look obviously different. Family shares also depend on vulnerability availability, discoverability, and execution difficulty.
-                  </>,
-                  <>
-                    동일한 Sel<sub>i</sub> 히트맵을 2×2 프롬프트 설계 기준으로 분할한 것임.
-                    동일 에이전트 내에서는 네 패널이 거의 동일하게 나타나나,
-                    에이전트 간에는 확연히 구분됨. 계열별 비중에는 취약점 가용성·발견 가능성·실행 난이도도 영향을 줌.
-                  </>
-                )}
-              </p>
-            </div>
-            <ConditionHeatmapGrid
-              agents={agents}
-              families={families}
-              familyLabels={FAMILY_LABELS}
-              byCondition={data.fig2_selection_heatmap_by_condition}
-              pooledByAgent={data.fig3_selection_per_agent}
-            />
-          </section>
-        </FadeIn>
-      )}
-
-      <FadeIn>
-        <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
-          <div className="mb-4">
-            <h3 className="text-xl font-semibold text-foreground">
-              {t("Prompt Robustness (JSD)", "프롬프트 견고성 (JSD)")}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t(
-                "Jensen–Shannon divergence between family distributions. Within-agent drift (prompt conditions vs agent centroid) is much smaller than between-agent separation — these patterns persist across the evaluated prompts without isolating intrinsic preference.",
-                "계열 분포 간 Jensen–Shannon 발산임. 에이전트 내부 변동(프롬프트 조건 vs 에이전트 중심)이 에이전트 간 격차보다 현저히 작음. 평가한 프롬프트들에서 패턴이 유지되지만, 내재적 선호만을 분리한 결과는 아님."
-              )}
-            </p>
-          </div>
-          <JSDComparison jsd={jsd} />
-        </section>
-      </FadeIn>
-
-      {data.agent_identification_rf && (
-        <FadeIn>
-          <section className="max-w-[1500px] mx-auto px-4 sm:px-6">
-            <div className="mb-4">
-              <h3 className="text-xl font-semibold text-foreground">
-                {t("Agent Identification by Selection Pattern", "선택 패턴으로 에이전트 식별하기")}
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {(() => {
-                  const acc = (
-                    (data.headline_stats.rf_accuracy ??
-                      data.agent_identification_rf.metrics.leave_one_out?.accuracy ??
-                      0) * 100
-                  ).toFixed(0);
-                  const base = (
-                    (data.headline_stats.rf_baseline ??
-                      data.agent_identification_rf.baseline_accuracy ??
-                      0.2) * 100
-                  ).toFixed(0);
-                  const Acc = (
-                    <span className="font-mono tabular-nums text-foreground">{acc}%</span>
-                  );
-                  const Base = (
-                    <span className="font-mono tabular-nums text-foreground">{base}%</span>
-                  );
-                  return t(
-                    <>
-                      A random forest classifier trained on the 10-family Sel<sub>i</sub> vectors
-                      identifies the underlying agent at {Acc} accuracy versus a {Base} chance
-                      baseline — selection profiles are agent-specific fingerprints.
-                    </>,
-                    <>
-                      10종 계열 Sel<sub>i</sub> 벡터로 학습한 랜덤 포레스트 분류기는 실제
-                      에이전트를 {Acc} 정확도로 식별함. 무작위 기준선은 {Base}임. 선택
-                      프로파일은 에이전트별 고유 지문에 해당함.
-                    </>
-                  );
-                })()}
-              </p>
-            </div>
-            <RFIdentificationCard
-              rf={data.agent_identification_rf}
-              accuracy={data.headline_stats.rf_accuracy}
-              baseline={data.headline_stats.rf_baseline}
-            />
-          </section>
-        </FadeIn>
-      )}
-
-      <div className="max-w-[1500px] mx-auto px-4 sm:px-6">
+      <div className="max-w-[800px] mx-auto px-4 sm:px-6">
         <BridgeText>
           {t(
             "Selection profiles are stable and model-specific. But do these preferences track what actually succeeds?",
@@ -319,6 +109,257 @@ export function Layer1Observation({ data }: { data: PaperSummary }) {
         </BridgeText>
       </div>
     </div>
+  );
+}
+
+export function L1Signatures({ data }: { data: PaperSummary }) {
+  const { t, agents, families, sig, agentColors, maxH, maxUniq, maxCr1, maxAsr } = useL1(data);
+  return (
+    <>
+        <FadeIn>
+          <section className="max-w-[800px] mx-auto px-4 sm:px-6">
+            <div className="mb-4">
+              <h3 className="text-xl font-semibold text-foreground">
+                {t("Agent Signatures", "에이전트 시그니처")}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {t(
+                  <>
+                    Three bias indicators per agent: entropy H(X), mean unique families per session,
+                    and the most-selected family&apos;s share (Sel<sub>i</sub>).
+                  </>,
+                  <>
+                    에이전트별 편향 지표 3종: 엔트로피 H(X), 세션당 평균 고유 계열 수,
+                    최다 선택 계열의 비중(Sel<sub>i</sub>).
+                  </>
+                )}
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-border overflow-hidden bg-card">
+              {/* Desktop: dense per-agent grid */}
+              <div className="hidden md:grid grid-cols-[150px_1.5fr_0.9fr_0.9fr_0.9fr_0.9fr] text-sm">
+                <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground">
+                  {t("Agent", "에이전트")}
+                </div>
+                <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground">
+                  {t("Most Selected Family", "최다 선택 계열")}{" "}
+                  <span className="text-xs text-muted-foreground font-normal">(Sel<sub>i</sub>)</span>
+                </div>
+                <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
+                  H(X){" "}
+                  <span className="text-xs text-muted-foreground font-normal">
+                    {t("↑ breadth", "↑ 넓음")}
+                  </span>
+                </div>
+                <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
+                  {t("Unique / sess", "고유 / 세션")}{" "}
+                  <span className="text-xs text-muted-foreground font-normal">
+                    {t("↑ breadth", "↑ 넓음")}
+                  </span>
+                </div>
+                <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
+                  {t("Sel CR1", "Sel CR1")}{" "}
+                  <span className="text-xs text-muted-foreground font-normal">
+                    {t("↑ concentrated", "↑ 집중")}
+                  </span>
+                </div>
+                <div className="bg-muted/50 px-4 py-3 font-semibold text-foreground text-right">
+                  {t("Session ASR", "세션 ASR")}{" "}
+                  <span className="text-xs text-muted-foreground font-normal">
+                    {t("↑ better", "↑ 높을수록 우수")}
+                  </span>
+                </div>
+
+                {agents.map((a) => {
+                  const s = sig[a];
+                  if (!s) return null;
+                  const color = agentColors[a] ?? "#888";
+                  return (
+                    <SignatureRow
+                      key={a}
+                      agent={a}
+                      color={color}
+                      entropy={s.entropy}
+                      unique={s.unique_techniques}
+                      topShare={s.top_share}
+                      topFamily={s.top_family}
+                      cr1={s.selection_cr1 ?? 0}
+                      sessionAsr={s.session_asr_mean ?? 0}
+                      maxH={maxH}
+                      maxUniq={maxUniq}
+                      maxCr1={maxCr1}
+                      maxAsr={maxAsr}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Mobile: stacked cards (same metrics as desktop), inline Sel_i bars */}
+              <div className="md:hidden divide-y divide-border">
+                {agents.map((a) => {
+                  const s = sig[a];
+                  if (!s) return null;
+                  const color = agentColors[a] ?? "#888";
+                  return (
+                    <MobileSignatureCard
+                      key={a}
+                      agent={a}
+                      color={color}
+                      entropy={s.entropy}
+                      unique={s.unique_techniques}
+                      topShare={s.top_share}
+                      topFamily={s.top_family}
+                      cr1={s.selection_cr1 ?? 0}
+                      sessionAsr={s.session_asr_mean ?? 0}
+                      maxH={maxH}
+                      maxUniq={maxUniq}
+                      maxCr1={maxCr1}
+                      maxAsr={maxAsr}
+                      selByFamily={data.fig3_selection_per_agent[a] ?? {}}
+                      families={families}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              {t(
+                <>
+                  36 free-choice sessions per agent. Sel<sub>i</sub> in parentheses is the
+                  most-selected family&apos;s share;{" "}
+                  <span className="font-mono">Sel CR1</span> is the within-session concentration
+                  averaged across sessions.
+                </>,
+                <>
+                  에이전트당 자유 선택 세션 36회임. 괄호 안 Sel<sub>i</sub>는 최다 선택 계열의 비중이며,{" "}
+                  <span className="font-mono">Sel CR1</span>은 세션 내 집중도를 전체 세션에 대해 평균한 값임.
+                </>
+              )}
+            </p>
+          </section>
+        </FadeIn>
+    </>
+  );
+}
+
+export function L1ConditionHeatmap({ data }: { data: PaperSummary }) {
+  const { t, agents, families } = useL1(data);
+  return (
+    <>
+        {data.fig2_selection_heatmap_by_condition && (
+          <FadeIn>
+            <section className="max-w-[800px] mx-auto px-4 sm:px-6">
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold text-foreground">
+                  {t("Selection across the four prompt conditions", "네 가지 프롬프트 조건별 선택")}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t(
+                    <>
+                      Same Sel<sub>i</sub> heatmap split by the 2×2 prompt design.
+                      Within an agent, the four panels look nearly identical;
+                      between agents, they look obviously different. Family shares also depend on vulnerability availability, discoverability, and execution difficulty.
+                    </>,
+                    <>
+                      동일한 Sel<sub>i</sub> 히트맵을 2×2 프롬프트 설계 기준으로 분할한 것임.
+                      동일 에이전트 내에서는 네 패널이 거의 동일하게 나타나나,
+                      에이전트 간에는 확연히 구분됨. 계열별 비중에는 취약점 가용성·발견 가능성·실행 난이도도 영향을 줌.
+                    </>
+                  )}
+                </p>
+              </div>
+              <ConditionHeatmapGrid
+                agents={agents}
+                families={families}
+                familyLabels={FAMILY_LABELS}
+                byCondition={data.fig2_selection_heatmap_by_condition}
+                pooledByAgent={data.fig3_selection_per_agent}
+              />
+            </section>
+          </FadeIn>
+        )}
+    </>
+  );
+}
+
+export function L1Jsd({ data }: { data: PaperSummary }) {
+  const { t, jsd } = useL1(data);
+  return (
+    <>
+        <FadeIn>
+          <section className="max-w-[800px] mx-auto px-4 sm:px-6">
+            <div className="mb-4">
+              <h3 className="text-xl font-semibold text-foreground">
+                {t("Prompt Robustness (JSD)", "프롬프트 견고성 (JSD)")}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {t(
+                  "Jensen–Shannon divergence between family distributions. Within-agent drift (prompt conditions vs agent centroid) is much smaller than between-agent separation — these patterns persist across the evaluated prompts without isolating intrinsic preference.",
+                  "계열 분포 간 Jensen–Shannon 발산임. 에이전트 내부 변동(프롬프트 조건 vs 에이전트 중심)이 에이전트 간 격차보다 현저히 작음. 평가한 프롬프트들에서 패턴이 유지되지만, 내재적 선호만을 분리한 결과는 아님."
+                )}
+              </p>
+            </div>
+            <JSDComparison jsd={jsd} />
+          </section>
+        </FadeIn>
+    </>
+  );
+}
+
+export function L1Identification({ data }: { data: PaperSummary }) {
+  const { t } = useL1(data);
+  return (
+    <>
+        {data.agent_identification_rf && (
+          <FadeIn>
+            <section className="max-w-[800px] mx-auto px-4 sm:px-6">
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold text-foreground">
+                  {t("Agent Identification by Selection Pattern", "선택 패턴으로 에이전트 식별하기")}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {(() => {
+                    const acc = (
+                      (data.headline_stats.rf_accuracy ??
+                        data.agent_identification_rf.metrics.leave_one_out?.accuracy ??
+                        0) * 100
+                    ).toFixed(0);
+                    const base = (
+                      (data.headline_stats.rf_baseline ??
+                        data.agent_identification_rf.baseline_accuracy ??
+                        0.2) * 100
+                    ).toFixed(0);
+                    const Acc = (
+                      <span className="font-mono tabular-nums text-foreground">{acc}%</span>
+                    );
+                    const Base = (
+                      <span className="font-mono tabular-nums text-foreground">{base}%</span>
+                    );
+                    return t(
+                      <>
+                        A random forest classifier trained on the 10-family Sel<sub>i</sub> vectors
+                        identifies the underlying agent at {Acc} accuracy versus a {Base} chance
+                        baseline — selection profiles are agent-specific fingerprints.
+                      </>,
+                      <>
+                        10종 계열 Sel<sub>i</sub> 벡터로 학습한 랜덤 포레스트 분류기는 실제
+                        에이전트를 {Acc} 정확도로 식별함. 무작위 기준선은 {Base}임. 선택
+                        프로파일은 에이전트별 고유 지문에 해당함.
+                      </>
+                    );
+                  })()}
+                </p>
+              </div>
+              <RFIdentificationCard
+                rf={data.agent_identification_rf}
+                accuracy={data.headline_stats.rf_accuracy}
+                baseline={data.headline_stats.rf_baseline}
+              />
+            </section>
+          </FadeIn>
+        )}
+    </>
   );
 }
 

@@ -3,9 +3,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { HeroSection } from "@/components/hero-section";
 import { FadeIn } from "@/components/fade-in";
-import { OverviewSection } from "@/components/sections/overview-section";
-import { FindingsSection } from "@/components/sections/findings-section";
-import { AgentPicker } from "@/components/agent-picker";
+import { L2SelVsAsr } from "@/components/sections/layer2-decoupling";
+import { ArticleIntro, ArticleChapters } from "@/components/article/article-body";
+import { RESEARCHERS } from "@/lib/config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -968,7 +968,7 @@ function MethodologySection() {
     { id: "m-metrics", label: t("Metrics", "지표") },
   ];
   return (
-    <div className="max-w-[1500px] mx-auto px-4 sm:px-6 space-y-12">
+    <div className="space-y-12 px-5 sm:px-6">
       <div>
         <h1 className="font-serif text-3xl sm:text-4xl text-foreground">{t("Methodology", "방법론")}</h1>
         <p className="mt-2 text-lg text-muted-foreground">
@@ -1284,6 +1284,7 @@ export default function Home() {
   const t = useT();
   const [data, setData] = useState<PaperSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [methodsOpen, setMethodsOpen] = useState(false);
 
   useEffect(() => {
     fetch(`${BASE_PATH}/data/paper_summary.json`)
@@ -1295,79 +1296,116 @@ export default function Home() {
       .catch((e) => setError(e.message));
   }, []);
 
+  // Open the collapsed methodology appendix when it is targeted from the navbar.
+  useEffect(() => {
+    const open = () => setMethodsOpen(true);
+    window.addEventListener("cybiasbench:open-methodology", open);
+    return () => window.removeEventListener("cybiasbench:open-methodology", open);
+  }, []);
+
   return (
     <main className="min-h-screen">
       <FadeIn>
         <HeroSection />
       </FadeIn>
 
-      <section id="overview" className="pb-12">
+      {/* Lead figure: selection vs per-family ASR, radar / table toggle. */}
+      <section id="overview" className="scroll-mt-20 pt-2">
         {error && (
-          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 text-center py-16">
+          <div className="max-w-[800px] mx-auto px-4 sm:px-6 text-center py-16">
             <p className="text-destructive text-sm">
               {t("Failed to load data", "데이터를 불러오지 못함")}: {error}
             </p>
           </div>
         )}
         {!data && !error && (
-          <div className="max-w-[1500px] mx-auto px-4 sm:px-6">
-            <div className="h-9 w-48 rounded bg-foreground/10 animate-pulse mb-4" />
-            <div className="rounded-lg border border-border overflow-hidden">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-14 border-b border-border flex items-center px-4 gap-4">
-                  <div className="h-4 w-24 rounded bg-foreground/10 animate-pulse" />
-                  <div className="h-4 w-16 rounded bg-foreground/10 animate-pulse ml-auto" />
-                  <div className="h-4 w-16 rounded bg-foreground/10 animate-pulse" />
-                  <div className="h-4 w-16 rounded bg-foreground/10 animate-pulse" />
-                </div>
+          <div className="max-w-[800px] mx-auto px-4 sm:px-6">
+            <div className="h-7 w-72 rounded bg-foreground/10 animate-pulse mb-4" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="h-72 rounded-lg border border-border bg-foreground/[0.04] animate-pulse" />
               ))}
             </div>
           </div>
         )}
-        {data && <OverviewSection data={data} />}
-      </section>
-
-      {data && (
-        <section id="agent-picker" className="pb-12 pt-4 scroll-mt-24">
+        {data && (
           <FadeIn>
-            <AgentPicker data={data} />
+            <L2SelVsAsr data={data} />
           </FadeIn>
-        </section>
-      )}
-
-      <section id="methodology" className="pb-12 pt-8">
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 mb-8">
-          <div className="flex items-center gap-4">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-xs font-mono text-muted-foreground uppercase tracking-[0.2em]">{t("Methodology", "방법론")}</span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
-        </div>
-        <FadeIn>
-          <MethodologySection />
-        </FadeIn>
-      </section>
-
-      <section id="findings" className="pb-12 pt-8">
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 mb-8">
-          <div className="flex items-center gap-4">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-xs font-mono text-muted-foreground uppercase tracking-[0.2em]">{t("Findings", "주요 결과")}</span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
-        </div>
-        {data ? (
-          <FadeIn>
-            <FindingsSection data={data} />
-          </FadeIn>
-        ) : (
-          !error && (
-            <div className="max-w-[1500px] mx-auto px-4 sm:px-6">
-              <div className="animate-pulse rounded-md bg-foreground/10 h-64" />
-            </div>
-          )
         )}
       </section>
+
+      <ArticleIntro />
+
+      {data ? (
+        <div id="findings">
+          <ArticleChapters data={data} />
+        </div>
+      ) : (
+        !error && (
+          <div className="max-w-[800px] mx-auto px-4 sm:px-6 pt-16">
+            <div className="animate-pulse rounded-md bg-foreground/10 h-64" />
+          </div>
+        )
+      )}
+
+      <section id="methodology" className="scroll-mt-20 pt-20">
+        <div className="max-w-[800px] mx-auto px-4 sm:px-6">
+          <div className="rounded-xl border border-border bg-card">
+            <Collapsible
+              open={methodsOpen}
+              onOpenChange={setMethodsOpen}
+              triggerClassName="px-5 py-4 text-base"
+              trigger={
+                <span className="flex flex-col">
+                  <span className="font-serif text-xl text-foreground">
+                    {t("Methodology details", "방법론 상세")}
+                  </span>
+                  <span className="text-sm font-normal text-muted-foreground">
+                    {t(
+                      "Experiment design, infrastructure, prompts, attack classification, and metrics",
+                      "실험 설계, 인프라, 프롬프트, 공격 분류, 지표"
+                    )}
+                  </span>
+                </span>
+              }
+              contentClassName="mt-0 border-t border-border pt-8 pb-10"
+            >
+              <MethodologySection />
+            </Collapsible>
+          </div>
+        </div>
+      </section>
+
+      <ArticleEndMatter />
     </main>
+  );
+}
+
+function ArticleEndMatter() {
+  const t = useT();
+  return (
+    <section className="max-w-[800px] mx-auto px-4 sm:px-6 pt-16">
+      <div className="border-t border-border pt-8 space-y-2 text-sm text-muted-foreground">
+        <p className="font-serif text-lg text-foreground">
+          CyBiasBench — Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios
+        </p>
+        <p>NeurIPS 2026 Evaluations &amp; Datasets Track</p>
+        <p>
+          <span className="text-foreground/80">{t("Authors", "저자")}:</span>{" "}
+          {RESEARCHERS.map((r, i) => (
+            <span key={r.name}>
+              {r.name}
+              {r.equal && "*"}
+              {r.corresponding && "†"}
+              {i < RESEARCHERS.length - 1 && ", "}
+            </span>
+          ))}
+        </p>
+        <p className="text-xs">
+          {t("* Equal contribution · † Corresponding authors", "* 동등 기여 · † 교신저자")}
+        </p>
+      </div>
+    </section>
   );
 }
