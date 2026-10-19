@@ -59,7 +59,7 @@
   "sameAs": "https://arxiv.org/abs/2605.07830",
   "version": "1.0.0",
   "datePublished": "2026-05-07",
-  "dateModified": "2026-10-12",
+  "dateModified": "2026-10-19",
   "citeAs": "@inproceedings{lim2026cybiasbench, title = {CyBiasBench: Benchmarking Bias in LLM Agents for Cyber-Attack Scenarios}, author = {Lim, Taein and Ju, Seongyong and Kim, Munhyeok and Kim, Hyunjun and Kim, Hoki}, booktitle = {NeurIPS 2026 Evaluations and Datasets Track}, year = {2026}, url = {https://arxiv.org/abs/2605.07830} }",
   "keywords": [
     "LLM agents",

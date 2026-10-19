@@ -101,9 +101,9 @@ repetitions (three).
 **Who was involved?**
 The authors and their automated harness collected the sessions. Human experts
 separately reviewed family labels and response-ambiguous automatic positives;
-their review did not generate the original automatic trace labels. The human
-verdict sheets and corrected success-policy results must be packaged separately
-before this camera-ready release is finalized.
+their review did not generate the original automatic trace labels. This release
+retains those original automatic labels and does not include human verdict
+sheets or human-corrected success-policy results.
 
 **Was an ethical review conducted?**
 No human subjects, no real systems, and no real personal data are involved.
