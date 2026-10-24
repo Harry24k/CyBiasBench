@@ -9,6 +9,9 @@ but *how the agent chose, sequenced, and stuck with attack families*.
 > Datasets Track paper. Paper: <https://arxiv.org/abs/2605.07830>.
 > Interactive result dashboard: <https://trustworthyai.co.kr/CyBiasBench/>.
 > Dataset on Hugging Face: <https://huggingface.co/datasets/taeng0204/CyBiasBench>.
+> NeurIPS 2026 thumbnail: [PNG](assets/neurips2026/CyBiasBench_thumbnail_NeurIPS2026.png),
+> [PDF](assets/neurips2026/CyBiasBench_thumbnail_NeurIPS2026.pdf),
+> [PowerPoint](assets/neurips2026/CyBiasBench_thumbnail_NeurIPS2026.pptx).
 
 ## What's in the box
 
